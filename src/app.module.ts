@@ -14,6 +14,7 @@ import { RecruitmentPostsModule } from './modules/recruitment_posts/recruitment_
 import { AssetsModule } from './modules/assets/assets.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
 import { ChatsModule } from './modules/chats/chats.module';
+import { ProblemsModule } from './modules/problems/problems.module';
 
 @Module({
 	imports: [
@@ -69,6 +70,7 @@ import { ChatsModule } from './modules/chats/chats.module';
 		AssetsModule,
 		ApplicationsModule,
 		ChatsModule,
+		ProblemsModule,
 	],
 	controllers: [],
 	providers: [],

@@ -12,10 +12,10 @@ export abstract class AbstractEntity<
 	@PrimaryGeneratedColumn('uuid')
 	id!: string;
 
-	@CreateDateColumn({ name: "created_at", type: 'timestamp' })
+	@CreateDateColumn({ type: 'timestamp' })
 	createdAt!: Date;
 
-	@UpdateDateColumn({ name: "updated_at", type: 'timestamp' })
+	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt!: Date;
 
 	toDto(options?: O): DTO {
