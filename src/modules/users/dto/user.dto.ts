@@ -1,28 +1,28 @@
-import {AbstractDto} from "../../../common/dto/abstract.dto";
-import {EmailField, EnumFieldOptional, StringField} from "../../../decoractors/field.decoractors";
-import {UserEntity} from "../entities/user.entity";
-import {RoleType} from "../../../constants/role-type";
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { EmailField, EnumFieldOptional, StringField } from '../../../decoractors/field.decoractors';
+import { UserEntity } from '../entities/user.entity';
+import { RoleType } from '../../../constants/role-type';
 
 export type UserDtoOptions = Partial<{ isActive: boolean }>;
 
-export class UserDTo extends AbstractDto {
-    @StringField()
-    first_name!: string;
+export class UserDto extends AbstractDto {
+	@StringField()
+	firstName!: string;
 
-    @StringField()
-    last_name!: string;
+	@StringField()
+	lastName!: string;
 
-    @EnumFieldOptional(() => RoleType)
-    role?: RoleType;
+	@EnumFieldOptional(() => RoleType)
+	role?: RoleType;
 
-    @EmailField()
-    email!: string;
+	@EmailField()
+	email!: string;
 
-    constructor(user: UserEntity, options?: UserDtoOptions) {
-        super(user);
-        this.first_name = user.first_name;
-        this.last_name = user.last_name;
-        this.email = user.email;
-        this.role = user.role;
-    }
+	constructor(user: UserEntity) {
+		super(user);
+		this.firstName = user.firstName;
+		this.lastName = user.lastName;
+		this.email = user.email;
+		this.role = user.role;
+	}
 }

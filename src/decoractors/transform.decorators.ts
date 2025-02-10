@@ -1,4 +1,4 @@
-import {Transform} from 'class-transformer';
+import { Transform } from 'class-transformer';
 import _ from 'lodash';
 
 /**
@@ -12,36 +12,36 @@ import _ from 'lodash';
  * @constructor
  */
 export function Trim(): PropertyDecorator {
-    return Transform((params) => {
-        const value = params.value as string[] | string;
+	return Transform((params) => {
+		const value = params.value as string[] | string;
 
-        if (Array.isArray(value)) {
-            return value.map((v) => v.trim().replaceAll(/\s\s+/g, ' '));
-        }
+		if (Array.isArray(value)) {
+			return value.map((v) => v.trim().replaceAll(/\s\s+/g, ' '));
+		}
 
-        return value.trim().replaceAll(/\s\s+/g, ' ');
-    });
+		return value.trim().replaceAll(/\s\s+/g, ' ');
+	});
 }
 
 export function ToBoolean(): PropertyDecorator {
-    return Transform(
-        (params) => {
-            switch (params.value) {
-                case 'true': {
-                    return true;
-                }
+	return Transform(
+		(params) => {
+			switch (params.value) {
+				case 'true': {
+					return true;
+				}
 
-                case 'false': {
-                    return false;
-                }
+				case 'false': {
+					return false;
+				}
 
-                default: {
-                    return params.value;
-                }
-            }
-        },
-        {toClassOnly: true},
-    );
+				default: {
+					return params.value;
+				}
+			}
+		},
+		{ toClassOnly: true },
+	);
 }
 
 /**
@@ -54,14 +54,14 @@ export function ToBoolean(): PropertyDecorator {
  * @constructor
  */
 export function ToInt(): PropertyDecorator {
-    return Transform(
-        (params) => {
-            const value = params.value as string;
+	return Transform(
+		(params) => {
+			const value = params.value as string;
 
-            return Number.parseInt(value, 10);
-        },
-        {toClassOnly: true},
-    );
+			return Number.parseInt(value, 10);
+		},
+		{ toClassOnly: true },
+	);
 }
 
 /**
@@ -73,58 +73,58 @@ export function ToInt(): PropertyDecorator {
  * @constructor
  */
 export function ToArray(): PropertyDecorator {
-    return Transform(
-        (params): unknown[] => {
-            const value = params.value;
+	return Transform(
+		(params): unknown[] => {
+			const value = params.value;
 
-            if (!value) {
-                return value;
-            }
+			if (!value) {
+				return value;
+			}
 
-            return _.castArray(value);
-        },
-        {toClassOnly: true},
-    );
+			return _.castArray(value);
+		},
+		{ toClassOnly: true },
+	);
 }
 
 export function ToLowerCase(): PropertyDecorator {
-    return Transform(
-        (params) => {
-            const value = params.value;
+	return Transform(
+		(params) => {
+			const value = params.value;
 
-            if (!value) {
-                return;
-            }
+			if (!value) {
+				return;
+			}
 
-            if (!Array.isArray(value)) {
-                return value.toLowerCase();
-            }
+			if (!Array.isArray(value)) {
+				return value.toLowerCase();
+			}
 
-            return value.map((v) => v.toLowerCase());
-        },
-        {
-            toClassOnly: true,
-        },
-    );
+			return value.map((v) => v.toLowerCase());
+		},
+		{
+			toClassOnly: true,
+		},
+	);
 }
 
 export function ToUpperCase(): PropertyDecorator {
-    return Transform(
-        (params) => {
-            const value = params.value;
+	return Transform(
+		(params) => {
+			const value = params.value;
 
-            if (!value) {
-                return;
-            }
+			if (!value) {
+				return;
+			}
 
-            if (!Array.isArray(value)) {
-                return value.toUpperCase();
-            }
+			if (!Array.isArray(value)) {
+				return value.toUpperCase();
+			}
 
-            return value.map((v) => v.toUpperCase());
-        },
-        {
-            toClassOnly: true,
-        },
-    );
+			return value.map((v) => v.toUpperCase());
+		},
+		{
+			toClassOnly: true,
+		},
+	);
 }
