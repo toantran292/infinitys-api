@@ -2,10 +2,10 @@ import { Type } from 'class-transformer';
 import {
 	IsDate,
 	IsEmail,
-	IsEnum,
+	IsEnum, IsInt, IsNumber, IsPositive,
 	IsString,
-	IsUUID,
-	MaxLength,
+	IsUUID, Max,
+	MaxLength, Min,
 	MinLength,
 	NotEquals,
 } from 'class-validator';
@@ -29,7 +29,64 @@ interface IStringFieldOptions extends IFieldOptions {
 	toUpperCase?: boolean;
 }
 
+interface INumberFieldOptions extends IFieldOptions {
+	min?: number;
+	max?: number;
+	int?: boolean;
+	isPositive?: boolean;
+}
+
 type IEnumFieldOptions = IFieldOptions;
+
+export function NumberField(
+	options: Omit<ApiPropertyOptions, 'type'> & INumberFieldOptions = {},
+): PropertyDecorator {
+	const decorators = [Type(() => Number)];
+
+	if (options.nullable) {
+		decorators.push(IsNullable({ each: options.each }));
+	} else {
+		decorators.push(NotEquals(null, { each: options.each }));
+	}
+
+	if (options.swagger !== false) {
+		decorators.push(ApiProperty({ type: Number, ...(options as ApiPropertyOptions) }));
+	}
+
+	if (options.each) {
+		decorators.push(ToArray());
+	}
+
+	if (options.int) {
+		decorators.push(IsInt({ each: options.each }));
+	} else {
+		decorators.push(IsNumber({}, { each: options.each }));
+	}
+
+	if (typeof options.min === 'number') {
+		decorators.push(Min(options.min, { each: options.each }));
+	}
+
+	if (typeof options.max === 'number') {
+		decorators.push(Max(options.max, { each: options.each }));
+	}
+
+	if (options.isPositive) {
+		decorators.push(IsPositive({ each: options.each }));
+	}
+
+	return applyDecorators(...decorators);
+}
+
+export function NumberFieldOptional(
+	options: Omit<ApiPropertyOptions, 'type' | 'required'> &
+		INumberFieldOptions = {},
+): PropertyDecorator {
+	return applyDecorators(
+		IsUndefinable(),
+		NumberField({ required: false, ...options }),
+	);
+}
 
 export function UUIDField(
 	options: Omit<ApiPropertyOptions, 'type' | 'format' | 'isArray'> &

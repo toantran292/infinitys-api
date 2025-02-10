@@ -15,6 +15,7 @@ import { AssetsModule } from './modules/assets/assets.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { ProblemsModule } from './modules/problems/problems.module';
+import { AuthsModule } from './modules/auths/auths.module';
 
 @Module({
 	imports: [
@@ -71,6 +72,7 @@ import { ProblemsModule } from './modules/problems/problems.module';
 		ApplicationsModule,
 		ChatsModule,
 		ProblemsModule,
+		AuthsModule,
 	],
 	controllers: [],
 	providers: [],
