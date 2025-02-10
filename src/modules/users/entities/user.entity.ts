@@ -9,6 +9,7 @@ import { ReactEntity } from '../../reacts/entities/react.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
 import { FriendEntity } from './friend.enity';
+import { GroupChatMemberEntity, GroupChatMessageEntity } from '../../chats/entities/chat.entity';
 
 @Entity({ name: 'users' })
 @UseDto(UserDto)
@@ -48,4 +49,10 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 
 	@OneToMany(() => ApplicationEntity, (application) => application.recruitmentPost)
 	applications!: ApplicationEntity[];
+
+	@OneToMany(() => GroupChatMemberEntity, (groupChatMember) => groupChatMember.user)
+	groupChatMembers!: GroupChatMemberEntity[];
+
+	@OneToMany(() => GroupChatMessageEntity, (groupChatMessage) => groupChatMessage.user)
+	groupChatMessages!: GroupChatMessageEntity[];
 }

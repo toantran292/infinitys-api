@@ -13,6 +13,7 @@ import { ReactsModule } from './modules/reacts/reacts.module';
 import { RecruitmentPostsModule } from './modules/recruitment_posts/recruitment_posts.module';
 import { AssetsModule } from './modules/assets/assets.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
+import { ChatsModule } from './modules/chats/chats.module';
 
 @Module({
 	imports: [
@@ -67,6 +68,7 @@ import { ApplicationsModule } from './modules/applications/applications.module';
 		RecruitmentPostsModule,
 		AssetsModule,
 		ApplicationsModule,
+		ChatsModule,
 	],
 	controllers: [],
 	providers: [],
