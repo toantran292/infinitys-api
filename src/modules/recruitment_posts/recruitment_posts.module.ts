@@ -4,5 +4,4 @@ import { Module } from '@nestjs/common';
 	controllers: [],
 	providers: [],
 })
-export class RecruitmentPostsModule {
-}
+export class RecruitmentPostsModule {}

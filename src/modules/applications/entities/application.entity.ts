@@ -6,41 +6,62 @@ import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.en
 import { TestcaseEntity } from '../../problems/entities/testcase.entity';
 
 @Entity({ name: 'applications' })
-export class ApplicationEntity extends AbstractEntity{
+export class ApplicationEntity extends AbstractEntity {
 	@ManyToOne(() => UserEntity, (user) => user.applications)
 	user!: UserEntity;
 
-	@ManyToOne(() => RecruitmentPostEntity, (recruitmentPost) => recruitmentPost.applications)
+	@ManyToOne(
+		() => RecruitmentPostEntity,
+		(recruitmentPost) => recruitmentPost.applications,
+	)
 	recruitmentPost!: RecruitmentPostEntity;
 
 	@Column({ type: 'timestamptz', nullable: true })
 	problemFinishedAt!: Date;
 
-	@OneToMany(() => ApplicationProblemEntity, (applicationProblem) => applicationProblem.application)
+	@OneToMany(
+		() => ApplicationProblemEntity,
+		(applicationProblem) => applicationProblem.application,
+	)
 	applicationProblems!: ApplicationProblemEntity[];
 }
 
 @Entity({ name: 'applications_problems' })
-export class ApplicationProblemEntity extends AbstractEntity{
-	@ManyToOne(() => ApplicationEntity, (application) => application.applicationProblems)
+export class ApplicationProblemEntity extends AbstractEntity {
+	@ManyToOne(
+		() => ApplicationEntity,
+		(application) => application.applicationProblems,
+	)
 	application!: ApplicationEntity;
 
-	@ManyToOne(() => ProblemRecruitmentPostEntity, (problem) => problem.applicationProblems)
+	@ManyToOne(
+		() => ProblemRecruitmentPostEntity,
+		(problem) => problem.applicationProblems,
+	)
 	problem!: ProblemRecruitmentPostEntity;
 
-	@OneToMany(() => ApplicationProblemTestcaseEntity, (applicationProblemTestcase) => applicationProblemTestcase.applicationProblem)
+	@OneToMany(
+		() => ApplicationProblemTestcaseEntity,
+		(applicationProblemTestcase) =>
+			applicationProblemTestcase.applicationProblem,
+	)
 	applicationProblemTestcases!: ApplicationProblemTestcaseEntity[];
 }
 
 @Entity({ name: 'applications_problems_testcases' })
-export class ApplicationProblemTestcaseEntity extends AbstractEntity{
-	@ManyToOne(() => ApplicationProblemEntity, (applicationProblem) => applicationProblem.applicationProblemTestcases)
+export class ApplicationProblemTestcaseEntity extends AbstractEntity {
+	@ManyToOne(
+		() => ApplicationProblemEntity,
+		(applicationProblem) => applicationProblem.applicationProblemTestcases,
+	)
 	applicationProblem!: ApplicationProblemEntity;
 
-	@ManyToOne(() => TestcaseEntity, (testcase) => testcase.applicationProblemTestcases)
+	@ManyToOne(
+		() => TestcaseEntity,
+		(testcase) => testcase.applicationProblemTestcases,
+	)
 	testcase: TestcaseEntity;
 
 	@Column()
 	isAccepted!: boolean;
 }
-

@@ -24,6 +24,9 @@ export class PageUserEntity extends AbstractEntity<
 	@Column({ type: 'enum', enum: RoleTypePage, default: RoleTypePage.MEMBER })
 	role!: RoleTypePage;
 
-	@OneToMany(() => RecruitmentPostEntity, (recruitmentPost) => recruitmentPost.pageUser)
+	@OneToMany(
+		() => RecruitmentPostEntity,
+		(recruitmentPost) => recruitmentPost.pageUser,
+	)
 	recruitmentPosts!: RecruitmentPostEntity[];
 }

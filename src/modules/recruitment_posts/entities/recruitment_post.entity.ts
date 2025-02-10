@@ -5,7 +5,7 @@ import { ApplicationEntity } from '../../applications/entities/application.entit
 import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.entity';
 
 @Entity('recruitment_posts')
-export class RecruitmentPostEntity extends AbstractEntity{
+export class RecruitmentPostEntity extends AbstractEntity {
 	@Column()
 	endDate!: Date;
 
@@ -19,14 +19,17 @@ export class RecruitmentPostEntity extends AbstractEntity{
 	description!: string;
 
 	@Column({
-		type: 'jsonb'
+		type: 'jsonb',
 	})
 	meta: object;
 
 	@ManyToOne(() => PageUserEntity, (pageUser) => pageUser.recruitmentPosts)
 	pageUser!: PageUserEntity;
 
-	@OneToMany(() => ApplicationEntity, (application) => application.recruitmentPost)
+	@OneToMany(
+		() => ApplicationEntity,
+		(application) => application.recruitmentPost,
+	)
 	applications!: ApplicationEntity[];
 
 	@Column({ type: 'timestamptz' })
@@ -35,6 +38,9 @@ export class RecruitmentPostEntity extends AbstractEntity{
 	@Column({ type: 'timestamptz' })
 	problemEndDate!: Date;
 
-	@OneToMany(() => ProblemRecruitmentPostEntity, (problemRecruitmentPost) => problemRecruitmentPost.recruitmentPost)
+	@OneToMany(
+		() => ProblemRecruitmentPostEntity,
+		(problemRecruitmentPost) => problemRecruitmentPost.recruitmentPost,
+	)
 	problems!: ProblemRecruitmentPostEntity[];
 }

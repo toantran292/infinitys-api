@@ -7,10 +7,16 @@ export class GroupChatEntity extends AbstractEntity {
 	@Column()
 	name!: string;
 
-	@OneToMany(() => GroupChatMemberEntity, (groupChatMember) => groupChatMember.groupChat)
+	@OneToMany(
+		() => GroupChatMemberEntity,
+		(groupChatMember) => groupChatMember.groupChat,
+	)
 	groupChatMembers!: GroupChatMemberEntity[];
 
-	@OneToMany(() => GroupChatMessageEntity, (groupChatMessage) => groupChatMessage.groupChat)
+	@OneToMany(
+		() => GroupChatMessageEntity,
+		(groupChatMessage) => groupChatMessage.groupChat,
+	)
 	groupChatMessages!: GroupChatMessageEntity[];
 
 	// @Column() - to assets

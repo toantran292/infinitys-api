@@ -1,5 +1,9 @@
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { EmailField, EnumFieldOptional, StringField } from '../../../decoractors/field.decoractors';
+import {
+	EmailField,
+	EnumFieldOptional,
+	StringField,
+} from '../../../decoractors/field.decoractors';
 import { UserEntity } from '../entities/user.entity';
 import { RoleType } from '../../../constants/role-type';
 

@@ -52,7 +52,6 @@ export async function bootstrap(): Promise<NestApplication> {
 
 	const port = configService.get('PORT');
 
-	// @ts-expect-error
 	await app.listen(port, () => {
 		logger.log('Server is running on port ' + port);
 	});

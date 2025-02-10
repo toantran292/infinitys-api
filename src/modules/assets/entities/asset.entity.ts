@@ -2,8 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 
 @Entity({ name: 'assets' })
-export class AssetEntity
-	extends AbstractEntity {
+export class AssetEntity extends AbstractEntity {
 	@Column()
 	name!: string;
 

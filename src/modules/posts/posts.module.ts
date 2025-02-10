@@ -4,5 +4,4 @@ import { Module } from '@nestjs/common';
 	controllers: [],
 	providers: [],
 })
-export class PostsModule {
-}
+export class PostsModule {}

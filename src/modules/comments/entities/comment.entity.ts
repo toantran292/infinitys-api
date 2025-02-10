@@ -24,5 +24,4 @@ export class CommentEntity extends AbstractEntity<
 			`SELECT * FORM reacts WHERE reacts.targetId = ${alias}.id AND reacts.targetType = 'comments'`,
 	})
 	reacts!: ReactEntity[];
-
 }

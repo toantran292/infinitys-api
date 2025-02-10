@@ -9,7 +9,10 @@ import { ReactEntity } from '../../reacts/entities/react.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
 import { FriendEntity } from './friend.enity';
-import { GroupChatMemberEntity, GroupChatMessageEntity } from '../../chats/entities/chat.entity';
+import {
+	GroupChatMemberEntity,
+	GroupChatMessageEntity,
+} from '../../chats/entities/chat.entity';
 import { ProblemUserEntity } from '../../problems/entities/problem.entity';
 
 @Entity({ name: 'users' })
@@ -48,13 +51,22 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 	@OneToMany(() => CommentEntity, (comment) => comment.user)
 	comments!: CommentEntity[];
 
-	@OneToMany(() => ApplicationEntity, (application) => application.recruitmentPost)
+	@OneToMany(
+		() => ApplicationEntity,
+		(application) => application.recruitmentPost,
+	)
 	applications!: ApplicationEntity[];
 
-	@OneToMany(() => GroupChatMemberEntity, (groupChatMember) => groupChatMember.user)
+	@OneToMany(
+		() => GroupChatMemberEntity,
+		(groupChatMember) => groupChatMember.user,
+	)
 	groupChatMembers!: GroupChatMemberEntity[];
 
-	@OneToMany(() => GroupChatMessageEntity, (groupChatMessage) => groupChatMessage.user)
+	@OneToMany(
+		() => GroupChatMessageEntity,
+		(groupChatMessage) => groupChatMessage.user,
+	)
 	groupChatMessages!: GroupChatMessageEntity[];
 
 	@OneToMany(() => ProblemUserEntity, (problemUser) => problemUser.user)

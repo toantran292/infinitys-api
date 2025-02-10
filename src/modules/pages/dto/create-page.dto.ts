@@ -1,2 +1,1 @@
-export class CreatePageDto {
-}
+export class CreatePageDto {}

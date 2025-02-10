@@ -20,7 +20,10 @@ export class ProblemEntity extends AbstractEntity {
 	@OneToMany(() => TestcaseEntity, (testcase) => testcase.problem)
 	testcases: TestcaseEntity[];
 
-	@OneToMany(() => ProblemRecruitmentPostEntity, (problemRecruitmentPost) => problemRecruitmentPost.problem)
+	@OneToMany(
+		() => ProblemRecruitmentPostEntity,
+		(problemRecruitmentPost) => problemRecruitmentPost.problem,
+	)
 	problemRecruitmentPosts: ProblemRecruitmentPostEntity[];
 }
 
@@ -32,13 +35,19 @@ export class ProblemUserEntity extends AbstractEntity {
 	@ManyToOne(() => UserEntity, (user) => user.problemUsers)
 	user: UserEntity;
 
-	@OneToMany(() => ProblemUserTestcaseEntity, (problemUserTestcase) => problemUserTestcase.problemUser)
+	@OneToMany(
+		() => ProblemUserTestcaseEntity,
+		(problemUserTestcase) => problemUserTestcase.problemUser,
+	)
 	problemUserTestcases: ProblemUserTestcaseEntity[];
 }
 
 @Entity({ name: 'problems_users_testcases' })
 export class ProblemUserTestcaseEntity extends AbstractEntity {
-	@ManyToOne(() => ProblemUserEntity, (problemUser) => problemUser.problemUserTestcases)
+	@ManyToOne(
+		() => ProblemUserEntity,
+		(problemUser) => problemUser.problemUserTestcases,
+	)
 	problemUser: ProblemUserEntity;
 
 	@ManyToOne(() => TestcaseEntity, (testcase) => testcase.problemUserTestcases)
@@ -53,9 +62,15 @@ export class ProblemRecruitmentPostEntity extends AbstractEntity {
 	@ManyToOne(() => ProblemEntity, (problem) => problem.problemRecruitmentPosts)
 	problem: ProblemEntity;
 
-	@ManyToOne(() => RecruitmentPostEntity, (recruitmentPost) => recruitmentPost.problems)
+	@ManyToOne(
+		() => RecruitmentPostEntity,
+		(recruitmentPost) => recruitmentPost.problems,
+	)
 	recruitmentPost: RecruitmentPostEntity;
 
-	@OneToMany(() => ApplicationProblemEntity, (applicationProblem) => applicationProblem.problem)
+	@OneToMany(
+		() => ApplicationProblemEntity,
+		(applicationProblem) => applicationProblem.problem,
+	)
 	applicationProblems: ApplicationProblemEntity[];
 }

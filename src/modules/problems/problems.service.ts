@@ -4,23 +4,23 @@ import { UpdateProblemDto } from './dto/update-problem.dto';
 
 @Injectable()
 export class ProblemsService {
-  create(createProblemDto: CreateProblemDto) {
-    return 'This action adds a new problem';
-  }
+	create(createProblemDto: CreateProblemDto) {
+		return 'This action adds a new problem';
+	}
 
-  findAll() {
-    return `This action returns all problems`;
-  }
+	findAll() {
+		return `This action returns all problems`;
+	}
 
-  findOne(id: number) {
-    return `This action returns a #${id} problem`;
-  }
+	findOne(id: number) {
+		return `This action returns a #${id} problem`;
+	}
 
-  update(id: number, updateProblemDto: UpdateProblemDto) {
-    return `This action updates a #${id} problem`;
-  }
+	update(id: number, updateProblemDto: UpdateProblemDto) {
+		return `This action updates a #${id} problem`;
+	}
 
-  remove(id: number) {
-    return `This action removes a #${id} problem`;
-  }
+	remove(id: number) {
+		return `This action removes a #${id} problem`;
+	}
 }

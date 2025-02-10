@@ -4,7 +4,7 @@ import { ProblemEntity, ProblemUserTestcaseEntity } from './problem.entity';
 import { ApplicationProblemTestcaseEntity } from '../../applications/entities/application.entity';
 
 @Entity({ name: 'testcases' })
-export class TestcaseEntity extends AbstractEntity{
+export class TestcaseEntity extends AbstractEntity {
 	// @Column() -- to assets
 	input: string;
 
@@ -17,9 +17,15 @@ export class TestcaseEntity extends AbstractEntity{
 	@ManyToOne(() => ProblemEntity, (problem) => problem.testcases)
 	problem: ProblemEntity;
 
-	@OneToMany(() => ProblemUserTestcaseEntity, (testcaseUser) => testcaseUser.testcase)
+	@OneToMany(
+		() => ProblemUserTestcaseEntity,
+		(testcaseUser) => testcaseUser.testcase,
+	)
 	problemUserTestcases: ProblemUserTestcaseEntity[];
 
-	@OneToMany(() => ApplicationProblemTestcaseEntity, (applicationProblemTestcase) => applicationProblemTestcase.testcase)
+	@OneToMany(
+		() => ApplicationProblemTestcaseEntity,
+		(applicationProblemTestcase) => applicationProblemTestcase.testcase,
+	)
 	applicationProblemTestcases: ApplicationProblemTestcaseEntity[];
 }
