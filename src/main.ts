@@ -52,9 +52,9 @@ export async function bootstrap(): Promise<NestApplication> {
 
 	const port = configService.get('PORT');
 
-	await app.listen(port, () => {
-		logger.log('Server is running on port ' + port);
-	});
+	await app.listen(port);
+
+	logger.log('Server is running on port ' + port);
 
 	return app;
 }
