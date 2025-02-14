@@ -2,10 +2,15 @@ import { Type } from 'class-transformer';
 import {
 	IsDate,
 	IsEmail,
-	IsEnum, IsInt, IsNumber, IsPositive,
+	IsEnum,
+	IsInt,
+	IsNumber,
+	IsPositive,
 	IsString,
-	IsUUID, Max,
-	MaxLength, Min,
+	IsUUID,
+	Max,
+	MaxLength,
+	Min,
 	MinLength,
 	NotEquals,
 } from 'class-validator';
@@ -50,7 +55,9 @@ export function NumberField(
 	}
 
 	if (options.swagger !== false) {
-		decorators.push(ApiProperty({ type: Number, ...(options as ApiPropertyOptions) }));
+		decorators.push(
+			ApiProperty({ type: Number, ...(options as ApiPropertyOptions) }),
+		);
 	}
 
 	if (options.each) {

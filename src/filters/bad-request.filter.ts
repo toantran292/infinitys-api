@@ -3,7 +3,7 @@ import { Catch, UnprocessableEntityException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { ValidationError } from 'class-validator';
 import type { Response } from 'express';
-import _ from 'lodash';
+import { isEmpty, snakeCase } from 'lodash';
 
 @Catch(UnprocessableEntityException)
 export class HttpExceptionFilter
@@ -26,8 +26,7 @@ export class HttpExceptionFilter
 	private validationFilter(validationErrors: ValidationError[]): void {
 		for (const validationError of validationErrors) {
 			const children = validationError.children;
-
-			if (children && !_.isEmpty(children)) {
+			if (children && !isEmpty(children)) {
 				this.validationFilter(children);
 
 				return;
@@ -45,7 +44,7 @@ export class HttpExceptionFilter
 				// convert default messages
 				if (!constraint) {
 					// convert error message to error.fields.{key} syntax for i18n translation
-					constraints[constraintKey] = `error.fields.${_.snakeCase(
+					constraints[constraintKey] = `error.fields.${snakeCase(
 						constraintKey,
 					)}`;
 				}

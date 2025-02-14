@@ -14,6 +14,7 @@ import * as compression from 'compression';
 import * as morgan from 'morgan';
 import { HttpExceptionFilter } from './filters/bad-request.filter';
 import { QueryFailedFilter } from './filters/query-failed.filter';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 export async function bootstrap(): Promise<NestApplication> {
 	const logger = new Logger(bootstrap.name);
@@ -41,12 +42,12 @@ export async function bootstrap(): Promise<NestApplication> {
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true,
-			errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
 			transform: true,
 			dismissDefaultMessages: true,
-			exceptionFactory: (errors) => new UnprocessableEntityException(errors),
 		}),
 	);
+
+	app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
 
 	const configService = app.get(ConfigService);
 
