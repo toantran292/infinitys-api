@@ -67,7 +67,7 @@ export class AuthsService {
 			throw new BadRequestException('Mật khẩu không đúng');
 		}
 		const accessToken = jwt.sign(
-			{ id: user.id, email: user.email },
+			{ sub: user.id, email: user.email },
 			this.JWT_SECRET,
 			{ expiresIn: '3h' },
 		);
