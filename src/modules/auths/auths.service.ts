@@ -8,18 +8,17 @@ import {
 	ForbiddenException,
 	Injectable,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { RoleType } from 'src/constants/role-type';
 
 @Injectable()
 export class AuthsService {
-	private SALT_ROUND = 11;
-	private JWT_SECRET = 'your-secret-key';
-
 	constructor(
 		@InjectRepository(UserEntity)
 		private readonly userRepo: Repository<UserEntity>,
+		private readonly configService: ConfigService,
 	) {}
 
 	async signUp(signUpDto: SignUpDto) {
@@ -29,8 +28,13 @@ export class AuthsService {
 		if (user) {
 			throw new BadRequestException('Email đã tồn tại');
 		}
+		const salt = parseInt(
+			this.configService.get<string>('SALT_ROUND') || '11',
+			10,
+		);
+		console.log(typeof salt);
 
-		const hashedPassword = await bcrypt.hash(password, this.SALT_ROUND);
+		const hashedPassword = await bcrypt.hash(password, salt);
 		const newUser = this.userRepo.create({
 			firstName,
 			lastName,
@@ -40,11 +44,7 @@ export class AuthsService {
 		});
 
 		await this.userRepo.save(newUser);
-		const accessToken = jwt.sign(
-			{ id: newUser.id, email: newUser.email },
-			this.JWT_SECRET,
-			{ expiresIn: '3h' },
-		);
+		const accessToken = this.signToken(newUser);
 
 		return { message: 'Đăng ký thành công', token: accessToken };
 	}
@@ -58,22 +58,23 @@ export class AuthsService {
 			throw new BadRequestException('Email không tồn tại');
 		}
 
-		if (user.role === RoleType.ADMIN) {
-			throw new ForbiddenException('Bạn không có quyền truy cập');
-		}
-
 		const isPasswordMatch = await bcrypt.compare(password, user.password);
 		if (!isPasswordMatch) {
 			throw new BadRequestException('Mật khẩu không đúng');
 		}
-		const accessToken = jwt.sign(
-			{ sub: user.id, email: user.email },
-			this.JWT_SECRET,
-			{ expiresIn: '3h' },
-		);
+		const accessToken = this.signToken(user);
 		return {
 			message: 'Đăng nhập thành công',
 			token: accessToken,
 		};
+	}
+
+	signToken(user: UserEntity): string {
+		const jwtSecret =
+			this.configService.get<string>('JWT_SECRET') || 'your-secret-key';
+		const expiresIn = this.configService.get<string>('JWT_EXPIRESIN') || '3h';
+		return jwt.sign({ sub: user.id, email: user.email }, jwtSecret, {
+			expiresIn,
+		});
 	}
 }

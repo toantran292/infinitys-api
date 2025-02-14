@@ -14,7 +14,7 @@ import * as compression from 'compression';
 import * as morgan from 'morgan';
 import { HttpExceptionFilter } from './filters/bad-request.filter';
 import { QueryFailedFilter } from './filters/query-failed.filter';
-import { JwtAuthGuard } from './modules/auths/jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 export async function bootstrap(): Promise<NestApplication> {
 	const logger = new Logger(bootstrap.name);
