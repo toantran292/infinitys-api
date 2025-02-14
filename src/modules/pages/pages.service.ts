@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PageEntity } from './entities/page.entity';
 import { PageUserEntity } from './entities/page-user.entity';
-import { CreatePageDto } from './dto/create-page.dto';
+import { RegisterPageDto } from './dto/create-page.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { RoleTypePage } from '../../constants/role-type';
 
@@ -32,11 +32,19 @@ export class PagesService {
 		return pages.map(page => {
 			const owner = page.pageUsers.find(user => user.role === RoleTypePage.OPERATOR);
 
+			const ownerData = owner
+				? {
+					id: owner.user.id,
+					firstName: owner.user.firstName,
+					email: owner.user.email
+				}
+				: null;
+
 			return {
 				id: page.id,
 				name: page.name,
 				content: page.content,
-				owner: owner ? { id: owner.user.id, firstName: owner.user.firstName, email: owner.user.email } : null,
+				owner: ownerData,
 			};
 		});
 	}
@@ -53,24 +61,19 @@ export class PagesService {
 			.then(pageUsers => pageUsers.map(pageUser => pageUser.page));
 	}
 
-	async createPage(userId: string, createPageDto: CreatePageDto): Promise<PageEntity> {
+	async registerPage(userId: string, registerPageDto: RegisterPageDto): Promise<PageEntity> {
 
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 
 		if (!user) {
-			console.error('Không tìm thấy người dùng!');
 			throw new NotFoundException('Không tìm thấy người dùng');
 		}
-		this.logger.log(user)
-		// 1️⃣ Tạo Page mới
+
 		const page = this.pageRepository.create({
-			...createPageDto,
+			...registerPageDto,
 		});
 		await this.pageRepository.save(page);
-		console.log(`✅ Page created: ${page.id}`);
 
-
-		// 2️⃣ Thêm người tạo vào bảng `PageUserEntity`
 		const pageUser = this.pageUserRepository.create({
 			page: page,
 			user: user,
@@ -78,7 +81,6 @@ export class PagesService {
 			role: RoleTypePage.OPERATOR,
 		});
 		await this.pageUserRepository.save(pageUser);
-		console.log(`✅ User ${user.id} added as OWNER of Page ${page.id}`);
 
 		return page;
 	}

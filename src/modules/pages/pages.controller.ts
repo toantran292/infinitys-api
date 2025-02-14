@@ -1,19 +1,18 @@
-import { Controller, Post, Body, Param, UseGuards, Get, Req, Logger, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Req, Logger, UnauthorizedException } from '@nestjs/common';
 import { PagesService } from './pages.service';
-import { CreatePageDto } from './dto/create-page.dto';
+import { RegisterPageDto } from './dto/create-page.dto';
 import { JwtAuthGuard } from '../auths/jwt-auth.guard';
 
 @Controller('pages')
 export class PagesController {
 	logger = new Logger(PagesController.name);
 	constructor(private readonly pagesService: PagesService) {}
+
 	@Get()
 	async getAllPages() {
-		console.log("Get all pages");
 		return this.pagesService.getAllPages();
 	}
 
-	// 2️⃣ Lấy Pages mà người dùng sở hữu (Cần đăng nhập)
 	@Get('my_pages')
 	@UseGuards(JwtAuthGuard)
 	async getMyPages(@Req() req) {
@@ -23,15 +22,14 @@ export class PagesController {
 	}
 
 	@Post('page')
-	@UseGuards(JwtAuthGuard) // ✅ Yêu cầu đăng nhập để tạo page
-	async createPage(@Req() req, @Body() createPageDto: CreatePageDto) {
-		console.log(`🔍 User ID from request: ${req.user}`);
+	@UseGuards(JwtAuthGuard)
+	async registerPage(@Req() req, @Body() registerPageDto: RegisterPageDto) {
 
 		if (!req.user?.userId) {
 			throw new UnauthorizedException('User not authenticated');
 		}
 
-		return this.pagesService.createPage(req.user.userId, createPageDto);
+		return this.pagesService.registerPage(req.user.userId, registerPageDto);
 	}
 
 }

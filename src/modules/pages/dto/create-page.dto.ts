@@ -1,8 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class CreatePageDto {
+export class RegisterPageDto {
 	@IsNotEmpty()
 	name: string;
-	@IsNotEmpty()
-	content: string;
 }
