@@ -1,32 +1,27 @@
-import { Controller, Get, Param, Put, Delete, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Put, Delete, Body, NotFoundException, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @Controller('users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
-	// 1. Lấy danh sách user
+
 	@Get()
 	async getAllUsers() {
-		console.log("Received request to get all users");
 		return this.usersService.findAll();
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Get(':id')
-	async getUserById(@Param('id') id: string) {
-		console.log(`Fetching user with ID: ${id}`);
-		const user = await this.usersService.findOne(id);
-		if (!user) throw new NotFoundException('User not found');
-		return user;
+	async getUserById(@Param('id') id: string, @Req() req) {
+		return this.usersService.findOne(id, req.user.userId);
 	}
 
-	// 2. Khóa/Mở khóa tài khoản
 	@Put(":id/ban")
 	async banUser(@Param("id") id:string){
-		console.log(`Received request to ban user with ID: ${id}`);
 		return this.usersService.banUser(id);
 	}
 	@Put(":id/unban")
 	async unbanUser(@Param("id") id:string){
-		console.log(`Received request to unban user with ID: ${id}`);
 		return this.usersService.unbanUser(id);
 	}
 	@Delete(":id")
