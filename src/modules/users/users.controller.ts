@@ -1,6 +1,15 @@
-import { Controller, Get, Param, Put, Delete, Body, NotFoundException, UseGuards, Req } from '@nestjs/common';
+import {
+	Controller,
+	Get,
+	Param,
+	Put,
+	Delete,
+	UseGuards,
+	Req,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { OwnerOrAdminGuard } from '../../guards/ower-or-admin.guard';
 @Controller('users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
@@ -10,10 +19,10 @@ export class UsersController {
 		return this.usersService.findAll();
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
 	@Get(':id')
 	async getUserById(@Param('id') id: string, @Req() req) {
-		return this.usersService.findOne(id, req.user.userId);
+		return this.usersService.findOne(id, req.isLimitedView);
 	}
 
 	@Put(":id/ban")
