@@ -4,14 +4,16 @@ import { AbstractEntity } from '../../../common/abstract.entity';
 @Entity({ name: 'assets' })
 export class AssetEntity extends AbstractEntity {
 	@Column()
-	name!: string;
+	type!: string;
 
 	@Column()
-	url!: string;
+	owner_type!: string;
 
 	@Column()
-	targetId!: string;
+	owner_id!: number;
 
-	@Column()
-	targetType!: string;
+	@Column({
+		type: 'jsonb'
+	})
+	file_data: object;
 }
