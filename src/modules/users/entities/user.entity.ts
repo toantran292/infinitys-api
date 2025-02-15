@@ -14,10 +14,14 @@ import {
 	GroupChatMessageEntity,
 } from '../../chats/entities/chat.entity';
 import { ProblemUserEntity } from '../../problems/entities/problem.entity';
+import { AssetEntity } from '../../assets/entities/asset.entity';
 
 @Entity({ name: 'users' })
 @UseDto(UserDto)
 export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
+	@OneToMany(() => AssetEntity, (asset) => asset.owner_id)
+	assets: AssetEntity[];
+
 	@Column()
 	firstName!: string;
 
