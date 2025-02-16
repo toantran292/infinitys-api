@@ -1,11 +1,11 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class RegisterPageDto {
 	@IsNotEmpty({ message: 'Tên không được để trống' })
 	name!: string;
 
-	@IsNotEmpty()
-	content!: string;
+	@IsOptional()
+	content?: string;
 
 	@IsNotEmpty({ message: 'Hãy điền địa chỉ' })
 	address!: string;

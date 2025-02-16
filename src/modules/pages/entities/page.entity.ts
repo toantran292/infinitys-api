@@ -11,8 +11,8 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column()
 	name!: string;
 
-	@Column({ default: '' })
-	content!: string;
+	@Column({ nullable: true })
+	content?: string;
 
 	@Column({ default: 'Unknown' })
 	address!: string;
