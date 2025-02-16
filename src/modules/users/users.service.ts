@@ -8,8 +8,9 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 	) {}
 
-	async getUserProfile(userId: string) {
+	async getUserProfile(userId: string): Promise<UserProfileDto> {
 		const user = await this.userRepository.findOne({
 			where: { id: userId },
 			relations: ['posts'],
@@ -27,23 +28,11 @@ export class UsersService {
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
+		console.log(plainToInstance(UserProfileDto, user));
 
-		return {
-			id: user.id,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			fullName: `${user.firstName} ${user.lastName}`,
-			email: user.email,
-			dateOfBirth: user.dateOfBirth,
-			gender: user.gender,
-			major: user.major,
-			desiredJobPosition: user.desiredJobPosition,
-			posts: user.posts.map((post) => ({
-				id: post.id,
-				content: post.content,
-				createdAt: post.createdAt,
-			})),
-		};
+		return plainToInstance(UserProfileDto, user, {
+			excludeExtraneousValues: true,
+		});
 	}
 
 	async editUserProfile(userId: string, updateData: UpdateUserProfileDto) {
