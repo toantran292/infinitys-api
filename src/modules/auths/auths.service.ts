@@ -3,11 +3,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import * as jwt from 'jsonwebtoken';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
@@ -32,7 +28,6 @@ export class AuthsService {
 			this.configService.get<string>('SALT_ROUND') || '11',
 			10,
 		);
-		console.log(typeof salt);
 
 		const hashedPassword = await bcrypt.hash(password, salt);
 		const newUser = this.userRepo.create({
