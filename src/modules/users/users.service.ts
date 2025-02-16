@@ -28,7 +28,6 @@ export class UsersService {
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
-		console.log(plainToInstance(UserProfileDto, user));
 
 		return plainToInstance(UserProfileDto, user, {
 			excludeExtraneousValues: true,
