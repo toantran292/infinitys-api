@@ -20,7 +20,6 @@ export class OwnerOrAdminGuard implements CanActivate {
 			throw new ForbiddenException('Unauthorized access');
 		}
 
-		// ✅ Tìm trong DB để lấy role của requester
 		const dbUser = await this.userRepository.findOne({
 			where: { id: requester.id },
 			select: ['id', 'email', 'role'],

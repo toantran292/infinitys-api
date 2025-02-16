@@ -25,27 +25,22 @@ export class UsersService {
 		return this.userRepository.find();
 	}
 
-	async toggleUserStatus(id: string, action: 'ban' | 'unban'): Promise<UserEntity> {
+	async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
 		const user = await this.userRepository.findOne({ where: { id } });
 		if (!user) throw new NotFoundException('User not found');
 
-		if (action === 'ban' && !user.active) {
-			throw new BadRequestException('This account is already locked.');
+		if (user.active === isActive) {
+			throw new BadRequestException(`This account is already ${isActive ? 'active' : 'locked'}.`);
 		}
 
-		if (action === 'unban' && user.active) {
-			throw new BadRequestException('This account is already active.');
-		}
-
-		user.active = action === 'unban'; // Nếu action là 'unban' thì true, ngược lại là false.
+		user.active = isActive;
 		await this.userRepository.save(user);
 
-		console.log(`${user.email}'s account has been ${user.active ? 'unlocked' : 'locked'}.`);
 		return user;
 	}
 
 	async banUser(id: string): Promise<UserEntity> {
-		const user = await this.toggleUserStatus(id,'ban');
+		const user = await this.toggleUserStatus(id,false);
 		if (user.active) {
 			throw new BadRequestException('User is already active.');
 		}
@@ -53,7 +48,7 @@ export class UsersService {
 	}
 
 	async unbanUser(id: string): Promise<UserEntity> {
-		const user = await this.toggleUserStatus(id,'unban');
+		const user = await this.toggleUserStatus(id,true);
 		if (!user.active) {
 			throw new BadRequestException('User is already banned.');
 		}

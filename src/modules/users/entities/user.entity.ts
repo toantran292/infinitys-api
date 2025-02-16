@@ -43,6 +43,9 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 	@Column()
 	password!: string;
 
+	@Column({default: true})
+	active!: boolean;
+
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.user)
 	pageUsers!: PageUserEntity[];
 
