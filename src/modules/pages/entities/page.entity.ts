@@ -14,10 +14,10 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column({ nullable: true })
 	content?: string;
 
-	@Column({ default: 'Unknown' })
+	@Column()
 	address!: string;
 
-	@Column({ default: 'http://example.com' })
+	@Column()
 	url!: string;
 
 
