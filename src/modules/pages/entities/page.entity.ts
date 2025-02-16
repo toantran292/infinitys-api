@@ -11,8 +11,15 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column()
 	name!: string;
 
-	@Column()
+	@Column({ default: '' })
 	content!: string;
+
+	@Column({ default: 'Unknown' })
+	address!: string;
+
+	@Column({ default: 'http://example.com' })
+	url!: string;
+
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];

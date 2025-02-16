@@ -1,11 +1,10 @@
-import { Controller, Post, Body, UseGuards, Get, Req, Logger, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Req, UnauthorizedException } from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { RegisterPageDto } from './dto/create-page.dto';
-import { JwtAuthGuard } from '../auths/jwt-auth.guard';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @Controller('pages')
 export class PagesController {
-	logger = new Logger(PagesController.name);
 	constructor(private readonly pagesService: PagesService) {}
 
 	@Get()
@@ -16,8 +15,6 @@ export class PagesController {
 	@Get('my_pages')
 	@UseGuards(JwtAuthGuard)
 	async getMyPages(@Req() req) {
-		this.logger.log(`🔍 User ID from request: ${req.user}`);
-		console.dir(req.user, {depth: null})
 		return this.pagesService.getMyPages(req.user.userId);
 	}
 
