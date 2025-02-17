@@ -46,17 +46,25 @@ export class AuthsService {
 
 	async signIn(
 		signInDto: SignInDto,
+		require_admin: boolean = false
 	): Promise<{ message: string; token: string }> {
 		const { email, password } = signInDto;
 		const user = await this.userRepo.findOne({ where: { email } });
+
 		if (!user) {
-			throw new BadRequestException('Email không tồn tại');
+			throw new BadRequestException('Sai tên đăng nhập hoặc mật khẩu');
+		}
+
+		if (require_admin && user.role !== RoleType.ADMIN || !require_admin && user.role === RoleType.ADMIN) {
+			throw new BadRequestException('Bạn không có quyền truy cập');
 		}
 
 		const isPasswordMatch = await bcrypt.compare(password, user.password);
+
 		if (!isPasswordMatch) {
-			throw new BadRequestException('Mật khẩu không đúng');
+			throw new BadRequestException('Sai tên đăng nhập hoặc mật khẩu');
 		}
+
 		const accessToken = this.signToken(user);
 		return {
 			message: 'Đăng nhập thành công',
