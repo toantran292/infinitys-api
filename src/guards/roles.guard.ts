@@ -4,16 +4,17 @@ import { Reflector } from '@nestjs/core';
 
 import type { RoleType } from '../constants/role-type';
 import { UserEntity } from '../modules/users/entities/user.entity';
+import { ROLES } from '../decoractors/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
 	constructor(private readonly reflector: Reflector) {}
 
 	canActivate(context: ExecutionContext): boolean {
-		const roles = this.reflector.get<RoleType[] | undefined>(
-			'roles',
+		const roles = this.reflector.getAllAndOverride<RoleType[] | undefined>(ROLES, [
 			context.getHandler(),
-		);
+			context.getClass(),
+		]);
 
 		if (!roles?.length) {
 			return true;
