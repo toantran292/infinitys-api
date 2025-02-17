@@ -5,9 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AssetEntity } from './entities/asset.entity';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([AssetEntity])
-	],
+	imports: [TypeOrmModule.forFeature([AssetEntity])],
 	providers: [AssetsService, S3Service],
 	exports: [AssetsService],
 })

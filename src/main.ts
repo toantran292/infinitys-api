@@ -25,7 +25,6 @@ export async function bootstrap(): Promise<NestApplication> {
 		{ cors: true },
 	);
 	app.use(helmet());
-	app.setGlobalPrefix('/api');
 	app.use(compression());
 	app.use(morgan('combined'));
 	app.enableVersioning();

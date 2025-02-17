@@ -9,7 +9,7 @@ import { RoleTypePage } from '../../constants/role-type';
 
 @Injectable()
 export class PagesService {
-	logger: Logger ;
+	logger: Logger;
 
 	constructor(
 		@InjectRepository(PageEntity)
@@ -27,17 +27,21 @@ export class PagesService {
 	async getAllPages(): Promise<any[]> {
 		this.logger.log('Fetching all pages...');
 
-		const pages = await this.pageRepository.find({ relations: ['pageUsers', 'pageUsers.user'] });
+		const pages = await this.pageRepository.find({
+			relations: ['pageUsers', 'pageUsers.user'],
+		});
 
-		return pages.map(page => {
-			const owner = page.pageUsers.find(user => user.role === RoleTypePage.OPERATOR);
+		return pages.map((page) => {
+			const owner = page.pageUsers.find(
+				(user) => user.role === RoleTypePage.OPERATOR,
+			);
 
 			const ownerData = owner
 				? {
-					id: owner.user.id,
-					firstName: owner.user.firstName,
-					email: owner.user.email
-				}
+						id: owner.user.id,
+						firstName: owner.user.firstName,
+						email: owner.user.email,
+					}
 				: null;
 
 			return {
@@ -58,11 +62,13 @@ export class PagesService {
 			.where('pages_users.userId = :userId', { userId })
 			.andWhere('pages_users.role = :role', { role: RoleTypePage.OPERATOR })
 			.getMany()
-			.then(pageUsers => pageUsers.map(pageUser => pageUser.page));
+			.then((pageUsers) => pageUsers.map((pageUser) => pageUser.page));
 	}
 
-	async registerPage(userId: string, registerPageDto: RegisterPageDto): Promise<PageEntity> {
-
+	async registerPage(
+		userId: string,
+		registerPageDto: RegisterPageDto,
+	): Promise<PageEntity> {
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 
 		if (!user) {

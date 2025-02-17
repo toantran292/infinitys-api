@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+	CanActivate,
+	ExecutionContext,
+	Injectable,
+	ForbiddenException,
+} from '@nestjs/common';
 import { UserEntity } from '../modules/users/entities/user.entity';
 import { RoleType } from '../constants/role-type';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,10 +34,10 @@ export class OwnerOrAdminGuard implements CanActivate {
 			throw new ForbiddenException('User not found in database');
 		}
 
-
-		request.isLimitedView = !(dbUser.id === userIdParams || dbUser.role === RoleType.ADMIN);
+		request.isLimitedView = !(
+			dbUser.id === userIdParams || dbUser.role === RoleType.ADMIN
+		);
 
 		return true;
 	}
-
 }

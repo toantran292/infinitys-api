@@ -13,7 +13,7 @@ import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { OwnerOrAdminGuard } from '../../guards/ower-or-admin.guard';
-@Controller('users')
+@Controller('api/users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 

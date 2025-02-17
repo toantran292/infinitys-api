@@ -7,7 +7,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { PageUserEntity } from './entities/page-user.entity';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([PageEntity, UserEntity,PageUserEntity])],
+	imports: [TypeOrmModule.forFeature([PageEntity, UserEntity, PageUserEntity])],
 	controllers: [PagesController],
 	providers: [PagesService],
 })
