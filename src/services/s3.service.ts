@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+	DeleteObjectCommand,
+	GetObjectCommand,
+	PutObjectCommand,
+	S3Client,
+} from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -15,7 +20,9 @@ export class S3Service {
 			forcePathStyle: true,
 			credentials: {
 				accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-				secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+				secretAccessKey: this.configService.get<string>(
+					'AWS_SECRET_ACCESS_KEY',
+				),
 			},
 		});
 		this.bucketName = this.configService.get<string>('AWS_BUCKET_NAME');
@@ -38,7 +45,7 @@ export class S3Service {
 		const command = new GetObjectCommand({
 			Bucket: this.bucketName,
 			Key: key,
-		})
+		});
 
 		return await this.getSignedUrlS3(command);
 	}
@@ -47,7 +54,7 @@ export class S3Service {
 		const command = new DeleteObjectCommand({
 			Bucket: this.bucketName,
 			Key: key,
-		})
+		});
 
 		return await this.getSignedUrlS3(command);
 	}

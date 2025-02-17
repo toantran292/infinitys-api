@@ -13,7 +13,7 @@ export class AssetEntity extends AbstractEntity {
 	owner_id!: number;
 
 	@Column({
-		type: 'jsonb'
+		type: 'jsonb',
 	})
 	file_data: object;
 }

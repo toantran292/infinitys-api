@@ -1,9 +1,17 @@
-import { Controller, Post, Body, UseGuards, Get, Req, UnauthorizedException } from '@nestjs/common';
+import {
+	Controller,
+	Post,
+	Body,
+	UseGuards,
+	Get,
+	Req,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
-@Controller('pages')
+@Controller('api/pages')
 export class PagesController {
 	constructor(private readonly pagesService: PagesService) {}
 
@@ -21,12 +29,10 @@ export class PagesController {
 	@Post('page')
 	@UseGuards(JwtAuthGuard)
 	async registerPage(@Req() req, @Body() registerPageDto: RegisterPageDto) {
-
 		if (!req.user?.userId) {
 			throw new UnauthorizedException('User not authenticated');
 		}
 
 		return this.pagesService.registerPage(req.user.userId, registerPageDto);
 	}
-
 }
