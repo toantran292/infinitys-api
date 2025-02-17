@@ -73,8 +73,9 @@ export class UsersService {
 		return user;
 	}
 
-	async findAll(): Promise<UserEntity[]> {
-		return this.userRepository.find();
+	async findAll(): Promise<UserDto[]> {
+		const users = await this.userRepository.find();
+		return users.map(user => new UserDto(user));
 	}
 
 	async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
