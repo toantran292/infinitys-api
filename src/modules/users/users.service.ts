@@ -78,7 +78,6 @@ export class UsersService {
 		return users.map(user => new UserDto(user));
 	}
 
-
 	async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
 		const user = await this.userRepository.findOne({ where: { id } });
 		if (!user) throw new NotFoundException('User not found');
