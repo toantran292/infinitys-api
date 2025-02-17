@@ -11,7 +11,9 @@ import { ApplicationEntity } from '../../applications/entities/application.entit
 import { GroupChatMemberEntity, GroupChatMessageEntity } from '../../chats/entities/chat.entity';
 import { ProblemUserEntity } from '../../problems/entities/problem.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
-import { GenderType } from '../../../constants/gender-type';
+import { GenderType } from 'src/constants/gender-type';
+import { FriendEntity } from './friend.entity';
+import { FriendRequestEntity } from './friend-request.entity';
 
 @Entity({ name: 'users' })
 @UseDto(UserDto)
@@ -54,6 +56,20 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 
 	@OneToMany(() => AssetEntity, (asset) => asset.owner_id)
 	assets?: AssetEntity[];
+
+	@OneToMany(() => FriendRequestEntity, (request) => request.source)
+	sentFriendRequests!: FriendRequestEntity[];
+
+	// Yêu cầu kết bạn được nhận (receiver <- sender)
+	@OneToMany(() => FriendRequestEntity, (request) => request.target)
+	receivedFriendRequests!: FriendRequestEntity[];
+
+	// Danh sách bạn bè (kết nối từ user1 hoặc user2)
+	@OneToMany(() => FriendEntity, (friend) => friend.source)
+	friends1!: FriendEntity[];
+
+	@OneToMany(() => FriendEntity, (friend) => friend.target)
+	friends2!: FriendEntity[];
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.user)
 	pageUsers!: PageUserEntity[];
