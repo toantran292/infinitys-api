@@ -23,7 +23,7 @@ export function Auth(
 	const isPublicRoute = options?.public;
 
 	return applyDecorators(
-		Roles(roles),
+		Roles(...roles),
 		UseGuards(AuthGuard({ public: isPublicRoute }), RolesGuard),
 		ApiBearerAuth(),
 		UseInterceptors(AuthUserInterceptor),

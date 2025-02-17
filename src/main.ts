@@ -46,8 +46,6 @@ export async function bootstrap(): Promise<NestApplication> {
 		}),
 	);
 
-	app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
-
 	const configService = app.get(ConfigService);
 
 	const port = configService.get('PORT');
