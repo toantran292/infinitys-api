@@ -44,6 +44,7 @@ export async function bootstrap(): Promise<NestExpressApplication> {
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true,
+			forbidNonWhitelisted: true,
 			errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
 			transform: true,
 			dismissDefaultMessages: true,
