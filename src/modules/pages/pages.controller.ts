@@ -3,7 +3,7 @@ import { PagesService } from './pages.service';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decoractors/http.decorators';
-import { PagePageOptionsDto } from '../users/dto/page-page-options.dto';
+import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 import type { PageDto } from './dto/page.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
@@ -23,8 +23,8 @@ export class PagesController {
 
 	@Get('me')
 	@Auth([RoleType.USER])
-	async getMyPage(@AuthUser() user: UserEntity) {
-		return this.pagesService.getMyPage(user);
+	async getMyPages(@AuthUser() user: UserEntity) {
+		return this.pagesService.getMyPages(user);
 	}
 
 	@Post('page')

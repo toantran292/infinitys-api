@@ -8,6 +8,7 @@ import type { PageDto } from '../../common/dto/page.dto';
 import { Transactional } from 'typeorm-transactional';
 import type { UserRegisterDto } from '../auths/dto/user-register.dto';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -52,7 +53,7 @@ export class UsersService {
 		return userEntity.toDto<UserDto>();
 	}
 
-	// async getUserProfile(userId: Uuid): Promise<UserProfileDto> {
+	// async getUserProfile(userId: Uuid): Promise<UserDto> {
 	// 	const user = await this.userRepository.findOne({
 	// 		where: { id: userId },
 	// 		relations: ['posts'],
@@ -67,31 +68,15 @@ export class UsersService {
 	// 	});
 	// }
 	//
-	// async editUserProfile(userId: Uuid, updateData: UpdateUserProfileDto) {
-	// 	const user = await this.userRepository.findOne({ where: { id: userId } });
-	//
-	// 	if (!user) {
-	// 		throw new NotFoundException('Không tìm thấy người dùng');
-	// 	}
-	//
-	// 	const dtoInstance = plainToClass(UpdateUserProfileDto, updateData);
-	//
-	// 	const errors = await validate(dtoInstance);
-	//
-	// 	if (errors.length > 0) {
-	// 		throw new BadRequestException(
-	// 			errors.map((err) => ({
-	// 				field: err.property,
-	// 				errors: Object.values(err.constraints || {}),
-	// 			})),
-	// 		);
-	// 	}
-	//
-	// 	Object.assign(user, updateData);
-	//
-	// 	await this.userRepository.save(user);
-	// 	return { message: 'Cập nhật hồ sơ cá nhân thành công', user };
-	// }
+
+	async editUserProfile(user: UserEntity, userProfileDto: UpdateUserProfileDto) {
+		this.userRepository.merge(user, userProfileDto);
+
+		const updatedUser = await this.userRepository.save(user);
+
+		return updatedUser.toDto<UserDto>();
+	}
+
 
 	// async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
 	// 	const user = await this.userRepository.findOne({ where: { id } });

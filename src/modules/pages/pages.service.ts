@@ -6,7 +6,7 @@ import { PageUserEntity } from './entities/page-user.entity';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { RoleTypePage } from '../../constants/role-type';
-import type { PagePageOptionsDto } from '../users/dto/page-page-options.dto';
+import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 import type { PageDto } from './dto/page.dto';
 import { Transactional } from 'typeorm-transactional';
@@ -30,7 +30,7 @@ export class PagesService {
 		return items.toPageDto(pageMetaDto);
 	}
 
-	async getMyPage(user: UserEntity): Promise<PageDto[]> {
+	async getMyPages(user: UserEntity): Promise<PageDto[]> {
 		const queryBuilder = this.pageRepository.createQueryBuilder('page');
 
 		queryBuilder.innerJoinAndSelect('page.pageUsers', 'pageUsers');
