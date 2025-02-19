@@ -2,23 +2,27 @@ import { AbstractDto } from './common/dto/abstract.dto';
 import { PageMetaDto } from './common/dto/page-meta.dto';
 import { PageOptionsDto } from './common/dto/page-options.dto';
 import { AbstractEntity } from './common/abstract.entity';
-import type { KeyOfType } from './types';
+import type { Constructor, KeyOfType } from './types';
 import { Brackets, SelectQueryBuilder } from 'typeorm';
 import type { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { PageDto } from './common/dto/page.dto';
 
 declare global {
 	export type Uuid = string & { _uuidBrand: undefined };
 
 	interface Array<T> {
-		toDtos<Dto extends AbstractDto>(this: T[], options?: unknown): Dto[];
+		toDtos<Dto extends AbstractDto>(this: T[], options?: unknown & {
+			dto: Constructor<Dto>;
+		}): Dto[];
 
 		toPageDto<Dto extends AbstractDto>(
 			this: T[],
 			pageMetaDto: PageMetaDto,
 			// FIXME make option type visible from entity
-			options?: unknown,
+			options?: unknown & {
+				dto: Constructor<Dto>;
+			},
 		): PageDto<Dto>;
 	}
 }
@@ -96,14 +100,15 @@ Array.prototype.toDtos = function <
 	);
 };
 
-Array.prototype.toPageDto = function (
+Array.prototype.toPageDto = function<Dto extends AbstractDto>(
 	pageMetaDto: PageMetaDto,
-	options?: unknown,
+	options?: unknown & { dto: Constructor<Dto> },
 ) {
+
 	return new PageDto(this.toDtos(options), pageMetaDto);
 };
 
-SelectQueryBuilder.prototype.searchByString = function (
+SelectQueryBuilder.prototype.searchByString = function(
 	q,
 	columnNames,
 	options,
@@ -129,7 +134,7 @@ SelectQueryBuilder.prototype.searchByString = function (
 	return this;
 };
 
-SelectQueryBuilder.prototype.paginate = async function (
+SelectQueryBuilder.prototype.paginate = async function(
 	pageOptionsDto: PageOptionsDto,
 	options?: Partial<{
 		skipCount: boolean;

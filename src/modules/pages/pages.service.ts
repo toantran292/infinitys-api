@@ -64,7 +64,7 @@ export class PagesService {
 
 		await this.pageUserRepository.save(pageUser);
 
-		return page.toDto();
+		return page.toDto<PageDto>();
 	}
 
 	// async getAllPages(): Promise<any[]> {

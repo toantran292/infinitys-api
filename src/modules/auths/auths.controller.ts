@@ -35,7 +35,7 @@ export class AuthsController {
 	): Promise<UserDto> {
 		const createdUser = await this.usersService.createUser(userRegisterDto);
 
-		return createdUser.toDto();
+		return createdUser.toDto<UserDto>();
 	}
 
 	@Get('ping')

@@ -49,7 +49,7 @@ export class UsersService {
 			throw new UserNotFoundException();
 		}
 
-		return userEntity.toDto();
+		return userEntity.toDto<UserDto>();
 	}
 
 	// async getUserProfile(userId: Uuid): Promise<UserProfileDto> {

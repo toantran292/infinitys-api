@@ -12,8 +12,7 @@ export class UsersController {
 	@Get()
 	@Auth([RoleType.USER])
 	async getUsers(
-		@Query(new ValidationPipe({ transform: true }))
-		pageOptionsDto: UsersPageOptionsDto,
+		@Query() pageOptionsDto: UsersPageOptionsDto,
 	) {
 		return this.usersService.getUsers(pageOptionsDto);
 	}
