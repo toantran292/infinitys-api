@@ -1,4 +1,11 @@
-import { Body, Controller, ForbiddenException, Get, Patch, Query } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	ForbiddenException,
+	Get,
+	Patch,
+	Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
@@ -14,9 +21,7 @@ export class UsersController {
 
 	@Get()
 	@Auth([RoleType.USER])
-	async getUsers(
-		@Query() pageOptionsDto: UsersPageOptionsDto,
-	) {
+	async getUsers(@Query() pageOptionsDto: UsersPageOptionsDto) {
 		return this.usersService.getUsers(pageOptionsDto);
 	}
 
@@ -31,10 +36,10 @@ export class UsersController {
 	async updateProfile(
 		@AuthUser() user: UserEntity,
 		@UUIDParam('id') userId: Uuid,
-		@Body() updateProfileDto: UpdateUserProfileDto
-	){
-		if (userId !== user.id){
-			throw new ForbiddenException('You can only update your own profile')
+		@Body() updateProfileDto: UpdateUserProfileDto,
+	) {
+		if (userId !== user.id) {
+			throw new ForbiddenException('You can only update your own profile');
 		}
 
 		return this.usersService.editUserProfile(user, updateProfileDto);
@@ -54,5 +59,4 @@ export class UsersController {
 	// async unbanUser(@Param('id') id: string) {
 	// 	return this.usersService.unbanUser(id);
 	// }
-
 }

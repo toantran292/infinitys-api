@@ -12,8 +12,7 @@ export class AuthsController {
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly authsService: AuthsService,
-	) {
-	}
+	) {}
 
 	@Post('login')
 	async userLogin(

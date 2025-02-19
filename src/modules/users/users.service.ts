@@ -39,7 +39,7 @@ export class UsersService {
 		return items.toPageDto(pageMetaDto);
 	}
 
-	async getUser(userId: Uuid): Promise<UserDto> {
+	async getRawUser(userId: Uuid): Promise<UserEntity> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 
 		queryBuilder.where('user.id = :userId', { userId });
@@ -50,6 +50,11 @@ export class UsersService {
 			throw new UserNotFoundException();
 		}
 
+		return userEntity;
+	}
+
+	async getUser(userId: Uuid): Promise<UserDto> {
+		const userEntity = await this.getRawUser(userId);
 		return userEntity.toDto<UserDto>();
 	}
 
@@ -69,14 +74,16 @@ export class UsersService {
 	// }
 	//
 
-	async editUserProfile(user: UserEntity, userProfileDto: UpdateUserProfileDto) {
+	async editUserProfile(
+		user: UserEntity,
+		userProfileDto: UpdateUserProfileDto,
+	) {
 		this.userRepository.merge(user, userProfileDto);
 
 		const updatedUser = await this.userRepository.save(user);
 
 		return updatedUser.toDto<UserDto>();
 	}
-
 
 	// async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
 	// 	const user = await this.userRepository.findOne({ where: { id } });

@@ -62,5 +62,4 @@ import { ApiConfigService } from './shared/services/api-config.service';
 	controllers: [],
 	providers: [],
 })
-export class AppModule {
-}
+export class AppModule {}

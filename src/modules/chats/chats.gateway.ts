@@ -1,19 +1,24 @@
 import {
-	WebSocketGateway,
-	SubscribeMessage,
-	MessageBody,
-	WebSocketServer,
 	ConnectedSocket,
+	MessageBody,
 	OnGatewayConnection,
 	OnGatewayDisconnect,
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatsService } from './chats.service';
-import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
-import { UseGuards } from '@nestjs/common';
-import { JwtAuthWsGuard } from '../../guards/jwt-auth-ws.guard';
-import { JwtService } from '@nestjs/jwt';
+import { AuthsService } from '../auths/auths.service';
+import { AuthWs } from '../../decoractors/ws.decoractors';
+import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
+import { UserEntity } from '../users/entities/user.entity';
+import { SendMessageDto } from './dto/send-message.dto';
+
+/**
+ * 1. Khi nhan vao chat -> /api/chats/groups/:id/messages (http) -> load tin nham
+ * 2. Connect ws de join vo group -> chat real time (ws)
+ * */
 
 @WebSocketGateway({ cors: true })
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -22,15 +27,17 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	private users = new Map<string, string>();
 
-	constructor(private jwtService: JwtService) {}
+	constructor(
+		private readonly authService: AuthsService,
+		private chatsService: ChatsService,
+	) {}
 
 	async handleConnection(client: Socket) {
 		try {
-			const token = client.handshake.auth.token;
-			const decoded = this.jwtService.verify(token);
-			this.users.set(client.id, decoded.email);
-			this.server.emit('users', Array.from(this.users.values())); // Cập nhật danh sách user
-			console.log(`User ${decoded.email} connected`);
+			const user = client.handshake.auth.user;
+			this.users.set(client.id, user.id);
+			this.server.emit('users', Array.from(this.users.values()));
+			console.log(`User ${user.firstName + ' ' + user.lastName} connected`);
 		} catch (error) {
 			console.log('Unauthorized connection');
 			client.disconnect();
@@ -40,43 +47,49 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	handleDisconnect(client: Socket) {
 		console.log(`Client disconnected: ${client.id}`);
 		this.users.delete(client.id);
-		this.server.emit('users', Array.from(this.users.values())); // Update user list
+		this.server.emit('users', Array.from(this.users.values()));
 	}
 
-	@SubscribeMessage('setUsername')
-	handleSetUsername(
-		@MessageBody() username: string,
+	@SubscribeMessage('join_room')
+	@AuthWs()
+	async handleJoinRoom(
+		@MessageBody() room_id: Uuid,
 		@ConnectedSocket() client: Socket,
+		@AuthWsUser() user: UserEntity,
 	) {
-		this.users.set(client.id, username);
-		this.server.emit('users', Array.from(this.users.values())); // Notify all users
+		const room = await this.chatsService.getGroupChatByIdAndUser(user, room_id);
+
+		if (!room) {
+			client.emit('notifications', {
+				errors: ['Not found group chat'],
+			});
+			return;
+		}
+
+		client.join(room.id);
+		client.emit('joined_room', room);
 	}
 
-	@UseGuards(JwtAuthWsGuard)
-	@SubscribeMessage('joinRoom')
-	handleJoinRoom(
-		@MessageBody() room: string,
+	@SubscribeMessage('send_message')
+	@AuthWs()
+	async handleMessage(
+		@MessageBody() sendMessageDto: SendMessageDto,
 		@ConnectedSocket() client: Socket,
+		@AuthWsUser() user: UserEntity,
 	) {
-		client.join(room);
-		client.emit('joinedRoom', room);
-		// lay chat
-		client.emit('roomMessages', {
-			messages: [{ sender: 'bot', message: 'Welcome to the room' }],
-		});
-	}
+		try {
+			const message = await this.chatsService.sendMessage(
+				user,
+				sendMessageDto.room_id,
+				sendMessageDto.content,
+			);
 
-	@UseGuards(JwtAuthWsGuard)
-	@SubscribeMessage('message')
-	handleMessage(
-		@MessageBody()
-		{
-			room,
-			sender,
-			message,
-		}: { room: string; sender: string; message: string },
-		@ConnectedSocket() client: Socket,
-	) {
-		this.server.to(room).emit('message', { sender, message });
+			this.server.to(sendMessageDto.room_id).emit('receive_message', {
+				user,
+				...message,
+			});
+		} catch (error) {
+			console.error('Error sending message:', error);
+		}
 	}
 }
