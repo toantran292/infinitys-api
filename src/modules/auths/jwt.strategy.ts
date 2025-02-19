@@ -1,31 +1,41 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../users/users.service';
+
 import { RoleType } from '../../constants/role-type';
+import { TokenType } from '../../constants/token-type';
 import { UserEntity } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+import { ApiConfigService } from '../../shared/services/api-config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
 	constructor(
-		readonly configService: ConfigService,
+		readonly configService: ApiConfigService,
 		private readonly userService: UsersService,
 	) {
 		super({
-			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Extract token from Authorization header
-			ignoreExpiration: false,
-			secretOrKey: configService.get<string>('JWT_SECRET') || 'your-secret-key', // Use env variable for security
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			secretOrKey: configService.authConfig.publicKey,
 		});
 	}
 
 	async validate(args: {
-		userId: string;
+		userId: Uuid;
 		role: RoleType;
-	}): Promise<UserEntity>{
-		const user = await this.userService.findOne(args.userId, false) as UserEntity;
+		type: TokenType;
+	}): Promise<UserEntity> {
+		if (args.type !== TokenType.ACCESS_TOKEN) {
+			throw new UnauthorizedException();
+		}
 
-		if (!user){
+		const user = await this.userService.findOne({
+			// FIXME: issue with type casts
+			id: args.userId as never,
+			role: args.role,
+		});
+
+		if (!user) {
 			throw new UnauthorizedException();
 		}
 

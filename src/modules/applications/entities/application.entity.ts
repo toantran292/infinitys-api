@@ -60,7 +60,7 @@ export class ApplicationProblemTestcaseEntity extends AbstractEntity {
 		() => TestcaseEntity,
 		(testcase) => testcase.applicationProblemTestcases,
 	)
-	testcase: TestcaseEntity;
+	testcase!: TestcaseEntity;
 
 	@Column()
 	isAccepted!: boolean;

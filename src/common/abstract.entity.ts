@@ -4,13 +4,14 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
+import type { Constructor } from '../types';
 
 export abstract class AbstractEntity<
 	DTO extends AbstractDto = AbstractDto,
 	O = never,
 > {
 	@PrimaryGeneratedColumn('uuid')
-	id!: string;
+	id!: Uuid;
 
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt!: Date;
@@ -18,8 +19,18 @@ export abstract class AbstractEntity<
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt!: Date;
 
-	toDto(options?: O): DTO {
-		const dtoClass = Object.getPrototypeOf(this).dtoClass;
+	toDto<CDTO extends AbstractDto = DTO>(options?: O & {
+		dto: Constructor<CDTO>;
+	}): CDTO {
+		console.log(options);
+		const { dto, ...remainingOptions } = options || {};
+
+		let dtoClass = undefined;
+
+		if(dto)
+			dtoClass = dto;
+		else
+			dtoClass = Object.getPrototypeOf(this).dtoClass;
 
 		if (!dtoClass) {
 			throw new Error(
@@ -27,6 +38,6 @@ export abstract class AbstractEntity<
 			);
 		}
 
-		return new dtoClass(this, options);
+		return new dtoClass(this, remainingOptions);
 	}
 }

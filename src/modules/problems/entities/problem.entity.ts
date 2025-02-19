@@ -9,37 +9,37 @@ import { ApplicationProblemEntity } from '../../applications/entities/applicatio
 @Entity({ name: 'problems' })
 export class ProblemEntity extends AbstractEntity {
 	@Column()
-	content: string;
+	content!: string;
 
 	@ManyToOne(() => PageEntity, (page) => page.problems, { nullable: true })
-	page: PageEntity;
+	page?: PageEntity;
 
 	@OneToMany(() => ProblemUserEntity, (problemUser) => problemUser.problem)
-	problemUsers: ProblemUserEntity[];
+	problemUsers!: ProblemUserEntity[];
 
 	@OneToMany(() => TestcaseEntity, (testcase) => testcase.problem)
-	testcases: TestcaseEntity[];
+	testcases!: TestcaseEntity[];
 
 	@OneToMany(
 		() => ProblemRecruitmentPostEntity,
 		(problemRecruitmentPost) => problemRecruitmentPost.problem,
 	)
-	problemRecruitmentPosts: ProblemRecruitmentPostEntity[];
+	problemRecruitmentPosts!: ProblemRecruitmentPostEntity[];
 }
 
 @Entity({ name: 'problems_users' })
 export class ProblemUserEntity extends AbstractEntity {
 	@ManyToOne(() => ProblemEntity, (problem) => problem.problemUsers)
-	problem: ProblemEntity;
+	problem!: ProblemEntity;
 
 	@ManyToOne(() => UserEntity, (user) => user.problemUsers)
-	user: UserEntity;
+	user!: UserEntity;
 
 	@OneToMany(
 		() => ProblemUserTestcaseEntity,
 		(problemUserTestcase) => problemUserTestcase.problemUser,
 	)
-	problemUserTestcases: ProblemUserTestcaseEntity[];
+	problemUserTestcases!: ProblemUserTestcaseEntity[];
 }
 
 @Entity({ name: 'problems_users_testcases' })
@@ -48,10 +48,10 @@ export class ProblemUserTestcaseEntity extends AbstractEntity {
 		() => ProblemUserEntity,
 		(problemUser) => problemUser.problemUserTestcases,
 	)
-	problemUser: ProblemUserEntity;
+	problemUser!: ProblemUserEntity;
 
 	@ManyToOne(() => TestcaseEntity, (testcase) => testcase.problemUserTestcases)
-	testcase: TestcaseEntity;
+	testcase!: TestcaseEntity;
 
 	@Column()
 	isAccepted!: boolean;
@@ -60,17 +60,17 @@ export class ProblemUserTestcaseEntity extends AbstractEntity {
 @Entity({ name: 'problems_recruitment_posts' })
 export class ProblemRecruitmentPostEntity extends AbstractEntity {
 	@ManyToOne(() => ProblemEntity, (problem) => problem.problemRecruitmentPosts)
-	problem: ProblemEntity;
+	problem!: ProblemEntity;
 
 	@ManyToOne(
 		() => RecruitmentPostEntity,
 		(recruitmentPost) => recruitmentPost.problems,
 	)
-	recruitmentPost: RecruitmentPostEntity;
+	recruitmentPost!: RecruitmentPostEntity;
 
 	@OneToMany(
 		() => ApplicationProblemEntity,
 		(applicationProblem) => applicationProblem.problem,
 	)
-	applicationProblems: ApplicationProblemEntity[];
+	applicationProblems!: ApplicationProblemEntity[];
 }

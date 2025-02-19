@@ -4,7 +4,7 @@ export enum RoleType {
 }
 
 export enum RoleTypePage {
-	MEMBER = 'MEMBER',
-	OPERATOR = 'OPERATOR',
-	ADMIN = 'ADMIN',
+	MEMBER = 'MEMBER', // For working in this company
+	OPERATOR = 'OPERATOR', // For post recruitment post
+	ADMIN = 'ADMIN', // For post recruitment post, add operator, accept member
 }

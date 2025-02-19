@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PageEntity } from './entities/page.entity';
@@ -6,88 +6,93 @@ import { PageUserEntity } from './entities/page-user.entity';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { RoleTypePage } from '../../constants/role-type';
+import type { PagePageOptionsDto } from './dto/page-page-options.dto';
+import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
+import type { PageDto } from './dto/page.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class PagesService {
-	logger: Logger;
-
 	constructor(
 		@InjectRepository(PageEntity)
 		private readonly pageRepository: Repository<PageEntity>,
-
 		@InjectRepository(PageUserEntity)
 		private readonly pageUserRepository: Repository<PageUserEntity>,
+	) {}
 
-		@InjectRepository(UserEntity)
-		private readonly userRepository: Repository<UserEntity>,
-	) {
-		this.logger = new Logger(PagesService.name);
+	async getPages(
+		pagePageOptionsDto: PagePageOptionsDto,
+	): Promise<CommonPageDto<PageDto>> {
+		const queryBuilder = this.pageRepository.createQueryBuilder('page');
+		const [items, pageMetaDto] =
+			await queryBuilder.paginate(pagePageOptionsDto);
+
+		return items.toPageDto(pageMetaDto);
 	}
 
-	async getAllPages(): Promise<any[]> {
-		this.logger.log('Fetching all pages...');
+	async getMyPages(user: UserEntity): Promise<PageDto[]> {
+		const queryBuilder = this.pageRepository.createQueryBuilder('page');
 
-		const pages = await this.pageRepository.find({
-			relations: ['pageUsers', 'pageUsers.user'],
+		queryBuilder.innerJoinAndSelect('page.pageUsers', 'pageUsers');
+		queryBuilder.where('pageUsers.userId = :userId', { userId: user.id });
+		queryBuilder.andWhere('pageUsers.role = :role', {
+			role: RoleTypePage.ADMIN,
 		});
 
-		return pages.map((page) => {
-			const owner = page.pageUsers.find(
-				(user) => user.role === RoleTypePage.OPERATOR,
-			);
+		const pageEntities = await queryBuilder.getMany();
 
-			const ownerData = owner
-				? {
-						id: owner.user.id,
-						firstName: owner.user.firstName,
-						email: owner.user.email,
-					}
-				: null;
-
-			return {
-				id: page.id,
-				name: page.name,
-				content: page.content,
-				owner: ownerData,
-			};
-		});
+		return pageEntities.toDtos();
 	}
 
-	async getMyPages(userId: string): Promise<PageEntity[]> {
-		this.logger.log(`🔍 Fetching pages owned by user ID: ${userId}`);
-
-		return this.pageUserRepository
-			.createQueryBuilder('pages_users')
-			.innerJoinAndSelect('pages_users.page', 'pages')
-			.where('pages_users.userId = :userId', { userId })
-			.andWhere('pages_users.role = :role', { role: RoleTypePage.OPERATOR })
-			.getMany()
-			.then((pageUsers) => pageUsers.map((pageUser) => pageUser.page));
-	}
-
+	@Transactional()
 	async registerPage(
-		userId: string,
+		user: UserEntity,
 		registerPageDto: RegisterPageDto,
-	): Promise<PageEntity> {
-		const user = await this.userRepository.findOne({ where: { id: userId } });
-
-		if (!user) {
-			throw new NotFoundException('Không tìm thấy người dùng');
-		}
-
+	): Promise<PageDto> {
 		const page = this.pageRepository.create({
 			...registerPageDto,
 		});
+
 		await this.pageRepository.save(page);
 
 		const pageUser = this.pageUserRepository.create({
 			page: page,
 			user: user,
 			active: true,
-			role: RoleTypePage.OPERATOR,
+			role: RoleTypePage.ADMIN,
 		});
+
 		await this.pageUserRepository.save(pageUser);
 
-		return page;
+		return page.toDto<PageDto>();
 	}
+
+	// async getAllPages(): Promise<any[]> {
+	// 	this.logger.log('Fetching all pages...');
+	//
+	// 	const pages = await this.pageRepository.find({
+	// 		relations: ['pageUsers', 'pageUsers.user'],
+	// 	});
+	//
+	// 	return pages.map((page) => {
+	// 		const owner = page.pageUsers.find(
+	// 			(user) => user.role === RoleTypePage.OPERATOR,
+	// 		);
+	//
+	// 		const ownerData = owner
+	// 			? {
+	// 					id: owner.user.id,
+	// 					firstName: owner.user.firstName,
+	// 					email: owner.user.email,
+	// 				}
+	// 			: null;
+	//
+	// 		return {
+	// 			id: page.id,
+	// 			name: page.name,
+	// 			content: page.content,
+	// 			owner: ownerData,
+	// 		};
+	// 	});
+	// }
 }

@@ -1,40 +1,22 @@
-import {
-	IsOptional,
-	IsString,
-	IsEnum,
-	IsDate,
-	MinLength,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { GenderType } from 'src/constants/gender-type';
+import { GenderType } from '../../../constants/gender-type';
+import { DateFieldOptional, EnumFieldOptional, StringFieldOptional } from '../../../decoractors/field.decoractors';
 
 export class UpdateUserProfileDto {
-	@IsOptional()
-	@IsString()
-	@MinLength(1, { message: 'Tên quá ngắn' })
+	@StringFieldOptional()
 	firstName?: string;
 
-	@IsOptional()
-	@IsString()
-	@MinLength(1, { message: 'Họ quá ngắn' })
+	@StringFieldOptional()
 	lastName?: string;
 
-	@IsOptional()
-	@Type(() => Date)
-	@IsDate({ message: 'Định dạng ngày sinh không hợp lệ' })
+	@DateFieldOptional()
 	dateOfBirth?: Date;
 
-	@IsOptional()
-	@IsEnum(GenderType, { message: 'Giới tính không hợp lệ' })
+	@EnumFieldOptional(() => GenderType)
 	gender?: GenderType;
 
-	@IsOptional()
-	@IsString()
-	@MinLength(1, { message: 'Tên chuyên ngành quá ngắn' })
+	@StringFieldOptional()
 	major?: string;
 
-	@IsOptional()
-	@IsString()
-	@MinLength(1, { message: 'Tên vị trí làm việc không hợp lệ' })
+	@StringFieldOptional()
 	desiredJobPosition?: string;
 }
