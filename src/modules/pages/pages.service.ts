@@ -51,6 +51,7 @@ export class PagesService {
 	): Promise<PageDto> {
 		const page = this.pageRepository.create({
 			...registerPageDto,
+			email: user.email,
 		});
 
 		await this.pageRepository.save(page);
@@ -58,7 +59,7 @@ export class PagesService {
 		const pageUser = this.pageUserRepository.create({
 			page: page,
 			user: user,
-			active: true,
+			active: false,
 			role: RoleTypePage.ADMIN,
 		});
 
