@@ -27,7 +27,7 @@ export class ChatsService {
 		private readonly usersService: UsersService,
 	) {}
 
-	async checkPermission(
+	async getGroupChat(
 		userId: Uuid,
 		groupChatId: Uuid,
 		requireAdmin: boolean = false,
@@ -41,7 +41,16 @@ export class ChatsService {
 
 		if (requireAdmin) queryBuilder.andWhere('members.isAdmin = true');
 
-		return queryBuilder.getExists();
+		const isExist = await queryBuilder.getExists();
+
+		if(!isExist) return null;
+
+		return this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.andWhere('groupChat.id = :groupChatId', { groupChatId })
+			.getOne();
 	}
 
 	findOneGroupChat(
@@ -173,7 +182,7 @@ export class ChatsService {
 	}
 
 	async getGroupChatMessages(user: UserEntity, groupChatId: Uuid) {
-		const havePermission = await this.checkPermission(user.id, groupChatId);
+		const havePermission = await this.getGroupChat(user.id, groupChatId);
 
 		if (!havePermission)
 			throw new ForbiddenException(
@@ -193,7 +202,7 @@ export class ChatsService {
 	}
 
 	async sendMessage(user: UserEntity, groupChatId: Uuid, content: string) {
-		const havePermission = await this.checkPermission(user.id, groupChatId);
+		const havePermission = await this.getGroupChat(user.id, groupChatId);
 
 		if (!havePermission)
 			throw new ForbiddenException(

@@ -38,14 +38,20 @@ export class ChatsController {
 		return this.chatsService.getGroupChatsByUserId(user.id);
 	}
 
-	// @Get('groups/:id')
-	// @Auth([RoleType.USER])
-	// async getGroupChat(
-	// 	@AuthUser() user: UserEntity,
-	// 	@UUIDParam('id') groupChatId: Uuid,
-	// ) {
-	//
-	// }
+	@Get('groups/:id')
+	@Auth([RoleType.USER])
+	async getGroupChat(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('id') groupChatId: Uuid,
+	) {
+		const groupChat = await this.chatsService.getGroupChat(user.id, groupChatId);
+
+		if(!groupChat) throw new ForbiddenException(
+			'You not have permission to retrieve message of this group',
+		);
+
+		return groupChat;
+	}
 
 	@Get('groups/:id/messages')
 	@Auth([RoleType.USER])
