@@ -68,6 +68,17 @@ export class PagesService {
 		return page.toDto<PageDto>();
 	}
 
+	async approvePage(userId: string, pageId: string) {
+		const pageUser = await this.pageUserRepository
+			.createQueryBuilder('pages_users')
+			.innerJoinAndSelect('pages_users.page', 'pages')
+			.where('pages_users.page_id = page_id', { pageId })
+			.getOne()
+		pageUser.active = true;
+		await this.pageUserRepository.save(pageUser);
+		return pageUser;
+	}
+
 	// async getAllPages(): Promise<any[]> {
 	// 	this.logger.log('Fetching all pages...');
 	//
