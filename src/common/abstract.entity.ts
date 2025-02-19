@@ -10,7 +10,7 @@ export abstract class AbstractEntity<
 	O = never,
 > {
 	@PrimaryGeneratedColumn('uuid')
-	id!: string;
+	id!: Uuid;
 
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt!: Date;

@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany, VirtualColumn } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { CommentDto, CommentDtoOptions } from '../dto/comment.dto';
+import { CommentDto, type CommentDtoOptions } from '../dto/comment.dto';
 import { UserEntity } from '../../users/entities/user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
 import { ReactEntity } from '../../reacts/entities/react.entity';

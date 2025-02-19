@@ -14,6 +14,7 @@ export class AssetEntity extends AbstractEntity {
 
 	@Column({
 		type: 'jsonb',
+		default: {},
 	})
-	file_data: object;
+	file_data!: object;
 }

@@ -1,38 +1,38 @@
-import {
-	Controller,
-	Post,
-	Body,
-	UseGuards,
-	Get,
-	Req,
-	UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { RegisterPageDto } from './dto/create-page.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RoleType } from '../../constants/role-type';
+import { Auth } from '../../decoractors/http.decorators';
+import { PagePageOptionsDto } from '../users/dto/page-page-options.dto';
+import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
+import type { PageDto } from './dto/page.dto';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import type { UserEntity } from '../users/entities/user.entity';
 
 @Controller('api/pages')
 export class PagesController {
 	constructor(private readonly pagesService: PagesService) {}
 
 	@Get()
-	async getAllPages() {
-		return this.pagesService.getAllPages();
+	@Auth([RoleType.USER])
+	async getPages(
+		@Query() pagePageOptionsDto: PagePageOptionsDto,
+	): Promise<CommonPageDto<PageDto>> {
+		return this.pagesService.getPages(pagePageOptionsDto);
 	}
 
-	@Get('my_pages')
-	@UseGuards(JwtAuthGuard)
-	async getMyPages(@Req() req) {
-		return this.pagesService.getMyPages(req.user.userId);
+	@Get('me')
+	@Auth([RoleType.USER])
+	async getMyPage(@AuthUser() user: UserEntity) {
+		return this.pagesService.getMyPage(user);
 	}
 
 	@Post('page')
-	@UseGuards(JwtAuthGuard)
-	async registerPage(@Req() req, @Body() registerPageDto: RegisterPageDto) {
-		if (!req.user?.userId) {
-			throw new UnauthorizedException('User not authenticated');
-		}
-
-		return this.pagesService.registerPage(req.user.userId, registerPageDto);
+	@Auth([RoleType.USER])
+	async registerPage(
+		@AuthUser() user: UserEntity,
+		@Body() registerPageDto: RegisterPageDto,
+	) {
+		return this.pagesService.registerPage(user, registerPageDto);
 	}
 }

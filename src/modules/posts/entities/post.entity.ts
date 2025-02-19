@@ -1,4 +1,4 @@
-import { PostDto, PostDtoOptions } from '../dto/post.dto';
+import { PostDto, type PostDtoOptions } from '../dto/post.dto';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';

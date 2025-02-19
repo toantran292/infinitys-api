@@ -18,9 +18,6 @@ export class GroupChatEntity extends AbstractEntity {
 		(groupChatMessage) => groupChatMessage.groupChat,
 	)
 	groupChatMessages!: GroupChatMessageEntity[];
-
-	// @Column() - to assets
-	avatar: string;
 }
 
 @Entity({ name: 'group_chat_members' })
@@ -45,7 +42,4 @@ export class GroupChatMessageEntity extends AbstractEntity {
 
 	@Column()
 	content!: string;
-
-	// @Column() - to assets
-	media: string;
 }

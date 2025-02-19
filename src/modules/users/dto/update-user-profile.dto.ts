@@ -6,7 +6,7 @@ import {
 	MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { GenderType } from 'src/constants/gender-type';
+import { GenderType } from '../../../constants/gender-type';
 
 export class UpdateUserProfileDto {
 	@IsOptional()

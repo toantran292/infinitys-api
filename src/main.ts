@@ -1,25 +1,28 @@
-import { NestApplication, NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
+import './boilerplate.polyfill';
+
 import {
 	ClassSerializerInterceptor,
 	HttpStatus,
-	Logger,
 	UnprocessableEntityException,
 	ValidationPipe,
 } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { AppModule } from './app.module';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import * as morgan from 'morgan';
+
 import { HttpExceptionFilter } from './filters/bad-request.filter';
 import { QueryFailedFilter } from './filters/query-failed.filter';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { initializeTransactionalContext } from 'typeorm-transactional';
+import { SharedModule } from './shared/shared.module';
+import { ApiConfigService } from './shared/services/api-config.service';
 
-export async function bootstrap(): Promise<NestApplication> {
-	const logger = new Logger(bootstrap.name);
-
-	const app = await NestFactory.create<NestApplication>(
+export async function bootstrap(): Promise<NestExpressApplication> {
+	initializeTransactionalContext();
+	const app = await NestFactory.create<NestExpressApplication>(
 		AppModule,
 		new ExpressAdapter(),
 		{ cors: true },
@@ -41,20 +44,21 @@ export async function bootstrap(): Promise<NestApplication> {
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true,
+			errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
 			transform: true,
 			dismissDefaultMessages: true,
+			exceptionFactory: (errors) => new UnprocessableEntityException(errors),
 		}),
 	);
 
-	const configService = app.get(ConfigService);
+	const configService = app.select(SharedModule).get(ApiConfigService);
 
-	const port = configService.get('PORT');
+	const port = configService.appConfig.port;
 
 	await app.listen(port);
-
-	logger.log('Server is running on port ' + port);
 
 	return app;
 }
 
-bootstrap();
+export const viteNodeApp = bootstrap();
+

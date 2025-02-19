@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { databaseConfig } from './configs/configuration.config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
-import { UsersModule } from './modules/users/users.module';
-import * as Joi from 'joi';
+import { addTransactionalDataSource } from 'typeorm-transactional';
+import { DataSource } from 'typeorm';
 import { ClsModule } from 'nestjs-cls';
+
+import { ApplicationsModule } from './modules/applications/applications.module';
+import { AssetsModule } from './modules/assets/assets.module';
+import { AuthsModule } from './modules/auths/auths.module';
+import { ChatsModule } from './modules/chats/chats.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { PostsModule } from './modules/posts/posts.module';
-import { CommentsModule } from './modules/comments/comments.module';
+import { ProblemsModule } from './modules/problems/problems.module';
 import { ReactsModule } from './modules/reacts/reacts.module';
 import { RecruitmentPostsModule } from './modules/recruitment_posts/recruitment_posts.module';
-import { AssetsModule } from './modules/assets/assets.module';
-import { ApplicationsModule } from './modules/applications/applications.module';
-import { ChatsModule } from './modules/chats/chats.module';
-import { ProblemsModule } from './modules/problems/problems.module';
-import { AuthsModule } from './modules/auths/auths.module';
+import { UsersModule } from './modules/users/users.module';
+import { SharedModule } from './shared/shared.module';
+import { ApiConfigService } from './shared/services/api-config.service';
 
 @Module({
 	imports: [
@@ -26,42 +28,25 @@ import { AuthsModule } from './modules/auths/auths.module';
 			},
 		}),
 		ConfigModule.forRoot({
-			validationSchema: Joi.object({
-				NODE_ENV: Joi.string()
-					.valid('development', 'production', 'staging')
-					.default('development'),
-				PORT: Joi.number().default(3000),
-			}),
-			validationOptions: {
-				abortEarly: false,
-			},
 			isGlobal: true,
 			envFilePath: process.env.NODE_ENV === 'development' ? '.env.dev' : '.env',
-			load: [databaseConfig],
-			cache: true,
-			expandVariables: true,
 		}),
 		TypeOrmModule.forRootAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: async (configService: ConfigService) => ({
-				type: 'postgres',
-				host: configService.get<string>('DB_HOST', 'localhost'),
-				port: configService.get<number>('DB_PORT', 5432),
-				username: configService.get<string>('DB_USER', 'myuser'),
-				password: configService.get<string>('DB_PASS', 'mypassword'),
-				database: configService.get<string>('DB_NAME', 'mydatabase'),
-				entities: [join(process.cwd(), 'dist/**/*.entity.js')],
-				synchronize: false,
-				autoLoadEntities: true,
-				migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-				seeds: [__dirname + '/seeds/**/*{.ts,.js}'],
-				factories: [__dirname + '/factories/**/*{.ts,.js}'],
-				cli: {
-					migrationsDir: __dirname + '/migrations/',
-				},
-			}),
+			imports: [SharedModule],
+			inject: [ApiConfigService],
+			useFactory: (configService: ApiConfigService) =>
+				configService.postgresConfig,
+			dataSourceFactory: (options) => {
+				if (!options) {
+					throw new Error('Invalid options passed');
+				}
+
+				return Promise.resolve(
+					addTransactionalDataSource(new DataSource(options)),
+				);
+			},
 		}),
+		SharedModule,
 		UsersModule,
 		PagesModule,
 		PostsModule,
@@ -77,4 +62,5 @@ import { AuthsModule } from './modules/auths/auths.module';
 	controllers: [],
 	providers: [],
 })
-export class AppModule {}
+export class AppModule {
+}

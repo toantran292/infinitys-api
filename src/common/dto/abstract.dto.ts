@@ -1,5 +1,5 @@
 import { DateField, UUIDField } from '../../decoractors/field.decoractors';
-import type { AbstractEntity } from '../abstract.entity.ts';
+import type { AbstractEntity } from '../abstract.entity';
 
 export class AbstractDto {
 	@UUIDField()

@@ -1,28 +1,28 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { AuthsService } from './auths.service';
 import { AuthsController } from './auths.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '../users/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthsAdminController } from './auths.admin.controller';
 import { PublicStrategy } from './public.strategy';
+import { ApiConfigService } from '../../shared/services/api-config.service';
 
 @Module({
 	imports: [
 		forwardRef(() => UsersModule),
 		PassportModule.register({ defaultStrategy: 'jwt' }),
-		TypeOrmModule.forFeature([UserEntity]),
 		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: async (configService: ConfigService) => ({
-				secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
+			inject: [ApiConfigService],
+			useFactory: (configService: ApiConfigService) => ({
+				privateKey: configService.authConfig.privateKey,
+				publicKey: configService.authConfig.publicKey,
 				signOptions: {
-					expiresIn: configService.get<string>('JWT_EXPIRESIN') || '3h',
+					algorithm: 'RS256',
+				},
+				verifyOptions: {
+					algorithms: ['RS256'],
 				},
 			}),
 		}),
@@ -31,4 +31,5 @@ import { PublicStrategy } from './public.strategy';
 	providers: [AuthsService, JwtStrategy, PublicStrategy],
 	exports: [JwtModule, AuthsService],
 })
-export class AuthsModule {}
+export class AuthsModule {
+}

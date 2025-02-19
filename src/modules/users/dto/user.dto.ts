@@ -1,5 +1,6 @@
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import {
+	BooleanFieldOptional,
 	DateFieldOptional,
 	EmailField,
 	EnumFieldOptional,
@@ -8,7 +9,7 @@ import {
 } from '../../../decoractors/field.decoractors';
 import { UserEntity } from '../entities/user.entity';
 import { RoleType } from '../../../constants/role-type';
-import { GenderType } from 'src/constants/gender-type';
+import { GenderType } from '../../../constants/gender-type';
 
 export type UserDtoOptions = Partial<{ isActive: boolean }>;
 
@@ -37,6 +38,9 @@ export class UserDto extends AbstractDto {
 	@StringFieldOptional()
 	desiredJobPosition?: string;
 
+	@BooleanFieldOptional()
+	active?: boolean;
+
 	constructor(user: UserEntity) {
 		super(user);
 		this.firstName = user.firstName;
@@ -47,5 +51,6 @@ export class UserDto extends AbstractDto {
 		this.gender = user.gender;
 		this.major = user.major;
 		this.desiredJobPosition = user.desiredJobPosition;
+		this.active = user.active;
 	}
 }

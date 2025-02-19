@@ -20,8 +20,9 @@ export class RecruitmentPostEntity extends AbstractEntity {
 
 	@Column({
 		type: 'jsonb',
+		default: {},
 	})
-	meta: object;
+	meta!: object;
 
 	@ManyToOne(() => PageUserEntity, (pageUser) => pageUser.recruitmentPosts)
 	pageUser!: PageUserEntity;

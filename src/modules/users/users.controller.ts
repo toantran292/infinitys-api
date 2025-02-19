@@ -1,56 +1,54 @@
-import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Param,
-	Put,
-	Req,
-	UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+import { RoleType } from '../../constants/role-type';
+import { UsersPageOptionsDto } from './dto/user-page-options.dto';
+import type { UserDto } from './dto/user.dto';
 
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { OwnerOrAdminGuard } from '../../guards/ower-or-admin.guard';
 @Controller('api/users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@Get()
-	async getAllUsers() {
-		return this.usersService.findAll();
-	}
-
-	@UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
-	@Get(':id')
-	async getUserById(@Param('id') id: string, @Req() req) {
-		return this.usersService.findOne(id, req.isLimitedView);
-	}
-
-	@Put(':id/ban')
-	async banUser(@Param('id') id: string) {
-		return this.usersService.banUser(id);
-	}
-	@Put(':id/unban')
-	async unbanUser(@Param('id') id: string) {
-		return this.usersService.unbanUser(id);
-	}
-	@Delete(':id')
-	async deleteUser(@Param('id') id: string) {
-		return this.usersService.deleteUser(id);
-	}
-
-	@Get('profile/:userId')
-	async getUserProfile(@Param('userId') userId: string) {
-		return this.usersService.getUserProfile(userId);
-	}
-
-	@Put('profile/:userId')
-	async editProfile(
-		@Param('userId') userId: string,
-		@Body() updateData: UpdateUserProfileDto,
+	@Auth([RoleType.USER])
+	async getUsers(
+		@Query(new ValidationPipe({ transform: true }))
+		pageOptionsDto: UsersPageOptionsDto,
 	) {
-		return this.usersService.editUserProfile(userId, updateData);
+		return this.usersService.getUsers(pageOptionsDto);
 	}
+
+	@Get(':id')
+	@Auth([RoleType.USER])
+	async getUser(@UUIDParam('id') userId: Uuid): Promise<UserDto> {
+		return this.usersService.getUser(userId);
+	}
+
+	// @UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
+	// @Get(':id')
+	// async getUserById(@Param('id') id: string, @Req() req) {
+	// 	return this.usersService.findOne(id, req.isLimitedView);
+	// }
+
+	// @Put(':id/ban')
+	// async banUser(@Param('id') id: string) {
+	// 	return this.usersService.banUser(id);
+	// }
+	// @Put(':id/unban')
+	// async unbanUser(@Param('id') id: string) {
+	// 	return this.usersService.unbanUser(id);
+	// }
+
+	// @Get('profile/:userId')
+	// async getUserProfile(@UUIDParam('userId') userId: Uuid) {
+	// 	return this.usersService.getUserProfile(userId);
+	// }
+
+	// @Put('profile/:userId')
+	// async editProfile(
+	// 	@UUIDParam('userId') userId: Uuid,
+	// 	@Body() updateData: UpdateUserProfileDto,
+	// ) {
+	// 	return this.usersService.editUserProfile(userId, updateData);
+	// }
 }

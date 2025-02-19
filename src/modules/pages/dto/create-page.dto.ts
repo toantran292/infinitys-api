@@ -1,15 +1,23 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import {
+	EmailField,
+	StringField,
+	StringFieldOptional,
+	URLField,
+} from '../../../decoractors/field.decoractors';
 
 export class RegisterPageDto {
-	@IsNotEmpty({ message: 'Tên không được để trống' })
+	@StringField()
 	name!: string;
 
-	@IsOptional()
+	@StringFieldOptional()
 	content?: string;
 
-	@IsNotEmpty({ message: 'Hãy điền địa chỉ' })
+	@StringField()
 	address!: string;
 
-	@IsNotEmpty({ message: 'Hãy điền trang Công ty' })
+	@URLField()
 	url!: string;
+
+	@EmailField()
+	email!: string;
 }
