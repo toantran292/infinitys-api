@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, type FindOptionsWhere, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
@@ -16,6 +16,10 @@ export class UsersService {
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
 	) {}
+
+	findAll(option: FindManyOptions<UserEntity>){
+		return this.userRepository.find(option);
+	}
 
 	findOne(findData: FindOptionsWhere<UserEntity>): Promise<UserEntity | null> {
 		return this.userRepository.findOneBy(findData);

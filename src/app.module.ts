@@ -18,6 +18,7 @@ import { RecruitmentPostsModule } from './modules/recruitment_posts/recruitment_
 import { UsersModule } from './modules/users/users.module';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
 	imports: [
@@ -58,6 +59,7 @@ import { ApiConfigService } from './shared/services/api-config.service';
 		ChatsModule,
 		ProblemsModule,
 		AuthsModule,
+		SearchModule,
 	],
 	controllers: [],
 	providers: [],
