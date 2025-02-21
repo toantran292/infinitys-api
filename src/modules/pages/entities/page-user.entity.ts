@@ -5,6 +5,7 @@ import { UserEntity } from '../../users/entities/user.entity';
 import { PageUserDto, type PageUserDtoOptions } from '../dto/page-user.dto';
 import { RoleTypePage } from '../../../constants/role-type';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
+import { FriendEntity } from '../../users/entities/friend.entity';
 
 @Entity({ name: 'pages_users' })
 export class PageUserEntity extends AbstractEntity<
