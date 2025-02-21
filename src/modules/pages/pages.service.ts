@@ -51,6 +51,7 @@ export class PagesService {
 	): Promise<PageDto> {
 		const page = this.pageRepository.create({
 			...registerPageDto,
+			email: user.email,
 		});
 
 		await this.pageRepository.save(page);
@@ -58,13 +59,24 @@ export class PagesService {
 		const pageUser = this.pageUserRepository.create({
 			page: page,
 			user: user,
-			active: true,
+			active: false,
 			role: RoleTypePage.ADMIN,
 		});
 
 		await this.pageUserRepository.save(pageUser);
 
 		return page.toDto<PageDto>();
+	}
+
+	async approvePage(userId: string, pageId: string) {
+		const pageUser = await this.pageUserRepository
+			.createQueryBuilder('pages_users')
+			.innerJoinAndSelect('pages_users.page', 'pages')
+			.where('pages_users.page_id = page_id', { pageId })
+			.getOne()
+		pageUser.active = true;
+		await this.pageUserRepository.save(pageUser);
+		return pageUser;
 	}
 
 	// async getAllPages(): Promise<any[]> {
