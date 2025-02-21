@@ -59,6 +59,9 @@ export class UsersService {
 
 	async getUser(userId: Uuid): Promise<UserDto> {
 		const userEntity = await this.getRawUser(userId);
+
+
+
 		return userEntity.toDto<UserDto>();
 	}
 

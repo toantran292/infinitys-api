@@ -3,6 +3,8 @@ import { SearchService } from './search.service';
 import { CreateSearchDto } from './dto/create-search.dto';
 import { UpdateSearchDto } from './dto/update-search.dto';
 import { Auth } from '../../decoractors/http.decorators';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Controller('search')
 export class SearchController {
@@ -10,7 +12,10 @@ export class SearchController {
 
   @Get('user')
   @Auth()
-  searchUser(@Query() query: {q: string}) {
-    return this.searchService.searchUser(query.q);
+  searchUser(
+    @AuthUser() user: UserEntity,
+    @Query() query: {q: string}
+  ) {
+    return this.searchService.searchUser(user, query.q);
   }
 }

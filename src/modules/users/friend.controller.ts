@@ -1,48 +1,48 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { SendFriendRequestDto } from './dto/create-friend-request.dto';
 import { UserEntity } from './entities/user.entity';
-import { Auth } from '../../decoractors/http.decorators';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 
-@Controller('friends')
+@Controller('api/friends')
 export class FriendController {
 	constructor(private readonly friendService: FriendService) {}
 
-	@Post('request')
+	@Post(':userId')
 	@Auth([RoleType.USER])
 	async sendFriendRequest(
 		@AuthUser() user: UserEntity,
-		@Body() dto: SendFriendRequestDto,
+		@UUIDParam('userId') userId: Uuid,
 	) {
-		return this.friendService.sendFriendRequest(user.id, dto.targetId);
+		return this.friendService.sendFriendRequest(user.id, userId);
 	}
 
-	@Post('request/:requestId/accept')
+	@Post(':userId/accept')
 	@Auth([RoleType.USER])
 	async acceptFriendRequest(
 		@AuthUser() user: UserEntity,
-		@Param('requestId') requestId: string,
+		@UUIDParam('userId') userId: Uuid,
 	) {
-		return this.friendService.acceptFriendRequest(requestId);
+		return this.friendService.acceptFriendRequest(user.id, userId);
 	}
 
-	@Post('request/:requestId/reject')
+	@Post(':userId/reject')
 	@Auth([RoleType.USER])
 	async rejectFriendRequest(
 		@AuthUser() user: UserEntity,
-		@Param('requestId') requestId: string,
+		@UUIDParam('userId') userId: Uuid,
 	) {
-		return this.friendService.rejectFriendRequest(requestId);
+		return this.friendService.rejectFriendRequest(user.id, userId);
 	}
 
-	@Post(':friendId/unrequest')
+	@Post(':userId/cancel')
 	@Auth([RoleType.USER])
-	async removeFriendRequest(
+	async cancelFriendRequest(
 		@AuthUser() user: UserEntity,
-		@Param('friendId') friendId: string,
+		@UUIDParam('userId') userId: Uuid,
 	) {
-		return this.friendService.removeFriendRequest(user.id, friendId);
+		return this.friendService.cancelFriendRequest(user.id, userId);
 	}
 }

@@ -18,18 +18,24 @@ export class FriendService {
 		private userRepo: Repository<UserEntity>,
 	) {}
 
-	private async findFriendRequest(sourceId: string, targetId: string): Promise<FriendRequestEntity | null> {
+	async validate(sourceId: Uuid, targetId: Uuid) {
+		if (sourceId === targetId) {
+			throw new BadRequestException('Bạn không thể kết bạn với chính mình.');
+		}
+	}
+
+	async findFriendRequest(sourceId: string, targetId: string): Promise<FriendRequestEntity | null> {
 		return await this.friendRequestRepository
 			.createQueryBuilder('request')
 			.leftJoinAndSelect('request.source', 'source')
 			.leftJoinAndSelect('request.target', 'target')
-			.where('(source.id = :sourceId AND target.id = :targetId) OR (source.id = :targetId AND target.id = :sourceId)', { sourceId, targetId })
+			.where('(source.id = :sourceId AND target.id = :targetId)', { sourceId, targetId })
 			.andWhere('request.is_available = :isAvailable', { isAvailable: true })
 			.getOne();
 
 	}
 
-	private async findFriendship(sourceId: string, targetId: string): Promise<FriendEntity | null> {
+	async findFriendship(sourceId: string, targetId: string): Promise<FriendEntity | null> {
 		return await this.friendRepository
 			.createQueryBuilder('friend')
 			.where(
@@ -39,17 +45,17 @@ export class FriendService {
 			.getOne();
 	}
 
-	async sendFriendRequest(sourceId: string, targetId: string): Promise<FriendRequestEntity> {
-		if (sourceId === targetId) {
-			throw new BadRequestException('Bạn không thể kết bạn với chính mình.');
+	async sendFriendRequest(sourceId: Uuid, targetId: Uuid): Promise<FriendRequestEntity> {
+		await this.validate(sourceId, targetId);
+
+		const existingFriendShip = await this.findFriendship(sourceId, targetId);
+
+		if(existingFriendShip){
+			throw new BadRequestException('Already friend');
 		}
 
 		const existingRequest = await this.findFriendRequest(sourceId, targetId);
 		if (existingRequest) {
-			if (!existingRequest.is_available) {
-				existingRequest.is_available = true;
-				return this.friendRequestRepository.save(existingRequest);
-			}
 			throw new BadRequestException('Lời mời kết bạn đã được gửi trước đó.');
 		}
 
@@ -62,68 +68,64 @@ export class FriendService {
 		return this.friendRequestRepository.save(newRequest);
 	}
 
-	async acceptFriendRequest(requestId: string): Promise<void> {
+	async acceptFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
+		const waitingRequest = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.source', 'source')
+			.leftJoinAndSelect('request.target', 'target')
+			.where('request.source_id = :sourceId', { sourceId })
+			.andWhere('request.target_id = :targetId', { targetId })
+			.andWhere('request.is_available = true')
+			.getOne();
+
+		if (!waitingRequest) {
+			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
+		}
+
+		const { source, target } = waitingRequest;
+
+		const newFriendship = this.friendRepository.create({ source, target });
+		await this.friendRepository.save(newFriendship);
+
+		waitingRequest.is_available = false;
+		await this.friendRequestRepository.save(waitingRequest);
+	}
+
+	async rejectFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
+		const waitingRequest = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.source', 'source')
+			.leftJoinAndSelect('request.target', 'target')
+			.where('request.source_id = :sourceId', { sourceId })
+			.andWhere('request.target_id = :targetId', { targetId })
+			.andWhere('request.is_available = true')
+			.getOne();
+
+
+		if (!waitingRequest) {
+			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
+		}
+
+		waitingRequest.is_available = false;
+		await this.friendRequestRepository.save(waitingRequest);
+	}
+
+	async cancelFriendRequest(sourceId: Uuid, targetId: Uuid): Promise<void> {
 		const friendRequest = await this.friendRequestRepository
 			.createQueryBuilder('request')
 			.leftJoinAndSelect('request.source', 'source')
 			.leftJoinAndSelect('request.target', 'target')
-			.where('request.id = :requestId', { requestId })
+			.where('request.source_id = :sourceId', { sourceId })
+			.andWhere('request.target_id = :targetId', { targetId })
 			.andWhere('request.is_available = true')
 			.getOne();
 
 
 		if (!friendRequest) {
-			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
-		}
-
-		const { source, target } = friendRequest;
-
-		const existingFriendship = await this.findFriendship(source.id, target.id);
-		if (existingFriendship) {
-			throw new BadRequestException('Hai người đã là bạn bè.');
-		}
-
-		const newFriendship = this.friendRepository.create({ source, target });
-		await this.friendRepository.save(newFriendship);
-
-		friendRequest.is_available = false;
-		await this.friendRequestRepository.save(friendRequest);
-	}
-
-	async rejectFriendRequest(requestId: string): Promise<void> {
-		const request = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.id = :requestId', { requestId })
-			.andWhere('request.is_available = true')
-			.getOne();
-
-
-		if (!request) {
-			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
-		}
-
-		request.is_available = false;
-		await this.friendRequestRepository.save(request);
-	}
-
-	async removeFriendRequest(userId: string, friendId: string): Promise<void> {
-		const request = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.id = :friendId', { friendId })
-			.andWhere('request.source.id = :userId', { userId })
-			.andWhere('request.is_available = true')
-			.getOne();
-
-
-		if (!request) {
 			throw new NotFoundException('Không tìm thấy yêu cầu kết bạn.');
 		}
 
-		request.is_available = false;
-		await this.friendRequestRepository.save(request);
+		friendRequest.is_available = false;
+		await this.friendRequestRepository.save(friendRequest);
 	}
 }
