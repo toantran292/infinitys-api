@@ -14,9 +14,9 @@ import {
 } from '../../chats/entities/chat.entity';
 import { ProblemUserEntity } from '../../problems/entities/problem.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
-import { GenderType } from 'src/constants/gender-type';
 import { FriendEntity } from './friend.entity';
 import { FriendRequestEntity } from './friend-request.entity';
+import { GenderType } from '../../../constants/gender-type';
 
 @Entity({ name: 'users' })
 @UseDto(UserDto)
