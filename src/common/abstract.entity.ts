@@ -19,18 +19,18 @@ export abstract class AbstractEntity<
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt!: Date;
 
-	toDto<CDTO extends AbstractDto = DTO>(options?: O & {
-		dto: Constructor<CDTO>;
-	}): CDTO {
+	toDto<CDTO extends AbstractDto = DTO>(
+		options?: O & {
+			dto: Constructor<CDTO>;
+		},
+	): CDTO {
 		console.log(options);
 		const { dto, ...remainingOptions } = options || {};
 
 		let dtoClass = undefined;
 
-		if(dto)
-			dtoClass = dto;
-		else
-			dtoClass = Object.getPrototypeOf(this).dtoClass;
+		if (dto) dtoClass = dto;
+		else dtoClass = Object.getPrototypeOf(this).dtoClass;
 
 		if (!dtoClass) {
 			throw new Error(

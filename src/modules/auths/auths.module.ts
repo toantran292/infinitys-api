@@ -31,5 +31,4 @@ import { ApiConfigService } from '../../shared/services/api-config.service';
 	providers: [AuthsService, JwtStrategy, PublicStrategy],
 	exports: [JwtModule, AuthsService],
 })
-export class AuthsModule {
-}
+export class AuthsModule {}

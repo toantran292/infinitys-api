@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, type FindOptionsWhere, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
@@ -16,6 +16,10 @@ export class UsersService {
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
 	) {}
+
+	findAll(option: FindManyOptions<UserEntity>){
+		return this.userRepository.find(option);
+	}
 
 	findOne(findData: FindOptionsWhere<UserEntity>): Promise<UserEntity | null> {
 		return this.userRepository.findOneBy(findData);
@@ -39,7 +43,7 @@ export class UsersService {
 		return items.toPageDto(pageMetaDto);
 	}
 
-	async getUser(userId: Uuid): Promise<UserDto> {
+	async getRawUser(userId: Uuid): Promise<UserEntity> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 
 		queryBuilder.where('user.id = :userId', { userId });
@@ -49,6 +53,14 @@ export class UsersService {
 		if (!userEntity) {
 			throw new UserNotFoundException();
 		}
+
+		return userEntity;
+	}
+
+	async getUser(userId: Uuid): Promise<UserDto> {
+		const userEntity = await this.getRawUser(userId);
+
+
 
 		return userEntity.toDto<UserDto>();
 	}
@@ -69,14 +81,16 @@ export class UsersService {
 	// }
 	//
 
-	async editUserProfile(user: UserEntity, userProfileDto: UpdateUserProfileDto) {
+	async editUserProfile(
+		user: UserEntity,
+		userProfileDto: UpdateUserProfileDto,
+	) {
 		this.userRepository.merge(user, userProfileDto);
 
 		const updatedUser = await this.userRepository.save(user);
 
 		return updatedUser.toDto<UserDto>();
 	}
-
 
 	// async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
 	// 	const user = await this.userRepository.findOne({ where: { id } });

@@ -62,4 +62,3 @@ export async function bootstrap(): Promise<NestExpressApplication> {
 }
 
 export const viteNodeApp = bootstrap();
-

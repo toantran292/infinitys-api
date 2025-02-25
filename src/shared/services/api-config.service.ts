@@ -1,4 +1,4 @@
-import {join} from 'path';
+import { join } from 'path';
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

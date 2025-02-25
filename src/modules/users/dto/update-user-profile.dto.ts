@@ -1,5 +1,9 @@
 import { GenderType } from '../../../constants/gender-type';
-import { DateFieldOptional, EnumFieldOptional, StringFieldOptional } from '../../../decoractors/field.decoractors';
+import {
+	DateFieldOptional,
+	EnumFieldOptional,
+	StringFieldOptional,
+} from '../../../decoractors/field.decoractors';
 
 export class UpdateUserProfileDto {
 	@StringFieldOptional()

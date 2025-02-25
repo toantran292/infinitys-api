@@ -12,9 +12,12 @@ declare global {
 	export type Uuid = string & { _uuidBrand: undefined };
 
 	interface Array<T> {
-		toDtos<Dto extends AbstractDto>(this: T[], options?: unknown & {
-			dto: Constructor<Dto>;
-		}): Dto[];
+		toDtos<Dto extends AbstractDto>(
+			this: T[],
+			options?: unknown & {
+				dto: Constructor<Dto>;
+			},
+		): Dto[];
 
 		toPageDto<Dto extends AbstractDto>(
 			this: T[],
@@ -100,15 +103,14 @@ Array.prototype.toDtos = function <
 	);
 };
 
-Array.prototype.toPageDto = function<Dto extends AbstractDto>(
+Array.prototype.toPageDto = function <Dto extends AbstractDto>(
 	pageMetaDto: PageMetaDto,
 	options?: unknown & { dto: Constructor<Dto> },
 ) {
-
 	return new PageDto(this.toDtos(options), pageMetaDto);
 };
 
-SelectQueryBuilder.prototype.searchByString = function(
+SelectQueryBuilder.prototype.searchByString = function (
 	q,
 	columnNames,
 	options,
@@ -134,7 +136,7 @@ SelectQueryBuilder.prototype.searchByString = function(
 	return this;
 };
 
-SelectQueryBuilder.prototype.paginate = async function(
+SelectQueryBuilder.prototype.paginate = async function (
 	pageOptionsDto: PageOptionsDto,
 	options?: Partial<{
 		skipCount: boolean;

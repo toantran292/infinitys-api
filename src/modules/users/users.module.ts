@@ -11,10 +11,10 @@ import { FriendService } from './friend.service';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([UserEntity, FriendEntity]),
+		TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity]),
 	],
-	controllers: [UsersController,FriendController],
-	providers: [UsersService,FriendService],
-	exports: [UsersService,FriendService],
+	controllers: [UsersController, FriendController],
+	providers: [UsersService, FriendService],
+	exports: [UsersService, FriendService],
 })
 export class UsersModule {}

@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthsService } from './auths.service';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import type { UserLoginDto } from './dto/user-login.dto';
 import { LoginPayloadDto } from './dto/login-payload.dto';
 
@@ -23,7 +22,6 @@ export class AuthsAdminController {
 	}
 
 	@Get('ping')
-	@UseGuards(JwtAuthGuard)
 	async ping() {
 		return 'pong';
 	}
