@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthsService } from './auths.service';
-import type { UserLoginDto } from './dto/user-login.dto';
+import { UserLoginDto } from './dto/user-login.dto';
 import { LoginPayloadDto } from './dto/login-payload.dto';
 
 @Controller('admin_api/auths')
@@ -16,6 +16,7 @@ export class AuthsAdminController {
 		const token = await this.authsService.createAccessToken({
 			userId: userEntity.id,
 			role: userEntity.role,
+			email: userEntity.email,
 		});
 
 		return new LoginPayloadDto(userEntity.toDto(), token);
