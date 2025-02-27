@@ -18,7 +18,7 @@ export class PageUserEntity extends AbstractEntity<
 	@ManyToOne(() => UserEntity, (user) => user.pageUsers)
 	user!: UserEntity;
 
-	@Column()
+	@Column({ default: true })
 	active!: boolean;
 
 	@Column({ type: 'enum', enum: RoleTypePage, default: RoleTypePage.MEMBER })

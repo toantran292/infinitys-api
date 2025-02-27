@@ -27,7 +27,7 @@ export class PagesController {
 		return this.pagesService.getMyPages(user);
 	}
 
-	@Post('page')
+	@Post('register')
 	@Auth([RoleType.USER])
 	async registerPage(
 		@AuthUser() user: UserEntity,
@@ -35,11 +35,4 @@ export class PagesController {
 	) {
 		return this.pagesService.registerPage(user, registerPageDto);
 	}
-
-	@Post('page/:pageId/approve')
-	@Auth([RoleType.ADMIN])
-	async approvePage(@AuthUser() user, @Param('page_id') pageId: string) {
-		return this.pagesService.approvePage(user.id, pageId);
-	}
-
 }
