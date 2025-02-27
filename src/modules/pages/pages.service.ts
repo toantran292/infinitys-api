@@ -50,11 +50,10 @@ export class PagesService {
 		user: UserEntity,
 		registerPageDto: RegisterPageDto,
 	): Promise<PageDto> {
-		const existingPage = await this.pageRepository.findOne({
-			where: {
-				email: registerPageDto.email,
-			},
-		});
+		const existingPage = await this.pageRepository
+			.createQueryBuilder('page')
+			.where('page.email = :email', { email: registerPageDto.email })
+			.getOne();
 
 		if (existingPage) {
 			if (existingPage.status !== PageStatus.REJECTED) {
@@ -78,9 +77,12 @@ export class PagesService {
 			role: RoleTypePage.ADMIN,
 		};
 
-		const existingPageUser = await this.pageUserRepository.findOne({
-			where: pageUserData,
-		});
+		const existingPageUser = await this.pageUserRepository
+			.createQueryBuilder('page_user')
+			.where('page_user.page_id = :pageId', { pageId: page.id })
+			.andWhere('page_user.user_id = :userId', { userId: user.id })
+			.andWhere('page_user.role = :role', { role: RoleTypePage.ADMIN })
+			.getOne();
 
 		if (!existingPageUser) {
 			const pageUser = this.pageUserRepository.create(pageUserData);
@@ -88,7 +90,7 @@ export class PagesService {
 			await this.pageUserRepository.save(pageUser);
 		}
 
-		return page.toDto<PageDto>();
+		return page;
 	}
 
 	async approvePage(pageId: Uuid) {
@@ -101,7 +103,7 @@ export class PagesService {
 			throw new Error('Page not found');
 		}
 		page.status = PageStatus.APPROVED;
-		await this.pageUserRepository.save(page);
+		await this.pageRepository.save(page);
 		this.send_noti(pageId, PageStatus.APPROVED);
 
 		return page;
@@ -118,9 +120,13 @@ export class PagesService {
 		}
 
 		page.status = PageStatus.REJECTED;
+		await this.pageRepository.save(page);
 		this.send_noti(pageId, PageStatus.REJECTED);
 
-		return { message: 'Page request rejected' , reason: 'Information is incorrect or missing' };
+		return {
+			message: 'Page request rejected',
+			reason: 'Information is incorrect or missing',
+		};
 	}
 
 	private send_noti(pageId: Uuid, status: PageStatus) {
