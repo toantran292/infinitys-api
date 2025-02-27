@@ -6,8 +6,6 @@ import { PageUserEntity } from './page-user.entity';
 import { ProblemEntity } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
 
-
-
 @Entity({ name: 'pages' })
 @UseDto(PageDto)
 export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
@@ -27,7 +25,7 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column({ unique: true })
 	email!: string;
 
-	@Column({ type: 'enum', enum: PageStatus, default: PageStatus.STARTED})
+	@Column({ type: 'enum', enum: PageStatus, default: PageStatus.STARTED })
 	status: PageStatus;
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)

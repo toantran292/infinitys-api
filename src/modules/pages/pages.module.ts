@@ -9,7 +9,7 @@ import { PagesAdminController } from './pages.admin.controller';
 
 @Module({
 	imports: [TypeOrmModule.forFeature([PageEntity, UserEntity, PageUserEntity])],
-	controllers: [PagesController,PagesAdminController],
+	controllers: [PagesController, PagesAdminController],
 	providers: [PagesService],
 })
 export class PagesModule {}

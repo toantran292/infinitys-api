@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+	Injectable,
+	NotFoundException,
+	BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -24,33 +28,44 @@ export class FriendService {
 		}
 	}
 
-	async findFriendRequest(sourceId: string, targetId: string): Promise<FriendRequestEntity | null> {
+	async findFriendRequest(
+		sourceId: string,
+		targetId: string,
+	): Promise<FriendRequestEntity | null> {
 		return await this.friendRequestRepository
 			.createQueryBuilder('request')
 			.leftJoinAndSelect('request.source', 'source')
 			.leftJoinAndSelect('request.target', 'target')
-			.where('(source.id = :sourceId AND target.id = :targetId)', { sourceId, targetId })
+			.where('(source.id = :sourceId AND target.id = :targetId)', {
+				sourceId,
+				targetId,
+			})
 			.andWhere('request.is_available = :isAvailable', { isAvailable: true })
 			.getOne();
-
 	}
 
-	async findFriendship(sourceId: string, targetId: string): Promise<FriendEntity | null> {
+	async findFriendship(
+		sourceId: string,
+		targetId: string,
+	): Promise<FriendEntity | null> {
 		return await this.friendRepository
 			.createQueryBuilder('friend')
 			.where(
 				'(friend.source = :sourceId AND friend.target = :targetId) OR (friend.source = :targetId AND friend.target = :sourceId)',
-				{ sourceId, targetId }
+				{ sourceId, targetId },
 			)
 			.getOne();
 	}
 
-	async sendFriendRequest(sourceId: Uuid, targetId: Uuid): Promise<FriendRequestEntity> {
+	async sendFriendRequest(
+		sourceId: Uuid,
+		targetId: Uuid,
+	): Promise<FriendRequestEntity> {
 		await this.validate(sourceId, targetId);
 
 		const existingFriendShip = await this.findFriendship(sourceId, targetId);
 
-		if(existingFriendShip){
+		if (existingFriendShip) {
 			throw new BadRequestException('Already friend');
 		}
 
@@ -101,7 +116,6 @@ export class FriendService {
 			.andWhere('request.is_available = true')
 			.getOne();
 
-
 		if (!waitingRequest) {
 			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
 		}
@@ -119,7 +133,6 @@ export class FriendService {
 			.andWhere('request.target_id = :targetId', { targetId })
 			.andWhere('request.is_available = true')
 			.getOne();
-
 
 		if (!friendRequest) {
 			throw new NotFoundException('Không tìm thấy yêu cầu kết bạn.');

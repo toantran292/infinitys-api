@@ -56,17 +56,19 @@ export class PagesService {
 			},
 		});
 
-		if(existingPage){
-			if (existingPage.status !== PageStatus.REJECTED){
-				throw new BadRequestException("Page is already registered")
+		if (existingPage) {
+			if (existingPage.status !== PageStatus.REJECTED) {
+				throw new BadRequestException('Page is already registered');
 			}
 
 			existingPage.status = PageStatus.STARTED;
 		}
 
-		const page = existingPage || await this.pageRepository.create({
-			...registerPageDto,
-		});
+		const page =
+			existingPage ||
+			(await this.pageRepository.create({
+				...registerPageDto,
+			}));
 
 		await this.pageRepository.save(page);
 
@@ -74,13 +76,13 @@ export class PagesService {
 			page,
 			user,
 			role: RoleTypePage.ADMIN,
-		}
+		};
 
 		const existingPageUser = await this.pageUserRepository.findOne({
-			where: pageUserData
-		})
+			where: pageUserData,
+		});
 
-		if(!existingPageUser) {
+		if (!existingPageUser) {
 			const pageUser = this.pageUserRepository.create(pageUserData);
 
 			await this.pageUserRepository.save(pageUser);
@@ -90,10 +92,10 @@ export class PagesService {
 	}
 
 	async approvePage(pageId: Uuid) {
-		const page = await  this.pageRepository.findOne({
+		const page = await this.pageRepository.findOne({
 			where: {
-				id:pageId
-			}
+				id: pageId,
+			},
 		});
 		if (!page) {
 			throw new Error('Page not found');
@@ -114,10 +116,11 @@ export class PagesService {
 		if (!page) {
 			throw new Error('Page not found');
 		}
+
 		page.status = PageStatus.REJECTED;
 		this.send_noti(pageId, PageStatus.REJECTED);
 
-		return { message: 'Page request rejected' };
+		return { message: 'Page request rejected' , reason: 'Information is incorrect or missing' };
 	}
 
 	private send_noti(pageId: Uuid, status: PageStatus) {

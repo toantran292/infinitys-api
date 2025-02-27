@@ -18,5 +18,4 @@ export class PagesAdminController {
 	async rejectPage(@Param('pageId') pageId: Uuid) {
 		return this.pagesService.rejectPage(pageId);
 	}
-
 }

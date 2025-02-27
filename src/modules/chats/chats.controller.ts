@@ -44,11 +44,15 @@ export class ChatsController {
 		@AuthUser() user: UserEntity,
 		@UUIDParam('id') groupChatId: Uuid,
 	) {
-		const groupChat = await this.chatsService.getGroupChat(user.id, groupChatId);
-
-		if(!groupChat) throw new ForbiddenException(
-			'You not have permission to retrieve message of this group',
+		const groupChat = await this.chatsService.getGroupChat(
+			user.id,
+			groupChatId,
 		);
+
+		if (!groupChat)
+			throw new ForbiddenException(
+				'You not have permission to retrieve message of this group',
+			);
 
 		return groupChat;
 	}
