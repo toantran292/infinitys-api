@@ -89,6 +89,21 @@ export class UsersService {
 		return user;
 	}
 
+	async getUsersByIds(userIds: Uuid[]): Promise<UserEntity[]> {
+		const queryBuilder = this.userRepository.createQueryBuilder('user');
+		queryBuilder.where('user.id IN (:...userIds)', { userIds });
+
+		let users = await queryBuilder.getMany();
+
+		users = await this.assetsService.populateAssets(users, 'users', [FileType.AVATAR]);
+
+		if (users.length !== userIds.length) {
+			throw new UserNotFoundException();
+		}
+
+		return users;
+	}
+
 	async editUserProfile(
 		user: UserEntity,
 		userProfileDto: UpdateUserProfileDto,

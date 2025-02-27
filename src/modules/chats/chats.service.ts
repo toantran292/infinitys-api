@@ -165,6 +165,24 @@ export class ChatsService {
 		return newGroupChat;
 	}
 
+	@Transactional()
+	async createGroupChat(admin: UserEntity, userIds: Uuid[]) {
+		const users = await this.usersService.getUsersByIds(userIds);
+		if (users.length !== userIds.length) {
+			throw new UserNotFoundException();
+		}
+
+		const newGroupChat = this.groupChatRepo.create({
+			name: `Group Chat ${Date.now()}`,
+		});
+
+		await this.groupChatRepo.save(newGroupChat);
+
+		await this.createGroupChatMember(newGroupChat, [admin, ...users]);
+
+		return newGroupChat;
+	}
+
 	async createGroupChatMessage(
 		user: UserEntity,
 		groupChat: GroupChatEntity,
@@ -180,6 +198,8 @@ export class ChatsService {
 
 		return message;
 	}
+
+
 
 	async getGroupChatMessages(user: UserEntity, groupChatId: Uuid) {
 		const havePermission = await this.getGroupChat(user.id, groupChatId);
