@@ -32,17 +32,17 @@ export class PagesService {
 	}
 
 	async getMyPages(user: UserEntity): Promise<PageDto[]> {
-		const queryBuilder = this.pageRepository.createQueryBuilder('page');
+		const queryBuilder = await this.pageRepository
+			.createQueryBuilder("page")
+			.innerJoin("page.pageUsers", "pageUsers")
+			.where("pageUsers.user_id = :userId", { userId: user.id })
+			.andWhere("pageUsers.role = :role", { role: RoleTypePage.ADMIN })
+			.getMany();
+		if (!queryBuilder) {
+			throw new BadRequestException('Page not found');
+		}
 
-		queryBuilder.innerJoinAndSelect('page.pageUsers', 'pageUsers');
-		queryBuilder.where('pageUsers.userId = :userId', { userId: user.id });
-		queryBuilder.andWhere('pageUsers.role = :role', {
-			role: RoleTypePage.ADMIN,
-		});
-
-		const pageEntities = await queryBuilder.getMany();
-
-		return pageEntities.toDtos();
+		return queryBuilder;
 	}
 
 	@Transactional()
