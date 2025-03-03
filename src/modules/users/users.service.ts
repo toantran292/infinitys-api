@@ -17,7 +17,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 	) {}
 
-	findAll(option: FindManyOptions<UserEntity>){
+	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
 	}
 
@@ -59,8 +59,6 @@ export class UsersService {
 
 	async getUser(userId: Uuid): Promise<UserDto> {
 		const userEntity = await this.getRawUser(userId);
-
-
 
 		return userEntity.toDto<UserDto>();
 	}

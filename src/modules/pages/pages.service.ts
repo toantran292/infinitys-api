@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PageEntity } from './entities/page.entity';
@@ -10,6 +10,7 @@ import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 import type { PageDto } from './dto/page.dto';
 import { Transactional } from 'typeorm-transactional';
+import { PageStatus } from '../../constants/page-status';
 
 @Injectable()
 export class PagesService {
@@ -23,7 +24,8 @@ export class PagesService {
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<CommonPageDto<PageDto>> {
-		const queryBuilder = this.pageRepository.createQueryBuilder('page');
+		const queryBuilder = await this.pageRepository.createQueryBuilder('page');
+		console.log(queryBuilder);
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
@@ -31,17 +33,17 @@ export class PagesService {
 	}
 
 	async getMyPages(user: UserEntity): Promise<PageDto[]> {
-		const queryBuilder = this.pageRepository.createQueryBuilder('page');
+		const queryBuilder = await this.pageRepository
+			.createQueryBuilder('page')
+			.innerJoin('page.pageUsers', 'pageUsers')
+			.where('pageUsers.user_id = :userId', { userId: user.id })
+			.andWhere('pageUsers.role = :role', { role: RoleTypePage.ADMIN })
+			.getMany();
+		if (!queryBuilder) {
+			throw new BadRequestException('Page not found');
+		}
 
-		queryBuilder.innerJoinAndSelect('page.pageUsers', 'pageUsers');
-		queryBuilder.where('pageUsers.userId = :userId', { userId: user.id });
-		queryBuilder.andWhere('pageUsers.role = :role', {
-			role: RoleTypePage.ADMIN,
-		});
-
-		const pageEntities = await queryBuilder.getMany();
-
-		return pageEntities.toDtos();
+		return queryBuilder;
 	}
 
 	@Transactional()
@@ -49,22 +51,88 @@ export class PagesService {
 		user: UserEntity,
 		registerPageDto: RegisterPageDto,
 	): Promise<PageDto> {
-		const page = this.pageRepository.create({
-			...registerPageDto,
-		});
+		const existingPage = await this.pageRepository
+			.createQueryBuilder('page')
+			.where('page.email = :email', { email: registerPageDto.email })
+			.getOne();
+
+		if (existingPage) {
+			if (existingPage.status !== PageStatus.REJECTED) {
+				throw new BadRequestException('Page is already registered');
+			}
+			Object.assign(existingPage, registerPageDto, {
+				status: PageStatus.STARTED,
+			});
+		}
+
+		const page =
+			existingPage ||
+			(await this.pageRepository.create({
+				...registerPageDto,
+			}));
 
 		await this.pageRepository.save(page);
 
-		const pageUser = this.pageUserRepository.create({
-			page: page,
-			user: user,
-			active: true,
+		const pageUserData = {
+			page,
+			user,
 			role: RoleTypePage.ADMIN,
+		};
+
+		const existingPageUser = await this.pageUserRepository
+			.createQueryBuilder('page_user')
+			.where('page_user.page_id = :pageId', { pageId: page.id })
+			.andWhere('page_user.user_id = :userId', { userId: user.id })
+			.andWhere('page_user.role = :role', { role: RoleTypePage.ADMIN })
+			.getOne();
+
+		if (!existingPageUser) {
+			const pageUser = this.pageUserRepository.create(pageUserData);
+
+			await this.pageUserRepository.save(pageUser);
+		}
+
+		return page;
+	}
+
+	async approvePage(pageId: Uuid) {
+		const page = await this.pageRepository.findOne({
+			where: {
+				id: pageId,
+			},
 		});
+		if (!page) {
+			throw new Error('Page not found');
+		}
+		page.status = PageStatus.APPROVED;
+		await this.pageRepository.save(page);
+		this.send_noti(pageId, PageStatus.APPROVED);
 
-		await this.pageUserRepository.save(pageUser);
+		return page;
+	}
 
-		return page.toDto<PageDto>();
+	async rejectPage(pageId: Uuid) {
+		const page = await this.pageRepository.findOne({
+			where: {
+				id: pageId,
+			},
+		});
+		if (!page) {
+			throw new Error('Page not found');
+		}
+
+		page.status = PageStatus.REJECTED;
+		await this.pageRepository.save(page);
+		this.send_noti(pageId, PageStatus.REJECTED);
+
+		return {
+			message: 'Page request rejected',
+			reason: 'Information is incorrect or missing',
+		};
+	}
+
+	private send_noti(pageId: Uuid, status: PageStatus) {
+		console.log(`${status} page ${pageId}`);
 	}
 
 	// async getAllPages(): Promise<any[]> {

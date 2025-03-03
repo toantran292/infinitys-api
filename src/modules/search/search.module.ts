@@ -8,9 +8,11 @@ import { FriendEntity } from '../users/entities/friend.entity';
 import { FriendRequestEntity } from '../users/entities/friend-request.entity';
 
 @Module({
-	imports: [UsersModule, TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity])],
+	imports: [
+		UsersModule,
+		TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity]),
+	],
 	controllers: [SearchController],
 	providers: [SearchService],
 })
-export class SearchModule {
-}
+export class SearchModule {}

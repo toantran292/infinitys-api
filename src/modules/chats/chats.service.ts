@@ -43,7 +43,7 @@ export class ChatsService {
 
 		const isExist = await queryBuilder.getExists();
 
-		if(!isExist) return null;
+		if (!isExist) return null;
 
 		return this.groupChatRepo
 			.createQueryBuilder('groupChat')

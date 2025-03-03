@@ -1,4 +1,10 @@
-import { BadRequestException, Body, Controller, Param, Post } from '@nestjs/common';
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Param,
+	Post,
+} from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { SendFriendRequestDto } from './dto/create-friend-request.dto';
 import { UserEntity } from './entities/user.entity';
