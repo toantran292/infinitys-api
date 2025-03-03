@@ -6,7 +6,7 @@ import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { PageDto } from './dto/page.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 
-@Controller('api_admin/pages')
+@Controller('admin_api/pages')
 export class PagesAdminController {
 	constructor(private readonly pagesService: PagesService) {}
 

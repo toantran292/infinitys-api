@@ -24,7 +24,8 @@ export class PagesService {
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<CommonPageDto<PageDto>> {
-		const queryBuilder = this.pageRepository.createQueryBuilder('page');
+		const queryBuilder = await this.pageRepository.createQueryBuilder('page');
+		console.log(queryBuilder);
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
@@ -33,10 +34,10 @@ export class PagesService {
 
 	async getMyPages(user: UserEntity): Promise<PageDto[]> {
 		const queryBuilder = await this.pageRepository
-			.createQueryBuilder("page")
-			.innerJoin("page.pageUsers", "pageUsers")
-			.where("pageUsers.user_id = :userId", { userId: user.id })
-			.andWhere("pageUsers.role = :role", { role: RoleTypePage.ADMIN })
+			.createQueryBuilder('page')
+			.innerJoin('page.pageUsers', 'pageUsers')
+			.where('pageUsers.user_id = :userId', { userId: user.id })
+			.andWhere('pageUsers.role = :role', { role: RoleTypePage.ADMIN })
 			.getMany();
 		if (!queryBuilder) {
 			throw new BadRequestException('Page not found');
@@ -59,8 +60,9 @@ export class PagesService {
 			if (existingPage.status !== PageStatus.REJECTED) {
 				throw new BadRequestException('Page is already registered');
 			}
-
-			existingPage.status = PageStatus.STARTED;
+			Object.assign(existingPage, registerPageDto, {
+				status: PageStatus.STARTED,
+			});
 		}
 
 		const page =
