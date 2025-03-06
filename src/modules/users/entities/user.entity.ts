@@ -57,7 +57,9 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 	@Column({ default: true })
 	active!: boolean;
 
-	@OneToMany(() => AssetEntity, (asset) => asset.owner_id)
+	avatar?: AssetEntity;
+
+	@OneToMany(() => AssetEntity, (asset) => asset.owner)
 	assets?: AssetEntity[];
 
 	@OneToMany(() => FriendRequestEntity, (request) => request.source)

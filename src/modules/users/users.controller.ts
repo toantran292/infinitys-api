@@ -14,10 +14,11 @@ import type { UserDto } from './dto/user.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { AvatarDto } from './dto/avatar.dto';
 
 @Controller('api/users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	constructor(private readonly usersService: UsersService) { }
 
 	@Get()
 	@Auth([RoleType.USER])
@@ -45,18 +46,17 @@ export class UsersController {
 		return this.usersService.editUserProfile(user, updateProfileDto);
 	}
 
-	// @UseGuards(JwtAuthGuard, OwnerOrAdminGuard)
-	// @Get(':id')
-	// async getUserById(@Param('id') id: string, @Req() req) {
-	// 	return this.usersService.findOne(id, req.isLimitedView);
-	// }
+	@Patch(':id/avatar')
+	@Auth([RoleType.USER])
+	async updateAvatar(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('id') userId: Uuid,
+		@Body('avatar') avatar: AvatarDto,
+	) {
+		if (userId !== user.id) {
+			throw new ForbiddenException('You can only update your own avatar');
+		}
 
-	// @Put(':id/ban')
-	// async banUser(@Param('id') id: string) {
-	// 	return this.usersService.banUser(id);
-	// }
-	// @Put(':id/unban')
-	// async unbanUser(@Param('id') id: string) {
-	// 	return this.usersService.unbanUser(id);
-	// }
+		return this.usersService.updateAvatar(userId, avatar);
+	}
 }
