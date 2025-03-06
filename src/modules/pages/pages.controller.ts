@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { RoleType } from '../../constants/role-type';
@@ -27,7 +27,7 @@ export class PagesController {
 		return this.pagesService.getMyPages(user);
 	}
 
-	@Post('page')
+	@Post('register')
 	@Auth([RoleType.USER])
 	async registerPage(
 		@AuthUser() user: UserEntity,

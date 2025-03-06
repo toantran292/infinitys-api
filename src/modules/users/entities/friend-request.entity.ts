@@ -4,10 +4,10 @@ import { UserEntity } from './user.entity';
 
 @Entity({ name: 'friends_requests' })
 export class FriendRequestEntity extends AbstractEntity {
-	@ManyToOne(() => UserEntity,(user)=>user.sentFriendRequests)
+	@ManyToOne(() => UserEntity, (user) => user.sentFriendRequests)
 	source!: UserEntity;
 
-	@ManyToOne(() => UserEntity,(user)=>user.receivedFriendRequests)
+	@ManyToOne(() => UserEntity, (user) => user.receivedFriendRequests)
 	target!: UserEntity;
 
 	@Column({ default: true })
