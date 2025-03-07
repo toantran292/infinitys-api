@@ -63,6 +63,21 @@ export class UsersService {
 		return userEntity.toDto<UserDto>();
 	}
 
+	async getUsersByIds(userIds: Uuid[]): Promise<UserEntity[]> {
+		const queryBuilder = this.userRepository.createQueryBuilder('user');
+		queryBuilder.where('user.id IN (:...userIds)', { userIds });
+
+		const users = await queryBuilder.getMany();
+
+		if (users.length !== userIds.length) {
+			throw new UserNotFoundException();
+		}
+
+		return users;
+	}
+
+
+
 	// async getUserProfile(userId: Uuid): Promise<UserDto> {
 	// 	const user = await this.userRepository.findOne({
 	// 		where: { id: userId },

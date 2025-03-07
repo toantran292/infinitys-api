@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, Get, Post } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
@@ -23,6 +23,7 @@ export class ChatsController {
 		return this.chatsService.createPrivateGroupChat(user, recipientId);
 	}
 
+
 	@Get('groups/recipients/:id')
 	@Auth([RoleType.USER])
 	async getGroupChatWithPerson(
@@ -30,6 +31,18 @@ export class ChatsController {
 		@UUIDParam('id') recipientId: Uuid,
 	) {
 		return this.chatsService.getGroupChatWithPerson(user, recipientId);
+	}
+
+	@Post('groups')
+	@Auth([RoleType.USER])
+	async createGroupChat(
+		@AuthUser() admin: UserEntity,
+		@Body('userIds') userIds: Uuid[],
+	) {
+		if (!userIds || userIds.length === 0) {
+			throw new ForbiddenException('User list cannot be empty');
+		}
+		return this.chatsService.createGroupChat(admin, userIds);
 	}
 
 	@Get('groups')
