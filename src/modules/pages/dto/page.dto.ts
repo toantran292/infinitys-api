@@ -1,6 +1,6 @@
 import { PageEntity } from '../entities/page.entity';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { PageStatus } from '../../../constants/page-status';
 
 export type PageDtoOptions = Partial<{ isActive: boolean }>;
@@ -15,6 +15,9 @@ export class PageDto extends AbstractDto {
 	@IsNotEmpty({ message: 'Hãy điền trang Công ty' })
 	url!: string;
 
+	@IsString()
+	content?: string;
+
 	@IsEmail()
 	email!: string;
 
@@ -28,5 +31,6 @@ export class PageDto extends AbstractDto {
 		this.url = page.url;
 		this.email = page.email;
 		this.status = page.status;
+		this.content = page.content;
 	}
 }

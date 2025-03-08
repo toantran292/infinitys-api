@@ -24,7 +24,14 @@ export class PagesController {
 	@Get('me')
 	@Auth([RoleType.USER])
 	async getMyPages(@AuthUser() user: UserEntity) {
+		console.log(user);
 		return this.pagesService.getMyPages(user);
+	}
+
+	@Get(':pageId')
+	@Auth([RoleType.USER, RoleType.ADMIN])
+	async getPageById(@Param('pageId') pageId: Uuid) {
+		return this.pagesService.getPageById(pageId);
 	}
 
 	@Post('register')

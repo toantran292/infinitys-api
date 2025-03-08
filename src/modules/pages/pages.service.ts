@@ -32,6 +32,19 @@ export class PagesService {
 		return items.toPageDto(pageMetaDto);
 	}
 
+	async getPageById(pageId: Uuid): Promise<PageDto> {
+		const page = await this.pageRepository
+			.createQueryBuilder('page')
+			.where('page.id = :id', { id: pageId })
+			.getOne();
+
+		if (!page) {
+			throw new BadRequestException('Trang không tồn tại');
+		}
+
+		return page;
+	}
+
 	async getMyPages(user: UserEntity): Promise<PageDto[]> {
 		const queryBuilder = await this.pageRepository
 			.createQueryBuilder('page')
