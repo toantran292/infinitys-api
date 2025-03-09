@@ -24,7 +24,7 @@ export abstract class AbstractEntity<
 			dto: Constructor<CDTO>;
 		},
 	): CDTO {
-		console.log(options);
+		// console.log(options);
 		const { dto, ...remainingOptions } = options || {};
 
 		let dtoClass = undefined;

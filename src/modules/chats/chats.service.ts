@@ -25,7 +25,7 @@ export class ChatsService {
 		@InjectRepository(GroupChatMessageEntity)
 		private readonly groupChatMessageRepo: Repository<GroupChatMessageEntity>,
 		private readonly usersService: UsersService,
-	) {}
+	) { }
 
 	async getGroupChat(
 		userId: Uuid,
@@ -150,7 +150,7 @@ export class ChatsService {
 
 		const existingGroupChat = await this.getPrivateGroupChat(user, recipient);
 
-		console.log({ existingGroupChat });
+		// console.log({ existingGroupChat });
 
 		if (existingGroupChat) return existingGroupChat;
 

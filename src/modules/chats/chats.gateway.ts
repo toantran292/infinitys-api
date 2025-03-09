@@ -30,22 +30,22 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private readonly authService: AuthsService,
 		private chatsService: ChatsService,
-	) {}
+	) { }
 
 	async handleConnection(client: Socket) {
 		try {
 			const user = client.handshake.auth.user;
 			this.users.set(client.id, user.id);
 			this.server.emit('users', Array.from(this.users.values()));
-			console.log(`User ${user.firstName + ' ' + user.lastName} connected`);
+			// console.log(`User ${user.firstName + ' ' + user.lastName} connected`);
 		} catch (error) {
-			console.log('Unauthorized connection');
+			// console.log('Unauthorized connection');
 			client.disconnect();
 		}
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`Client disconnected: ${client.id}`);
+		// console.log(`Client disconnected: ${client.id}`);
 		this.users.delete(client.id);
 		this.server.emit('users', Array.from(this.users.values()));
 	}

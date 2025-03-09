@@ -7,9 +7,8 @@ import { isEmpty, snakeCase } from 'lodash';
 
 @Catch(UnprocessableEntityException)
 export class HttpExceptionFilter
-	implements ExceptionFilter<UnprocessableEntityException>
-{
-	constructor(public reflector: Reflector) {}
+	implements ExceptionFilter<UnprocessableEntityException> {
+	constructor(public reflector: Reflector) { }
 
 	catch(exception: UnprocessableEntityException, host: ArgumentsHost): void {
 		const ctx = host.switchToHttp();
@@ -18,6 +17,7 @@ export class HttpExceptionFilter
 		const r = exception.getResponse() as { message: ValidationError[] };
 
 		const validationErrors = r.message;
+
 		this.validationFilter(validationErrors);
 
 		response.status(statusCode).json(r);

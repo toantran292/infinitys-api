@@ -10,7 +10,7 @@ import { constraintErrors } from './constraint-errors';
 
 @Catch(QueryFailedError)
 export class QueryFailedFilter implements ExceptionFilter<QueryFailedError> {
-	constructor(public reflector: Reflector) {}
+	constructor(public reflector: Reflector) { }
 
 	catch(
 		exception: QueryFailedError & { constraint?: string },
@@ -22,6 +22,8 @@ export class QueryFailedFilter implements ExceptionFilter<QueryFailedError> {
 		const status = exception.constraint?.startsWith('UQ')
 			? HttpStatus.CONFLICT
 			: HttpStatus.INTERNAL_SERVER_ERROR;
+
+		// console.log({ exception });
 
 		response.status(status).json({
 			statusCode: status,

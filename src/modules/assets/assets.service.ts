@@ -56,7 +56,7 @@ export class AssetsService {
 
 	async populateAsset<T extends { [key: string]: any }>(
 		entity: T,
-		key: string,
+		key: keyof T,
 	): Promise<T> {
 		if (!entity[key]) return entity;
 

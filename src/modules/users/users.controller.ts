@@ -28,7 +28,7 @@ export class UsersController {
 
 	@Get(':id')
 	@Auth([RoleType.USER])
-	async getUser(@UUIDParam('id') userId: Uuid): Promise<UserDto> {
+	async getUser(@UUIDParam('id') userId: Uuid) {
 		return this.usersService.getUser(userId);
 	}
 
