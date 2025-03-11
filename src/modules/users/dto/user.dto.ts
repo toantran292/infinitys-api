@@ -10,8 +10,18 @@ import {
 import { UserEntity } from '../entities/user.entity';
 import { RoleType } from '../../../constants/role-type';
 import { GenderType } from '../../../constants/gender-type';
-
+import { AssetEntity } from '../../assets/entities/asset.entity';
 export type UserDtoOptions = Partial<{ isActive: boolean }>;
+
+export class UserAvatarDto extends AbstractDto {
+	@StringField()
+	url!: string;
+
+	constructor(avatar: AssetEntity) {
+		super(avatar);
+		this.url = avatar.url;
+	}
+}
 
 export class UserDto extends AbstractDto {
 	@StringField()
@@ -41,6 +51,8 @@ export class UserDto extends AbstractDto {
 	@BooleanFieldOptional()
 	active?: boolean;
 
+	avatar: UserAvatarDto;
+
 	constructor(user: UserEntity) {
 		super(user);
 		this.firstName = user.firstName;
@@ -52,5 +64,6 @@ export class UserDto extends AbstractDto {
 		this.major = user.major;
 		this.desiredJobPosition = user.desiredJobPosition;
 		this.active = user.active;
+		this.avatar = new UserAvatarDto(user.avatar);
 	}
 }

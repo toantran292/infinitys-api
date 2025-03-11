@@ -9,13 +9,21 @@ import { Transactional } from 'typeorm-transactional';
 import type { UserRegisterDto } from '../auths/dto/user-register.dto';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { AssetsService, FileType } from '../assets/assets.service';
+import { AvatarDto } from './dto/avatar.dto';
+import { parse as uuidParse } from 'uuid';
+import { AssetEntity } from '../assets/entities/asset.entity';
 
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
-	) {}
+
+		@InjectRepository(AssetEntity)
+		private readonly assetRepository: Repository<AssetEntity>,
+		private readonly assetsService: AssetsService,
+	) { }
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -58,9 +66,43 @@ export class UsersService {
 	}
 
 	async getUser(userId: Uuid): Promise<UserDto> {
-		const userEntity = await this.getRawUser(userId);
+		// Tách query thành hàm riêng để dễ tái sử dụng
+		const userEntity = await this.findUserWithAvatar(userId);
+
+		if (!userEntity) {
+			throw new UserNotFoundException();
+		}
+
+		// Xử lý avatar
+		await this.processUserAvatar(userEntity);
 
 		return userEntity.toDto<UserDto>();
+	}
+
+	private async findUserWithAvatar(userId: Uuid) {
+		return this.userRepository
+			.createQueryBuilder('user')
+			.leftJoinAndSelect(
+				'user.assets',
+				'assets',
+				'assets.owner_id = user.id AND assets.owner_type = :ownerType',
+				{ ownerType: 'users' }
+			)
+			.where('user.id = :userId', { userId })
+			.getOne();
+	}
+
+	private async processUserAvatar(userEntity: UserEntity): Promise<void> {
+		// Lấy avatar từ assets (nếu có)
+		userEntity.avatar = userEntity.assets?.[0] ?? null;
+
+		// Xóa assets để tránh dư thừa dữ liệu
+		delete userEntity.assets;
+
+		// Populate thông tin chi tiết cho avatar
+		if (userEntity.avatar) {
+			await this.assetsService.populateAsset(userEntity, 'avatar');
+		}
 	}
 
 	// async getUserProfile(userId: Uuid): Promise<UserDto> {
@@ -90,35 +132,12 @@ export class UsersService {
 		return updatedUser.toDto<UserDto>();
 	}
 
-	// async toggleUserStatus(id: string, isActive: boolean): Promise<UserEntity> {
-	// 	const user = await this.userRepository.findOne({ where: { id } });
-	// 	if (!user) throw new NotFoundException('User not found');
-	//
-	// 	if (user.active === isActive) {
-	// 		throw new BadRequestException(
-	// 			`This account is already ${isActive ? 'active' : 'locked'}.`,
-	// 		);
-	// 	}
-	//
-	// 	user.active = isActive;
-	// 	await this.userRepository.save(user);
-	//
-	// 	return user;
-	// }
-
-	// async banUser(id: string): Promise<UserEntity> {
-	// 	const user = await this.toggleUserStatus(id, false);
-	// 	if (user.active) {
-	// 		throw new BadRequestException('User is already active.');
-	// 	}
-	// 	return user;
-	// }
-	//
-	// async unbanUser(id: string): Promise<UserEntity> {
-	// 	const user = await this.toggleUserStatus(id, true);
-	// 	if (!user.active) {
-	// 		throw new BadRequestException('User is already banned.');
-	// 	}
-	// 	return user;
-	// }
+	async updateAvatar(user_id: Uuid, avatar: AvatarDto) {
+		return await this.assetsService.create_or_update(
+			FileType.AVATAR,
+			'users',
+			user_id,
+			avatar,
+		);
+	}
 }
