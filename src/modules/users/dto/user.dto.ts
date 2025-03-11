@@ -18,7 +18,7 @@ export class UserAvatarDto extends AbstractDto {
 	url!: string;
 
 	constructor(avatar: AssetEntity) {
-		super(avatar);
+		super(avatar)
 		this.url = avatar.url;
 	}
 }
@@ -51,7 +51,7 @@ export class UserDto extends AbstractDto {
 	@BooleanFieldOptional()
 	active?: boolean;
 
-	avatar: UserAvatarDto;
+	avatar?: UserAvatarDto;
 
 	constructor(user: UserEntity) {
 		super(user);
@@ -64,6 +64,7 @@ export class UserDto extends AbstractDto {
 		this.major = user.major;
 		this.desiredJobPosition = user.desiredJobPosition;
 		this.active = user.active;
-		this.avatar = new UserAvatarDto(user.avatar);
+
+		this.avatar = user.avatar ? new UserAvatarDto(user.avatar) : null;
 	}
 }
