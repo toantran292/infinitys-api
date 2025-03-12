@@ -5,6 +5,7 @@ import { UseDto } from '../../../decoractors/use-dto.decorators';
 import { PageUserEntity } from './page-user.entity';
 import { ProblemEntity } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
+import { AssetEntity } from '../../assets/entities/asset.entity';
 
 @Entity({ name: 'pages' })
 @UseDto(PageDto)
@@ -27,6 +28,11 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 
 	@Column({ type: 'enum', enum: PageStatus, default: PageStatus.STARTED })
 	status: PageStatus;
+
+	avatar?: AssetEntity;
+
+	@OneToMany(() => AssetEntity, (asset) => asset.page, { cascade: true })
+	assets!: AssetEntity[];
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];

@@ -25,7 +25,7 @@ export class ChatsService {
 		@InjectRepository(GroupChatMessageEntity)
 		private readonly groupChatMessageRepo: Repository<GroupChatMessageEntity>,
 		private readonly usersService: UsersService,
-	) { }
+	) {}
 
 	async getGroupChat(
 		userId: Uuid,

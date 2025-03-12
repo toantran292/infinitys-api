@@ -38,12 +38,15 @@ export async function bootstrap(): Promise<NestExpressApplication> {
 	});
 
 	app.use(
-		morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"', {
-			skip: (req, res) => res.statusCode < 400,
-			stream: {
-				write: (message) => Logger.error(message.trim()),
+		morgan(
+			':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+			{
+				skip: (req, res) => res.statusCode < 400,
+				stream: {
+					write: (message) => Logger.error(message.trim()),
+				},
 			},
-		})
+		),
 	);
 	app.enableVersioning();
 

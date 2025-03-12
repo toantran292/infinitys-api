@@ -2,8 +2,20 @@ import { PageEntity } from '../entities/page.entity';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { PageStatus } from '../../../constants/page-status';
+import { StringField } from '../../../decoractors/field.decoractors';
+import { AssetEntity } from '../../assets/entities/asset.entity';
 
 export type PageDtoOptions = Partial<{ isActive: boolean }>;
+
+export class PageAvatarDto extends AbstractDto {
+	@StringField()
+	url!: string;
+
+	constructor(avatar: AssetEntity) {
+		super(avatar);
+		this.url = avatar.url;
+	}
+}
 
 export class PageDto extends AbstractDto {
 	@IsNotEmpty({ message: 'Tên không được để trống' })
@@ -24,6 +36,8 @@ export class PageDto extends AbstractDto {
 	@IsNotEmpty()
 	status!: PageStatus;
 
+	avatar?: PageAvatarDto;
+
 	constructor(page: PageEntity) {
 		super(page);
 		this.name = page.name;
@@ -32,5 +46,6 @@ export class PageDto extends AbstractDto {
 		this.email = page.email;
 		this.status = page.status;
 		this.content = page.content;
+		this.avatar = page.avatar ? new PageAvatarDto(page.avatar) : null;
 	}
 }

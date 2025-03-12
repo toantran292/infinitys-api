@@ -16,7 +16,7 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) { }
+	) {}
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;
@@ -73,5 +73,9 @@ export class AssetsService {
 		};
 
 		return entity;
+	}
+	async getViewUrl(key: string): Promise<{ url: string }> {
+		const url = await this.awsS3Service.getPreSignedUrlToViewObject(key);
+		return { url };
 	}
 }
