@@ -18,7 +18,7 @@ export class UserAvatarDto extends AbstractDto {
 	url!: string;
 
 	constructor(avatar: AssetEntity) {
-		super(avatar)
+		super(avatar);
 		this.url = avatar.url;
 	}
 }

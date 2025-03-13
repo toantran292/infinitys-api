@@ -12,11 +12,16 @@ import { AssetEntity } from '../assets/entities/asset.entity';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity, AssetEntity]),
+		TypeOrmModule.forFeature([
+			UserEntity,
+			FriendEntity,
+			FriendRequestEntity,
+			AssetEntity,
+		]),
 		AssetsModule,
 	],
 	controllers: [UsersController, FriendController],
 	providers: [UsersService, FriendService],
 	exports: [UsersService, FriendService],
 })
-export class UsersModule { }
+export class UsersModule {}

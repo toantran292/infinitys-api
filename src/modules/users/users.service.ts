@@ -23,7 +23,7 @@ export class UsersService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) { }
+	) {}
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -86,7 +86,7 @@ export class UsersService {
 				'user.assets',
 				'assets',
 				'assets.owner_id = user.id AND assets.owner_type = :ownerType',
-				{ ownerType: 'users' }
+				{ ownerType: 'users' },
 			)
 			.where('user.id = :userId', { userId })
 			.getOne();

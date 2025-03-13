@@ -1,4 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	Post,
+	Query,
+} from '@nestjs/common';
 import { AssetsService } from './assets.service';
 import { Auth } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
@@ -12,6 +19,14 @@ export class AssetsController {
 	@Auth([RoleType.USER])
 	async getPresignLink(@Body() body: PresignLinkDto) {
 		return this.assetsService.getPresignUrl(body);
+	}
+	@Get('view-url')
+	@Auth([RoleType.USER])
+	async getViewUrl(@Query('key') key: string) {
+		if (!key) {
+			throw new BadRequestException('Key is required');
+		}
+		return this.assetsService.getViewUrl(key);
 	}
 
 	// @Get()
