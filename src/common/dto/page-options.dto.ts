@@ -1,35 +1,26 @@
-import {
-	EnumFieldOptional,
-	NumberFieldOptional,
-	StringFieldOptional,
-} from '../../decoractors/field.decoractors';
-import { Order } from '../../constants/order';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { Order } from '../constants';
 
 export class PageOptionsDto {
-	@EnumFieldOptional(() => Order, {
-		default: Order.ASC,
-	})
-	readonly order: Order = Order.ASC;
+	@IsEnum(Order)
+	@IsOptional()
+	readonly order?: Order = Order.ASC;
 
-	@NumberFieldOptional({
-		minimum: 1,
-		default: 1,
-		int: true,
-	})
-	readonly page: number = 1;
+	@Type(() => Number)
+	@IsInt()
+	@Min(1)
+	@IsOptional()
+	readonly page?: number = 1;
 
-	@NumberFieldOptional({
-		minimum: 1,
-		maximum: 50,
-		default: 10,
-		int: true,
-	})
-	readonly take: number = 10;
+	@Type(() => Number)
+	@IsInt()
+	@Min(1)
+	@Max(50)
+	@IsOptional()
+	readonly take?: number = 10;
 
 	get skip(): number {
 		return (this.page - 1) * this.take;
 	}
-
-	@StringFieldOptional()
-	readonly q?: string;
 }

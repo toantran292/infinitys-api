@@ -3,12 +3,12 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
 import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.entity';
+import { RecruitmentPostDto } from '../dto/recruitment-post.dto';
+import { UseDto } from '../../../decoractors/use-dto.decorators';
 
 @Entity('recruitment_posts')
-export class RecruitmentPostEntity extends AbstractEntity {
-	@Column()
-	endDate!: Date;
-
+@UseDto(RecruitmentPostDto)
+export class RecruitmentPostEntity extends AbstractEntity<RecruitmentPostDto> {
 	@Column()
 	active!: boolean;
 
@@ -16,13 +16,19 @@ export class RecruitmentPostEntity extends AbstractEntity {
 	title!: string;
 
 	@Column()
-	description!: string;
+	jobPosition: string;
 
-	@Column({
-		type: 'jsonb',
-		default: {},
-	})
-	meta!: object;
+	@Column()
+	location: string;
+
+	@Column()
+	workType: string;
+
+	@Column()
+	jobType: string;
+
+	@Column('text', { comment: 'Markdown formatted text for job description' })
+	description!: string;
 
 	@ManyToOne(() => PageUserEntity, (pageUser) => pageUser.recruitmentPosts)
 	pageUser!: PageUserEntity;
@@ -32,12 +38,6 @@ export class RecruitmentPostEntity extends AbstractEntity {
 		(application) => application.recruitmentPost,
 	)
 	applications!: ApplicationEntity[];
-
-	@Column({ type: 'timestamptz' })
-	problemStartDate!: Date;
-
-	@Column({ type: 'timestamptz' })
-	problemEndDate!: Date;
 
 	@OneToMany(
 		() => ProblemRecruitmentPostEntity,

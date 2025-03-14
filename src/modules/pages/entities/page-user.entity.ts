@@ -6,8 +6,10 @@ import { PageUserDto, type PageUserDtoOptions } from '../dto/page-user.dto';
 import { RoleTypePage } from '../../../constants/role-type';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
 import { FriendEntity } from '../../users/entities/friend.entity';
+import { UseDto } from '../../../decoractors/use-dto.decorators';
 
 @Entity({ name: 'pages_users' })
+@UseDto(PageUserDto)
 export class PageUserEntity extends AbstractEntity<
 	PageUserDto,
 	PageUserDtoOptions
