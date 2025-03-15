@@ -98,14 +98,10 @@ export class AssetsService {
 		const assetsMap = this.createAssetsMap(assets);
 		const entityAssets = assetsMap[entity.id] || {};
 
-		console.log({ ...entityAssets });
-
 		await Promise.all(types.map(async type => {
 			entity[type] = entityAssets[type];
 			await this._populateAsset(entity, type as keyof E);
 		}));
-
-		console.log({ avatar: (entity as any).avatar });
 
 		return entity;
 	}

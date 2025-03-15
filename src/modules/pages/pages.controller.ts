@@ -20,7 +20,7 @@ import { AvatarDto } from '../users/dto/avatar.dto';
 
 @Controller('api/pages')
 export class PagesController {
-	constructor(private readonly pagesService: PagesService) {}
+	constructor(private readonly pagesService: PagesService) { }
 
 	@Get()
 	@Auth([RoleType.USER])
@@ -32,15 +32,15 @@ export class PagesController {
 
 	@Get('me')
 	@Auth([RoleType.USER])
-	async getMyPages(@AuthUser() user: UserEntity) {
-		console.log(user);
-		return this.pagesService.getMyPages(user);
+	async getMyPages(@AuthUser() user: UserEntity, @Query() pagePageOptionsDto: PagePageOptionsDto) {
+		return this.pagesService.getMyPages(user, pagePageOptionsDto);
 	}
 
 	@Get(':pageId')
 	@Auth([RoleType.USER, RoleType.ADMIN])
-	async getPageById(@Param('pageId') pageId: Uuid) {
-		return this.pagesService.getPageById(pageId);
+	async getPageById(@AuthUser() user: UserEntity, @Param('pageId') pageId: Uuid) {
+		const page = await this.pagesService.getPageById(user, pageId);
+		return page.toDto<PageDto>();
 	}
 
 	@Post('register')

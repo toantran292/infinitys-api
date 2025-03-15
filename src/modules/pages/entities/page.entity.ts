@@ -29,11 +29,13 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column({ type: 'enum', enum: PageStatus, default: PageStatus.STARTED })
 	status: PageStatus;
 
-	avatar?: AssetEntity;
+	avatar?: AssetEntity[];
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];
 
 	@OneToMany(() => ProblemEntity, (problem) => problem.page)
 	problems!: ProblemEntity[];
+
+	admin_user_id?: Uuid;
 }
