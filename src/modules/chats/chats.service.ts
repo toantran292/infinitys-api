@@ -28,23 +28,6 @@ export class ChatsService {
 		private readonly usersService: UsersService,
 	) { }
 
-	async getGroupChat(userId: Uuid, groupChatId: Uuid) {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder.innerJoinAndSelect('groupChat.groupChatMembers', 'members');
-		queryBuilder.innerJoinAndSelect('members.user', 'user');
-		queryBuilder.where('user.id = :userId', { userId });
-		queryBuilder.andWhere('groupChat.id = :groupChatId', { groupChatId });
-
-		const groupChat = await queryBuilder.getOne();
-
-		if (!groupChat) {
-			throw new NotFoundException('Group chat not found');
-		}
-
-		return groupChat;
-	}
-
 	findOneGroupChat(
 		findData: FindOptionsWhere<GroupChatEntity>,
 	): Promise<GroupChatEntity | null> {
@@ -74,6 +57,32 @@ export class ChatsService {
 		}
 
 		return groupChatEntity;
+	}
+
+	async getGroupChat(
+		userId: Uuid,
+		groupChatId: Uuid,
+		requireAdmin: boolean = false,
+	) {
+		const queryBuilder = this.groupChatMemberRepo.createQueryBuilder('members');
+
+		queryBuilder.innerJoinAndSelect('members.groupChat', 'groupChat');
+		queryBuilder.innerJoinAndSelect('members.user', 'user');
+		queryBuilder.where('user.id = :userId', { userId });
+		queryBuilder.andWhere('groupChat.id = :groupChatId', { groupChatId });
+
+		if (requireAdmin) queryBuilder.andWhere('members.isAdmin = true');
+
+		const isExist = await queryBuilder.getExists();
+
+		if (!isExist) return null;
+
+		return this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.andWhere('groupChat.id = :groupChatId', { groupChatId })
+			.getOne();
 	}
 
 	async getGroupChatByIdAndUser(
