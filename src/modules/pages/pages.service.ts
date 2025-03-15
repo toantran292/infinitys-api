@@ -46,7 +46,6 @@ export class PagesService {
 	private async getAssetPage(pageId: Uuid) {
 		const queryBuilder = await this.assetRepository
 			.createQueryBuilder('asset')
-			.leftJoinAndSelect('asset.page', 'page') // ✅ Thêm thông tin của page
 			.where('asset.owner_id = :pageId', { pageId })
 			.andWhere('asset.owner_type = :ownerType', { ownerType: 'pages' })
 			.andWhere('asset.type IN (:...types)', { types: ['avatar', 'banner'] })
@@ -75,7 +74,6 @@ export class PagesService {
 	async getPageById(pageId: Uuid): Promise<PageDto> {
 		const page = await this.pageRepository.findOne({
 			where: { id: pageId },
-			relations: ['assets'],
 		});
 
 		if (!page) {
@@ -92,17 +90,25 @@ export class PagesService {
 	}
 
 	async getMyPages(user: UserEntity): Promise<PageDto[]> {
-		const queryBuilder = await this.pageRepository
+		const pages = await this.pageRepository
 			.createQueryBuilder('page')
 			.innerJoin('page.pageUsers', 'pageUsers')
 			.where('pageUsers.user_id = :userId', { userId: user.id })
 			.andWhere('pageUsers.role = :role', { role: RoleTypePage.ADMIN })
 			.getMany();
-		if (!queryBuilder) {
-			throw new BadRequestException('Page not found');
+		if (!pages) {
+			throw new BadRequestException('Pages not found');
 		}
 
-		return queryBuilder;
+		await Promise.all(
+			pages.map(async (page) => {
+				const avatarAsset = await this.getAssetPage(page.id);
+				page.assets = avatarAsset ? [avatarAsset] : [];
+				await this.processPageAssets(page); // Xử lý gán avatar vào page
+			}),
+		);
+
+		return pages.map((page) => page.toDto<PageDto>());
 	}
 
 	@Transactional()
