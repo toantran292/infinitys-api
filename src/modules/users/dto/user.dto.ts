@@ -65,6 +65,6 @@ export class UserDto extends AbstractDto {
 		this.desiredJobPosition = user.desiredJobPosition;
 		this.active = user.active;
 
-		this.avatar = user.avatar ? new UserAvatarDto(user.avatar) : null;
+		this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
 	}
 }

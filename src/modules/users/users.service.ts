@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, type FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, type FindOptionsWhere, In, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
@@ -13,6 +13,7 @@ import { AssetsService, FileType } from '../assets/assets.service';
 import { AvatarDto } from './dto/avatar.dto';
 import { parse as uuidParse } from 'uuid';
 import { AssetEntity } from '../assets/entities/asset.entity';
+import { RoleType } from 'src/constants/role-type';
 
 @Injectable()
 export class UsersService {
@@ -20,10 +21,8 @@ export class UsersService {
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
 
-		@InjectRepository(AssetEntity)
-		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -51,10 +50,14 @@ export class UsersService {
 		return items.toPageDto(pageMetaDto);
 	}
 
-	async getRawUser(userId: Uuid): Promise<UserEntity> {
+	async getRawUser(userId: Uuid, options?: { role?: RoleType }): Promise<UserEntity> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 
 		queryBuilder.where('user.id = :userId', { userId });
+
+		if (options?.role) {
+			queryBuilder.andWhere('user.role = :role', { role: options.role });
+		}
 
 		const userEntity = await queryBuilder.getOne();
 
@@ -65,61 +68,13 @@ export class UsersService {
 		return userEntity;
 	}
 
-	async getUser(userId: Uuid): Promise<UserDto> {
-		// Tách query thành hàm riêng để dễ tái sử dụng
-		const userEntity = await this.findUserWithAvatar(userId);
+	async getUser(userId: Uuid, findData?: Omit<FindOptionsWhere<UserEntity>, 'id'>): Promise<UserEntity> {
+		let user = await this.findOne({ id: userId, ...findData });
 
-		if (!userEntity) {
-			throw new UserNotFoundException();
-		}
+		user = await this.assetsService.populateAsset(user, 'users', [FileType.AVATAR]);
 
-		// Xử lý avatar
-		await this.processUserAvatar(userEntity);
-
-		return userEntity.toDto<UserDto>();
+		return user;
 	}
-
-	private async findUserWithAvatar(userId: Uuid) {
-		return this.userRepository
-			.createQueryBuilder('user')
-			.leftJoinAndSelect(
-				'user.assets',
-				'assets',
-				'assets.owner_id = user.id AND assets.owner_type = :ownerType',
-				{ ownerType: 'users' },
-			)
-			.where('user.id = :userId', { userId })
-			.getOne();
-	}
-
-	private async processUserAvatar(userEntity: UserEntity): Promise<void> {
-		// Lấy avatar từ assets (nếu có)
-		userEntity.avatar = userEntity.assets?.[0] ?? null;
-
-		// Xóa assets để tránh dư thừa dữ liệu
-		delete userEntity.assets;
-
-		// Populate thông tin chi tiết cho avatar
-		if (userEntity.avatar) {
-			await this.assetsService.populateAsset(userEntity, 'avatar');
-		}
-	}
-
-	// async getUserProfile(userId: Uuid): Promise<UserDto> {
-	// 	const user = await this.userRepository.findOne({
-	// 		where: { id: userId },
-	// 		relations: ['posts'],
-	// 	});
-	//
-	// 	if (!user) {
-	// 		throw new NotFoundException('User not found');
-	// 	}
-	//
-	// 	return plainToInstance(UserProfileDto, user, {
-	// 		excludeExtraneousValues: true,
-	// 	});
-	// }
-	//
 
 	async editUserProfile(
 		user: UserEntity,

@@ -1,9 +1,10 @@
-import { Column, Entity, Generated, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Generated, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { PageEntity } from '../../pages/entities/page.entity';
 
 @Entity({ name: 'assets' })
+@Index(['owner_type', 'owner_id'])
 export class AssetEntity extends AbstractEntity {
 	@Column()
 	type!: string;
@@ -25,17 +26,6 @@ export class AssetEntity extends AbstractEntity {
 		name: string;
 		content_type: string;
 	};
-
-	@ManyToOne(() => UserEntity, (user) => user.assets)
-	@JoinColumn({ name: 'user_id' })
-	owner!: UserEntity;
-
-	@ManyToOne(() => PageEntity, (page) => page.assets, {
-		nullable: true,
-		onDelete: 'CASCADE',
-	})
-	@JoinColumn({ name: 'page_id' })
-	page?: PageEntity;
 
 	url!: string;
 }

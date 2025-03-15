@@ -18,7 +18,7 @@ import { AvatarDto } from './dto/avatar.dto';
 
 @Controller('api/users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	constructor(private readonly usersService: UsersService) { }
 
 	@Get()
 	@Auth([RoleType.USER])
@@ -29,7 +29,9 @@ export class UsersController {
 	@Get(':id')
 	@Auth([RoleType.USER])
 	async getUser(@UUIDParam('id') userId: Uuid) {
-		return this.usersService.getUser(userId);
+		const user = await this.usersService.getUser(userId);
+
+		return user.toDto<UserDto>();
 	}
 
 	@Patch(':id')

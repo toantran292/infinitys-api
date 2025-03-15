@@ -26,7 +26,7 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
@@ -38,55 +38,21 @@ export class PagesService {
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
-		await Promise.all(items.map((page) => this.processPageAssets(page)));
+		const pages = await this.assetsService.populateAssets(items, 'pages', [FileType.AVATAR]);
 
-		return items.toPageDto(pageMetaDto);
-	}
-
-	private async getAssetPage(pageId: Uuid) {
-		const queryBuilder = await this.assetRepository
-			.createQueryBuilder('asset')
-			.leftJoinAndSelect('asset.page', 'page') // ✅ Thêm thông tin của page
-			.where('asset.owner_id = :pageId', { pageId })
-			.andWhere('asset.owner_type = :ownerType', { ownerType: 'pages' })
-			.andWhere('asset.type IN (:...types)', { types: ['avatar', 'banner'] })
-			.getOne();
-		return queryBuilder;
-	}
-
-	private async processPageAssets(pageEntity: PageEntity): Promise<void> {
-		if (!pageEntity.assets || pageEntity.assets.length === 0) {
-			pageEntity.avatar = null;
-			return;
-		}
-
-		const avatarAsset =
-			pageEntity.assets.find((asset) => asset.type === 'avatar') || null;
-
-		pageEntity.avatar = avatarAsset;
-
-		delete pageEntity.assets;
-
-		if (pageEntity.avatar) {
-			await this.assetsService.populateAsset(pageEntity, 'avatar');
-		}
+		return pages.toPageDto(pageMetaDto);
 	}
 
 	async getPageById(pageId: Uuid): Promise<PageDto> {
-		const page = await this.pageRepository.findOne({
+		let page = await this.pageRepository.findOne({
 			where: { id: pageId },
-			relations: ['assets'],
 		});
 
 		if (!page) {
 			throw new BadRequestException('Trang không tồn tại');
 		}
 
-		const assets = await this.getAssetPage(pageId);
-
-		page.assets = assets ? [assets] : [];
-
-		await this.processPageAssets(page);
+		page = await this.assetsService.populateAsset(page, 'pages', [FileType.AVATAR]);
 
 		return page.toDto<PageDto>();
 	}
@@ -210,33 +176,4 @@ export class PagesService {
 			avatar,
 		);
 	}
-
-	// async getAllPages(): Promise<any[]> {
-	// 	this.logger.log('Fetching all pages...');
-	//
-	// 	const pages = await this.pageRepository.find({
-	// 		relations: ['pageUsers', 'pageUsers.user'],
-	// 	});
-	//
-	// 	return pages.map((page) => {
-	// 		const owner = page.pageUsers.find(
-	// 			(user) => user.role === RoleTypePage.OPERATOR,
-	// 		);
-	//
-	// 		const ownerData = owner
-	// 			? {
-	// 					id: owner.user.id,
-	// 					firstName: owner.user.firstName,
-	// 					email: owner.user.email,
-	// 				}
-	// 			: null;
-	//
-	// 		return {
-	// 			id: page.id,
-	// 			name: page.name,
-	// 			content: page.content,
-	// 			owner: ownerData,
-	// 		};
-	// 	});
-	// }
 }

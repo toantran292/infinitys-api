@@ -6,13 +6,15 @@ import { LoginPayloadDto } from './dto/login-payload.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserDto } from '../users/dto/user.dto';
 import { Auth } from '../../decoractors/http.decorators';
+import { UserEntity } from '../users/entities/user.entity';
+import { AuthUser } from 'src/decoractors/auth-user.decorators';
 
 @Controller('api/auths')
 export class AuthsController {
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly authsService: AuthsService,
-	) {}
+	) { }
 
 	@Post('login')
 	async userLogin(
@@ -26,21 +28,27 @@ export class AuthsController {
 			email: userEntity.email,
 		});
 
-		return new LoginPayloadDto(userEntity.toDto(), token);
+		return new LoginPayloadDto(token);
 	}
 
 	@Post('register')
 	async userRegister(
 		@Body() userRegisterDto: UserRegisterDto,
-	): Promise<UserDto> {
+	): Promise<LoginPayloadDto> {
 		const createdUser = await this.usersService.createUser(userRegisterDto);
 
-		return createdUser.toDto<UserDto>();
+		const token = await this.authsService.createAccessToken({
+			userId: createdUser.id,
+			role: createdUser.role,
+			email: createdUser.email,
+		});
+
+		return new LoginPayloadDto(token);
 	}
 
-	@Get('ping')
+	@Get('me')
 	@Auth()
-	async ping() {
-		return 'pong';
+	async me(@AuthUser() user: UserEntity) {
+		return user.toDto<UserDto>();
 	}
 }

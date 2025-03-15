@@ -31,9 +31,6 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 
 	avatar?: AssetEntity;
 
-	@OneToMany(() => AssetEntity, (asset) => asset.page, { cascade: true })
-	assets!: AssetEntity[];
-
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];
 
