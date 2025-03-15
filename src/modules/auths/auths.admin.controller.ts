@@ -5,7 +5,7 @@ import { LoginPayloadDto } from './dto/login-payload.dto';
 
 @Controller('admin_api/auths')
 export class AuthsAdminController {
-	constructor(private readonly authsService: AuthsService) { }
+	constructor(private readonly authsService: AuthsService) {}
 
 	@Post('login')
 	async userLogin(

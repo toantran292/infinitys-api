@@ -17,7 +17,7 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) { }
+	) {}
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;
@@ -55,20 +55,27 @@ export class AssetsService {
 		return this.assetRepository.save(asset);
 	}
 
-	private createAssetsMap(assets: AssetEntity[]): Record<string, Record<string, AssetEntity[]>> {
-		return assets.reduce((map, asset) => {
-			map[asset.owner_id] ??= {};
-			map[asset.owner_id][asset.type] ??= [];
-			map[asset.owner_id][asset.type].push(asset);
+	private createAssetsMap(
+		assets: AssetEntity[],
+	): Record<string, Record<string, AssetEntity[]>> {
+		return assets.reduce(
+			(map, asset) => {
+				map[asset.owner_id] ??= {};
+				map[asset.owner_id][asset.type] ??= [];
+				map[asset.owner_id][asset.type].push(asset);
 
-			return map;
-		}, {} as Record<string, Record<string, AssetEntity[]>>);
+				return map;
+			},
+			{} as Record<string, Record<string, AssetEntity[]>>,
+		);
 	}
 
 	private async populateAssetUrl(asset: AssetEntity): Promise<AssetEntity> {
 		if (!asset?.file_data?.key) return asset;
 
-		const url = await this.awsS3Service.getPreSignedUrlToViewObject(asset.file_data.key);
+		const url = await this.awsS3Service.getPreSignedUrlToViewObject(
+			asset.file_data.key,
+		);
 
 		asset.url = url;
 
@@ -81,7 +88,9 @@ export class AssetsService {
 	): Promise<T> {
 		if (!entity[key]) return entity;
 
-		const assets = await Promise.all(entity[key].map(async asset => await this.populateAssetUrl(asset)));
+		const assets = await Promise.all(
+			entity[key].map(async (asset) => await this.populateAssetUrl(asset)),
+		);
 		entity[key] = assets as T[keyof T];
 		return entity;
 	}
@@ -92,16 +101,18 @@ export class AssetsService {
 		types: FileType[],
 	): Promise<E> {
 		const assets = await this.assetRepository.find({
-			where: { owner_id: entity.id, owner_type, type: In(types) }
+			where: { owner_id: entity.id, owner_type, type: In(types) },
 		});
 
 		const assetsMap = this.createAssetsMap(assets);
 		const entityAssets = assetsMap[entity.id] || {};
 
-		await Promise.all(types.map(async type => {
-			entity[type] = entityAssets[type];
-			await this._populateAsset(entity, type as keyof E);
-		}));
+		await Promise.all(
+			types.map(async (type) => {
+				entity[type] = entityAssets[type];
+				await this._populateAsset(entity, type as keyof E);
+			}),
+		);
 
 		return entity;
 	}
@@ -115,25 +126,27 @@ export class AssetsService {
 
 		const assets = await this.assetRepository.find({
 			where: {
-				owner_id: In(entities.map(entity => entity.id)),
+				owner_id: In(entities.map((entity) => entity.id)),
 				owner_type,
-				type: In(types)
-			}
+				type: In(types),
+			},
 		});
 
 		const assetsMap = this.createAssetsMap(assets);
 
 		return Promise.all(
-			entities.map(async entity => {
+			entities.map(async (entity) => {
 				const entityAssets = assetsMap[entity.id] || {};
 
-				await Promise.all(types.map(async type => {
-					entity[type] = entityAssets[type];
-					await this._populateAsset(entity, type as keyof E);
-				}));
+				await Promise.all(
+					types.map(async (type) => {
+						entity[type] = entityAssets[type];
+						await this._populateAsset(entity, type as keyof E);
+					}),
+				);
 
 				return entity;
-			})
+			}),
 		);
 	}
 

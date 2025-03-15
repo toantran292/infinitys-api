@@ -1,4 +1,11 @@
-import { Column, Entity, Generated, Index, JoinColumn, ManyToOne } from 'typeorm';
+import {
+	Column,
+	Entity,
+	Generated,
+	Index,
+	JoinColumn,
+	ManyToOne,
+} from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 
 @Entity({ name: 'assets' })

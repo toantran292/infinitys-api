@@ -26,7 +26,7 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) { }
+	) {}
 
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
@@ -38,7 +38,9 @@ export class PagesService {
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
-		const pages = await this.assetsService.populateAssets(items, 'pages', [FileType.AVATAR]);
+		const pages = await this.assetsService.populateAssets(items, 'pages', [
+			FileType.AVATAR,
+		]);
 
 		return pages.toPageDto(pageMetaDto);
 	}
@@ -54,13 +56,15 @@ export class PagesService {
 			throw new BadRequestException(_error);
 		}
 
-		const userAdmin = await this.pageUserRepository.findOne({
-			where: {
-				page: { id: pageId },
-				role: RoleTypePage.ADMIN,
-			},
-			relations: ['user'],
-		}).then(pageUser => pageUser?.user);
+		const userAdmin = await this.pageUserRepository
+			.findOne({
+				where: {
+					page: { id: pageId },
+					role: RoleTypePage.ADMIN,
+				},
+				relations: ['user'],
+			})
+			.then((pageUser) => pageUser?.user);
 
 		if (page.status !== PageStatus.APPROVED) {
 			if (userAdmin.id !== user.id) {
@@ -68,31 +72,40 @@ export class PagesService {
 			}
 		}
 
-		page = await this.assetsService.populateAsset(page, 'pages', [FileType.AVATAR]);
+		page = await this.assetsService.populateAsset(page, 'pages', [
+			FileType.AVATAR,
+		]);
 
 		page.admin_user_id = userAdmin.id;
 
 		return page;
 	}
 
-	async getMyPages(user: UserEntity, pagePageOptionsDto: PagePageOptionsDto): Promise<CommonPageDto<PageDto>> {
+	async getMyPages(
+		user: UserEntity,
+		pagePageOptionsDto: PagePageOptionsDto,
+	): Promise<CommonPageDto<PageDto>> {
 		const queryBuilder = await this.pageRepository
 			.createQueryBuilder('page')
 			.select()
 			.innerJoin('page.pageUsers', 'pageUsers')
 			.where('pageUsers.user_id = :userId', { userId: user.id })
-			.andWhere('pageUsers.role IN (:...roles)', { roles: [RoleTypePage.ADMIN, RoleTypePage.OPERATOR] })
+			.andWhere('pageUsers.role IN (:...roles)', {
+				roles: [RoleTypePage.ADMIN, RoleTypePage.OPERATOR],
+			})
 			.searchByString(pagePageOptionsDto.q, ['name'])
 			.orderBy('page.createdAt', 'DESC');
 
-
-		const [items, pageMetaDto] = await queryBuilder.paginate(pagePageOptionsDto);
+		const [items, pageMetaDto] =
+			await queryBuilder.paginate(pagePageOptionsDto);
 
 		if (!queryBuilder) {
 			throw new BadRequestException('Page not found');
 		}
 
-		const pages = await this.assetsService.populateAssets(items, 'pages', [FileType.AVATAR]);
+		const pages = await this.assetsService.populateAssets(items, 'pages', [
+			FileType.AVATAR,
+		]);
 
 		return pages.toPageDto(pageMetaDto);
 	}
