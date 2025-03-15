@@ -14,6 +14,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
 import { Transactional } from 'typeorm-transactional';
+import { CreateGroupChatDto } from './dto/create-group-chat.dto';
 
 @Injectable()
 export class ChatsService {
@@ -25,32 +26,23 @@ export class ChatsService {
 		@InjectRepository(GroupChatMessageEntity)
 		private readonly groupChatMessageRepo: Repository<GroupChatMessageEntity>,
 		private readonly usersService: UsersService,
-	) {}
+	) { }
 
-	async getGroupChat(
-		userId: Uuid,
-		groupChatId: Uuid,
-		requireAdmin: boolean = false,
-	) {
-		const queryBuilder = this.groupChatMemberRepo.createQueryBuilder('members');
+	async getGroupChat(userId: Uuid, groupChatId: Uuid) {
+		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
 
-		queryBuilder.innerJoinAndSelect('members.groupChat', 'groupChat');
+		queryBuilder.innerJoinAndSelect('groupChat.groupChatMembers', 'members');
 		queryBuilder.innerJoinAndSelect('members.user', 'user');
 		queryBuilder.where('user.id = :userId', { userId });
 		queryBuilder.andWhere('groupChat.id = :groupChatId', { groupChatId });
 
-		if (requireAdmin) queryBuilder.andWhere('members.isAdmin = true');
+		const groupChat = await queryBuilder.getOne();
 
-		const isExist = await queryBuilder.getExists();
+		if (!groupChat) {
+			throw new NotFoundException('Group chat not found');
+		}
 
-		if (!isExist) return null;
-
-		return this.groupChatRepo
-			.createQueryBuilder('groupChat')
-			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
-			.innerJoinAndSelect('members.user', 'user')
-			.andWhere('groupChat.id = :groupChatId', { groupChatId })
-			.getOne();
+		return groupChat;
 	}
 
 	findOneGroupChat(
@@ -63,8 +55,8 @@ export class ChatsService {
 		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
 
 		queryBuilder
-			.innerJoin('groupChat.groupChatMembers', 'members')
-			.innerJoin('members.user', 'user')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
 			.where('user.id = :userId', { userId });
 
 		return queryBuilder.getMany();
@@ -131,13 +123,11 @@ export class ChatsService {
 	}
 
 	async createGroupChatMember(groupChat: GroupChatEntity, users: UserEntity[]) {
-		const allIsAdmin = users.length === 2;
-
 		const members = users.map((user, index) =>
 			this.groupChatMemberRepo.create({
 				groupChat: groupChat,
 				user: user,
-				isAdmin: allIsAdmin ? true : index == 0,
+				isAdmin: index === 0,
 			}),
 		);
 
@@ -145,42 +135,20 @@ export class ChatsService {
 	}
 
 	@Transactional()
-	async createPrivateGroupChat(user: UserEntity, recipientId: Uuid) {
-		const recipient = await this.usersService.getRawUser(recipientId);
+	async createGroupChat(admin: UserEntity, createGroupChatDto: CreateGroupChatDto) {
+		const { userIds, name } = createGroupChatDto;
 
-		const existingGroupChat = await this.getPrivateGroupChat(user, recipient);
-
-		// console.log({ existingGroupChat });
-
-		if (existingGroupChat) return existingGroupChat;
-
-		const newGroupChat = this.groupChatRepo.create({
-			name: `${user.id} - ${recipientId}`,
-		});
-
-		await this.groupChatRepo.save(newGroupChat);
-
-		await this.createGroupChatMember(newGroupChat, [user, recipient]);
-
-		return newGroupChat;
-	}
-
-	@Transactional()
-	async createGroupChat(admin: UserEntity, userIds: Uuid[]) {
 		const users = await this.usersService.getUsersByIds(userIds);
-		if (users.length !== userIds.length) {
-			throw new UserNotFoundException();
-		}
 
 		const newGroupChat = this.groupChatRepo.create({
-			name: `Group Chat ${Date.now()}`,
+			name: name || "",
 		});
 
 		await this.groupChatRepo.save(newGroupChat);
 
 		await this.createGroupChatMember(newGroupChat, [admin, ...users]);
 
-		return newGroupChat;
+		return this.getGroupChat(admin.id, newGroupChat.id);
 	}
 
 	async createGroupChatMessage(
@@ -199,18 +167,10 @@ export class ChatsService {
 		return message;
 	}
 
-
-
 	async getGroupChatMessages(user: UserEntity, groupChatId: Uuid) {
-		const havePermission = await this.getGroupChat(user.id, groupChatId);
+		await this.getGroupChat(user.id, groupChatId);
 
-		if (!havePermission)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
-
-		const queryBuilder =
-			this.groupChatMessageRepo.createQueryBuilder('message');
+		const queryBuilder = this.groupChatMessageRepo.createQueryBuilder('message');
 
 		queryBuilder
 			.innerJoin('message.groupChat', 'groupChat')
@@ -222,12 +182,7 @@ export class ChatsService {
 	}
 
 	async sendMessage(user: UserEntity, groupChatId: Uuid, content: string) {
-		const havePermission = await this.getGroupChat(user.id, groupChatId);
-
-		if (!havePermission)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
+		await this.getGroupChat(user.id, groupChatId);
 
 		const message = this.groupChatMessageRepo.create({
 			groupChat: { id: groupChatId },

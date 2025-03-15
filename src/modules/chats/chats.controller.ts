@@ -4,45 +4,19 @@ import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from '../users/entities/user.entity';
+import { CreateGroupChatDto } from './dto/create-group-chat.dto';
 
 @Controller('api/chats')
 export class ChatsController {
-	constructor(private readonly chatsService: ChatsService) {}
-
-	@Post('groups/recipients/:id')
-	@Auth([RoleType.USER])
-	async createPrivateGroupChat(
-		@AuthUser() user: UserEntity,
-		@UUIDParam('id') recipientId: Uuid,
-	) {
-		if (recipientId === user.id) {
-			throw new ForbiddenException(
-				'You can not create group chat with yourself',
-			);
-		}
-		return this.chatsService.createPrivateGroupChat(user, recipientId);
-	}
-
-
-	@Get('groups/recipients/:id')
-	@Auth([RoleType.USER])
-	async getGroupChatWithPerson(
-		@AuthUser() user: UserEntity,
-		@UUIDParam('id') recipientId: Uuid,
-	) {
-		return this.chatsService.getGroupChatWithPerson(user, recipientId);
-	}
+	constructor(private readonly chatsService: ChatsService) { }
 
 	@Post('groups')
 	@Auth([RoleType.USER])
 	async createGroupChat(
 		@AuthUser() admin: UserEntity,
-		@Body('userIds') userIds: Uuid[],
+		@Body() createGroupChatDto: CreateGroupChatDto,
 	) {
-		if (!userIds || userIds.length === 0) {
-			throw new ForbiddenException('User list cannot be empty');
-		}
-		return this.chatsService.createGroupChat(admin, userIds);
+		return this.chatsService.createGroupChat(admin, createGroupChatDto);
 	}
 
 	@Get('groups')
@@ -62,10 +36,9 @@ export class ChatsController {
 			groupChatId,
 		);
 
-		if (!groupChat)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
+		if (!groupChat) throw new ForbiddenException(
+			'You not have permission to retrieve message of this group',
+		);
 
 		return groupChat;
 	}
