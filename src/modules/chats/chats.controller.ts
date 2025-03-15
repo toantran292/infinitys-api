@@ -1,10 +1,12 @@
-import { Body, Controller, ForbiddenException, Get, Post } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, Query } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from '../users/entities/user.entity';
 import { CreateGroupChatDto } from './dto/create-group-chat.dto';
+import { ListGroupChatDto } from './dto/group-chat.dto';
+import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
 
 @Controller('api/chats')
 export class ChatsController {
@@ -21,8 +23,12 @@ export class ChatsController {
 
 	@Get('groups')
 	@Auth([RoleType.USER])
-	async getGroupChats(@AuthUser() user: UserEntity) {
-		return this.chatsService.getGroupChatsByUserId(user.id);
+	async getGroupChats(@AuthUser() user: UserEntity, @Query() groupsChatOptionsDto: GroupChatPageOptionsDto) {
+		const groupChats = await this.chatsService.getGroupChatsByUserId(user.id, groupsChatOptionsDto);
+
+		console.log({ groupChats });
+		
+		return groupChats.map((groupChat) => new ListGroupChatDto(groupChat));
 	}
 
 	@Get('groups/:id')

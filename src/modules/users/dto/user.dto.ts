@@ -23,7 +23,7 @@ export class UserAvatarDto extends AbstractDto {
 	}
 }
 
-export class UserDto extends AbstractDto {
+export class BaseUserDto extends AbstractDto {
 	@StringField()
 	firstName!: string;
 
@@ -51,8 +51,6 @@ export class UserDto extends AbstractDto {
 	@BooleanFieldOptional()
 	active?: boolean;
 
-	avatar?: UserAvatarDto;
-
 	constructor(user: UserEntity) {
 		super(user);
 		this.firstName = user.firstName;
@@ -64,6 +62,14 @@ export class UserDto extends AbstractDto {
 		this.major = user.major;
 		this.desiredJobPosition = user.desiredJobPosition;
 		this.active = user.active;
+	}
+}
+
+export class UserDto extends BaseUserDto {
+	avatar?: UserAvatarDto;
+
+	constructor(user: UserEntity) {
+		super(user);
 
 		this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
 	}

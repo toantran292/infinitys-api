@@ -4,7 +4,7 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
+import { Brackets, type FindOptionsWhere, Repository } from 'typeorm';
 import {
 	GroupChatEntity,
 	GroupChatMemberEntity,
@@ -15,6 +15,7 @@ import { UsersService } from '../users/users.service';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
 import { Transactional } from 'typeorm-transactional';
 import { CreateGroupChatDto } from './dto/create-group-chat.dto';
+import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
 
 @Injectable()
 export class ChatsService {
@@ -34,15 +35,69 @@ export class ChatsService {
 		return this.groupChatRepo.findOneBy(findData);
 	}
 
-	async getGroupChatsByUserId(userId: Uuid) {
+	// Thêm hàm escape string
+	private escapeLikeString(str: string): string {
+		return str.replace(/[\\%_]/g, '\\$&');
+	}
+
+	async getGroupChatsByUserId(userId: Uuid, groupsChatOptionsDto: GroupChatPageOptionsDto) {
+		const { q } = groupsChatOptionsDto
+
 		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
 
 		queryBuilder
 			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
 			.innerJoinAndSelect('members.user', 'user')
-			.where('user.id = :userId', { userId });
+			.where('user.id = :userId', { userId })
 
-		return queryBuilder.getMany();
+		if (q) {
+			const escapedSearch = this.escapeLikeString(q);
+			queryBuilder.andWhere(new Brackets(qb => {
+				qb
+					.where('LOWER(groupChat.name) LIKE LOWER(:search) ESCAPE \'\\\'', {
+						search: `%${escapedSearch}%`
+					})
+					.orWhere(
+						`groupChat.id IN (
+							SELECT gcm.group_chat_id 
+							FROM group_chat_members gcm 
+							INNER JOIN users u ON u.id = gcm.user_id 
+							WHERE (LOWER(u.first_name) LIKE LOWER(:search) ESCAPE '\\'
+							OR LOWER(u.last_name) LIKE LOWER(:search) ESCAPE '\\')
+							AND u.id != :userId
+						)`,
+						{
+							search: `%${escapedSearch}%`,
+							userId
+						}
+					);
+			}));
+		}
+
+		const groupChatIds = (await queryBuilder.select('groupChat.id').getMany()).map(
+			(groupChat) => groupChat.id,
+		);
+
+		if (groupChatIds.length === 0) return [];
+
+		return this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.leftJoinAndSelect(
+				'groupChat.groupChatMessages',
+				'messages',
+				`messages.id IN (
+					SELECT m2.id FROM group_chat_messages m2 
+					WHERE m2.group_chat_id = groupChat.id 
+					ORDER BY m2.created_at DESC 
+					LIMIT 1
+				)`,
+			)
+			.leftJoinAndSelect('messages.user', 'messageUser')
+			.andWhere('groupChat.id IN (:...groupChatIds)', { groupChatIds })
+			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
+			.getMany();
 	}
 
 	async getGroupChatById(groupChatId: Uuid): Promise<GroupChatEntity> {
