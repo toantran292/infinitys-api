@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, type FindOptionsWhere, In, Repository } from 'typeorm';
+import {
+	FindManyOptions,
+	type FindOptionsWhere,
+	In,
+	Repository,
+} from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
@@ -22,7 +27,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) { }
+	) {}
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -50,7 +55,10 @@ export class UsersService {
 		return items.toPageDto(pageMetaDto);
 	}
 
-	async getRawUser(userId: Uuid, options?: { role?: RoleType }): Promise<UserEntity> {
+	async getRawUser(
+		userId: Uuid,
+		options?: { role?: RoleType },
+	): Promise<UserEntity> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 
 		queryBuilder.where('user.id = :userId', { userId });
@@ -68,10 +76,15 @@ export class UsersService {
 		return userEntity;
 	}
 
-	async getUser(userId: Uuid, findData?: Omit<FindOptionsWhere<UserEntity>, 'id'>): Promise<UserEntity> {
+	async getUser(
+		userId: Uuid,
+		findData?: Omit<FindOptionsWhere<UserEntity>, 'id'>,
+	): Promise<UserEntity> {
 		let user = await this.findOne({ id: userId, ...findData });
 
-		user = await this.assetsService.populateAsset(user, 'users', [FileType.AVATAR]);
+		user = await this.assetsService.populateAsset(user, 'users', [
+			FileType.AVATAR,
+		]);
 
 		return user;
 	}

@@ -38,6 +38,8 @@ export class PageDto extends AbstractDto {
 
 	avatar?: PageAvatarDto;
 
+	admin_user_id?: Uuid;
+
 	constructor(page: PageEntity) {
 		super(page);
 		this.name = page.name;
@@ -46,6 +48,8 @@ export class PageDto extends AbstractDto {
 		this.email = page.email;
 		this.status = page.status;
 		this.content = page.content;
-		this.avatar = page.avatar ? new PageAvatarDto(page.avatar) : null;
+
+		this.avatar = page.avatar ? new PageAvatarDto(page.avatar[0]) : null;
+		this.admin_user_id = page.admin_user_id;
 	}
 }

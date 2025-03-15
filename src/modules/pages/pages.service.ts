@@ -26,7 +26,7 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) { }
+	) {}
 
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
@@ -38,37 +38,76 @@ export class PagesService {
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
-		const pages = await this.assetsService.populateAssets(items, 'pages', [FileType.AVATAR]);
+		const pages = await this.assetsService.populateAssets(items, 'pages', [
+			FileType.AVATAR,
+		]);
 
 		return pages.toPageDto(pageMetaDto);
 	}
 
-	async getPageById(pageId: Uuid): Promise<PageDto> {
+	async getPageById(user: UserEntity, pageId: Uuid): Promise<PageEntity> {
+		const _error = 'error.page_not_found';
+
 		let page = await this.pageRepository.findOne({
 			where: { id: pageId },
 		});
 
 		if (!page) {
-			throw new BadRequestException('Trang không tồn tại');
+			throw new BadRequestException(_error);
 		}
 
-		page = await this.assetsService.populateAsset(page, 'pages', [FileType.AVATAR]);
+		const userAdmin = await this.pageUserRepository
+			.findOne({
+				where: {
+					page: { id: pageId },
+					role: RoleTypePage.ADMIN,
+				},
+				relations: ['user'],
+			})
+			.then((pageUser) => pageUser?.user);
 
-		return page.toDto<PageDto>();
+		if (page.status !== PageStatus.APPROVED) {
+			if (userAdmin.id !== user.id) {
+				throw new BadRequestException(_error);
+			}
+		}
+
+		page = await this.assetsService.populateAsset(page, 'pages', [
+			FileType.AVATAR,
+		]);
+
+		page.admin_user_id = userAdmin.id;
+
+		return page;
 	}
 
-	async getMyPages(user: UserEntity): Promise<PageDto[]> {
+	async getMyPages(
+		user: UserEntity,
+		pagePageOptionsDto: PagePageOptionsDto,
+	): Promise<CommonPageDto<PageDto>> {
 		const queryBuilder = await this.pageRepository
 			.createQueryBuilder('page')
+			.select()
 			.innerJoin('page.pageUsers', 'pageUsers')
 			.where('pageUsers.user_id = :userId', { userId: user.id })
-			.andWhere('pageUsers.role = :role', { role: RoleTypePage.ADMIN })
-			.getMany();
+			.andWhere('pageUsers.role IN (:...roles)', {
+				roles: [RoleTypePage.ADMIN, RoleTypePage.OPERATOR],
+			})
+			.searchByString(pagePageOptionsDto.q, ['name'])
+			.orderBy('page.createdAt', 'DESC');
+
+		const [items, pageMetaDto] =
+			await queryBuilder.paginate(pagePageOptionsDto);
+
 		if (!queryBuilder) {
 			throw new BadRequestException('Page not found');
 		}
 
-		return queryBuilder;
+		const pages = await this.assetsService.populateAssets(items, 'pages', [
+			FileType.AVATAR,
+		]);
+
+		return pages.toPageDto(pageMetaDto);
 	}
 
 	@Transactional()

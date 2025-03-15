@@ -18,7 +18,7 @@ import { AvatarDto } from './dto/avatar.dto';
 
 @Controller('api/users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) { }
+	constructor(private readonly usersService: UsersService) {}
 
 	@Get()
 	@Auth([RoleType.USER])

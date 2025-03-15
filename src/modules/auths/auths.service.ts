@@ -16,7 +16,7 @@ export class AuthsService {
 		private readonly jwtService: JwtService,
 		private readonly configService: ApiConfigService,
 		private readonly userService: UsersService,
-	) { }
+	) {}
 
 	async createAccessToken(data: {
 		role: RoleType;

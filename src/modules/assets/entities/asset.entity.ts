@@ -1,10 +1,15 @@
-import { Column, Entity, Generated, Index, JoinColumn, ManyToOne } from 'typeorm';
+import {
+	Column,
+	Entity,
+	Generated,
+	Index,
+	JoinColumn,
+	ManyToOne,
+} from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from '../../users/entities/user.entity';
-import { PageEntity } from '../../pages/entities/page.entity';
 
 @Entity({ name: 'assets' })
-@Index(['owner_type', 'owner_id'])
+@Index(['owner_id', 'type', 'owner_type'])
 export class AssetEntity extends AbstractEntity {
 	@Column()
 	type!: string;
