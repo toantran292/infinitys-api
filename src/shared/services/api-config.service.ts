@@ -9,7 +9,7 @@ import { UserSubscriber } from '../../entity-subscribers/user-subscriber';
 
 @Injectable()
 export class ApiConfigService {
-	constructor(private readonly configService: ConfigService) {}
+	constructor(private readonly configService: ConfigService) { }
 
 	get isDevelopment(): boolean {
 		return this.nodeEnv === 'development';
@@ -90,6 +90,13 @@ export class ApiConfigService {
 			migrationsRun: true,
 			logging: this.getBoolean('ENABLE_ORM_LOGS'),
 			namingStrategy: new SnakeNamingStrategy(),
+		};
+	}
+
+	get redisConfig() {
+		return {
+			host: this.getString('REDIS_HOST'),
+			port: this.getNumber('REDIS_PORT'),
 		};
 	}
 

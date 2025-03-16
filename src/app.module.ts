@@ -19,6 +19,7 @@ import { UsersModule } from './modules/users/users.module';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { SearchModule } from './modules/search/search.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
 	imports: [
@@ -60,8 +61,9 @@ import { SearchModule } from './modules/search/search.module';
 		ProblemsModule,
 		AuthsModule,
 		SearchModule,
+		NotificationsModule,
 	],
 	controllers: [],
 	providers: [],
 })
-export class AppModule {}
+export class AppModule { }

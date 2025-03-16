@@ -20,7 +20,7 @@ import { SendMessageDto } from './dto/send-message.dto';
  * 2. Connect ws de join vo group -> chat real time (ws)
  * */
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, namespace: 'chats' })
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
@@ -30,7 +30,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private readonly authService: AuthsService,
 		private chatsService: ChatsService,
-	) {}
+	) { }
 
 	async handleConnection(client: Socket) {
 		try {

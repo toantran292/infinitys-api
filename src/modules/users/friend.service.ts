@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { FriendRequestEntity } from './entities/friend-request.entity';
 import { FriendEntity } from './entities/friend.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class FriendService {
@@ -20,6 +21,8 @@ export class FriendService {
 
 		@InjectRepository(UserEntity)
 		private userRepo: Repository<UserEntity>,
+
+		private readonly notificationService: NotificationsService,
 	) { }
 
 	async validate(sourceId: Uuid, targetId: Uuid) {
@@ -80,7 +83,19 @@ export class FriendService {
 			is_available: true,
 		});
 
-		return this.friendRequestRepository.save(newRequest);
+		const request = await this.friendRequestRepository.save(newRequest);
+
+		this.notificationService.sendNotificationToUser({
+			userId: targetId,
+			data: {
+				event_name: 'friend_request:sent',
+				meta: {
+					sourceId,
+				}
+			}
+		});
+
+		return request;
 	}
 
 	async acceptFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
@@ -104,8 +119,17 @@ export class FriendService {
 
 		waitingRequest.is_available = false;
 		await this.friendRequestRepository.save(waitingRequest);
-	}
 
+		this.notificationService.sendNotificationToUser({
+			userId: sourceId,
+			data: {
+				event_name: 'friend_request:accepted',
+				meta: {
+					targetId,
+				}
+			}
+		});
+	}
 	async rejectFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
 		const waitingRequest = await this.friendRequestRepository
 			.createQueryBuilder('request')
@@ -157,5 +181,15 @@ export class FriendService {
 		});
 
 		return friends;
+	}
+
+	async unfriend(sourceId: Uuid, targetId: Uuid): Promise<void> {
+		const friendship = await this.findFriendship(sourceId, targetId);
+
+		if (!friendship) {
+			throw new NotFoundException('Không tìm thấy bạn bè.');
+		}
+
+		await this.friendRepository.delete(friendship.id);
 	}
 }

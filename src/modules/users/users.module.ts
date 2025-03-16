@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -9,7 +9,7 @@ import { FriendController } from './friend.controller';
 import { FriendService } from './friend.service';
 import { AssetsModule } from '../assets/assets.module';
 import { AssetEntity } from '../assets/entities/asset.entity';
-
+import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([
@@ -19,9 +19,10 @@ import { AssetEntity } from '../assets/entities/asset.entity';
 			AssetEntity,
 		]),
 		AssetsModule,
+		forwardRef(() => NotificationsModule),
 	],
 	controllers: [UsersController, FriendController],
 	providers: [UsersService, FriendService],
 	exports: [UsersService, FriendService],
 })
-export class UsersModule {}
+export class UsersModule { }
