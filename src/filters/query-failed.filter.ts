@@ -10,7 +10,7 @@ import { constraintErrors } from './constraint-errors';
 
 @Catch(QueryFailedError)
 export class QueryFailedFilter implements ExceptionFilter<QueryFailedError> {
-	constructor(public reflector: Reflector) { }
+	constructor(public reflector: Reflector) {}
 
 	catch(
 		exception: QueryFailedError & { constraint?: string },

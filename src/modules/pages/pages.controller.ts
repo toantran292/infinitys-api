@@ -20,14 +20,15 @@ import { AvatarDto } from '../users/dto/avatar.dto';
 
 @Controller('api/pages')
 export class PagesController {
-	constructor(private readonly pagesService: PagesService) { }
+	constructor(private readonly pagesService: PagesService) {}
 
 	@Get()
 	@Auth([RoleType.USER])
 	async getPages(
+		@AuthUser() user: UserEntity,
 		@Query() pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<CommonPageDto<PageDto>> {
-		return this.pagesService.getPages(pagePageOptionsDto);
+		return this.pagesService.getPages(pagePageOptionsDto, user);
 	}
 
 	@Get('me')

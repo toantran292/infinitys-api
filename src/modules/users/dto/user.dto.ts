@@ -70,7 +70,6 @@ export class BaseUserDto extends AbstractDto {
 }
 
 export class UserDto extends BaseUserDto {
-
 	avatar?: UserAvatarDto;
 
 	constructor(user: UserEntity) {

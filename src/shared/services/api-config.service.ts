@@ -9,7 +9,7 @@ import { UserSubscriber } from '../../entity-subscribers/user-subscriber';
 
 @Injectable()
 export class ApiConfigService {
-	constructor(private readonly configService: ConfigService) { }
+	constructor(private readonly configService: ConfigService) {}
 
 	get isDevelopment(): boolean {
 		return this.nodeEnv === 'development';

@@ -34,4 +34,4 @@ export class AvatarDto {
 	}
 }
 
-export class BannerDto extends AvatarDto { }
+export class BannerDto extends AvatarDto {}

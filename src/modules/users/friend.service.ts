@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { FriendRequestEntity } from './entities/friend-request.entity';
 import { FriendEntity } from './entities/friend.entity';
+import { AssetsService, FileType } from '../assets/assets.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -22,8 +23,10 @@ export class FriendService {
 		@InjectRepository(UserEntity)
 		private userRepo: Repository<UserEntity>,
 
+		private readonly assetsService: AssetsService,
+
 		private readonly notificationService: NotificationsService,
-	) { }
+	) {}
 
 	async validate(sourceId: Uuid, targetId: Uuid) {
 		if (sourceId === targetId) {
@@ -91,8 +94,8 @@ export class FriendService {
 				event_name: 'friend_request:sent',
 				meta: {
 					sourceId,
-				}
-			}
+				},
+			},
 		});
 
 		return request;
@@ -126,8 +129,8 @@ export class FriendService {
 				event_name: 'friend_request:accepted',
 				meta: {
 					targetId,
-				}
-			}
+				},
+			},
 		});
 	}
 	async rejectFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
@@ -172,14 +175,20 @@ export class FriendService {
 			.createQueryBuilder('friend')
 			.leftJoinAndSelect('friend.source', 'source')
 			.leftJoinAndSelect('friend.target', 'target')
-			.where('friend.source_id = :userId OR friend.target_id = :userId', { userId })
+			.where('friend.source_id = :userId OR friend.target_id = :userId', {
+				userId,
+			})
 			.getMany();
 
 		// Extract friend users (excluding the requesting user)
-		const friends = friendships.map(friendship => {
-			return friendship.source.id === userId ? friendship.target : friendship.source;
+		let friends = friendships.map((friendship) => {
+			return friendship.source.id === userId
+				? friendship.target
+				: friendship.source;
 		});
-
+		friends = await this.assetsService.populateAssets(friends, 'users', [
+			FileType.AVATAR,
+		]);
 		return friends;
 	}
 
@@ -191,5 +200,36 @@ export class FriendService {
 		}
 
 		await this.friendRepository.delete(friendship.id);
+	}
+	async getFriendRequests(userId: Uuid): Promise<UserEntity[]> {
+		let users = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.source', 'source')
+			.where('request.target_id = :userId', { userId })
+			.andWhere('request.is_available = true')
+			.getMany()
+			.then((requests) => requests.map((request) => request.source));
+
+		users = await this.assetsService.populateAssets(users, 'users', [
+			FileType.AVATAR,
+		]);
+
+		return users;
+	}
+
+	async getSentFriendRequests(userId: Uuid): Promise<UserEntity[]> {
+		let users = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.target', 'target')
+			.where('request.source_id = :userId', { userId })
+			.andWhere('request.is_available = true')
+			.getMany()
+			.then((requests) => requests.map((request) => request.target));
+
+		users = await this.assetsService.populateAssets(users, 'users', [
+			FileType.AVATAR,
+		]);
+
+		return users;
 	}
 }

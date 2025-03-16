@@ -5,7 +5,7 @@ import { PageEntity } from './entities/page.entity';
 import { PageUserEntity } from './entities/page-user.entity';
 import { RegisterPageDto } from './dto/create-page.dto';
 import { UserEntity } from '../users/entities/user.entity';
-import { RoleTypePage } from '../../constants/role-type';
+import { RoleType, RoleTypePage } from '../../constants/role-type';
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 import type { PageDto } from './dto/page.dto';
@@ -30,11 +30,14 @@ export class PagesService {
 
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
+		user: UserEntity,
 	): Promise<CommonPageDto<PageDto>> {
-		const queryBuilder = await this.pageRepository
-			.createQueryBuilder('page')
-			.where('page.status = :status', { status: PageStatus.APPROVED });
-
+		const queryBuilder = await this.pageRepository.createQueryBuilder('page');
+		if (user.role !== RoleType.ADMIN) {
+			queryBuilder.where('page.status = :status', {
+				status: PageStatus.APPROVED,
+			});
+		}
 		const [items, pageMetaDto] =
 			await queryBuilder.paginate(pagePageOptionsDto);
 
@@ -122,7 +125,10 @@ export class PagesService {
 		if (existingPage && existingPage.status !== PageStatus.REJECTED) {
 			throw new BadRequestException('Page is already registered');
 		}
-
+		Object.assign(existingPage, {
+			...registerPageDto,
+			status: PageStatus.STARTED,
+		});
 		const page =
 			existingPage ||
 			this.pageRepository.create({
@@ -202,8 +208,7 @@ export class PagesService {
 		};
 	}
 
-	private send_noti(pageId: Uuid, status: PageStatus) {
-	}
+	private send_noti(pageId: Uuid, status: PageStatus) {}
 
 	public async updateAvatarPage(page_id: Uuid, avatar: AvatarDto) {
 		return await this.assetsService.create_or_update(

@@ -5,6 +5,8 @@ import { Auth } from '../../decoractors/http.decorators';
 import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { PageDto } from './dto/page.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
+import { UserEntity } from '../users/entities/user.entity';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
 
 @Controller('admin_api/pages')
 export class PagesAdminController {
@@ -13,9 +15,10 @@ export class PagesAdminController {
 	@Get()
 	@Auth([RoleType.ADMIN])
 	async getPages(
+		@AuthUser() user: UserEntity,
 		@Query() pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<CommonPageDto<PageDto>> {
-		return this.pagesService.getPages(pagePageOptionsDto);
+		return this.pagesService.getPages(pagePageOptionsDto, user);
 	}
 
 	@Post(':pageId/approve')

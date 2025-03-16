@@ -30,7 +30,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private readonly authService: AuthsService,
 		private chatsService: ChatsService,
-	) { }
+	) {}
 
 	async handleConnection(client: Socket) {
 		try {

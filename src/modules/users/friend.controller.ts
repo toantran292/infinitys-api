@@ -16,7 +16,7 @@ import { AuthUser } from '../../decoractors/auth-user.decorators';
 
 @Controller('api/friends')
 export class FriendController {
-	constructor(private readonly friendService: FriendService) { }
+	constructor(private readonly friendService: FriendService) {}
 
 	@Post(':userId')
 	@Auth([RoleType.USER])
@@ -58,6 +58,18 @@ export class FriendController {
 	@Auth([RoleType.USER])
 	async getFriends(@UUIDParam('userId') userId: Uuid) {
 		return this.friendService.getFriends(userId);
+	}
+
+	@Get(':userId/requests')
+	@Auth([RoleType.USER])
+	async getFriendRequests(@UUIDParam('userId') userId: Uuid) {
+		return this.friendService.getFriendRequests(userId);
+	}
+
+	@Get(':userId/suggestions')
+	@Auth([RoleType.USER])
+	async getSentRequests(@UUIDParam('userId') userId: Uuid) {
+		return this.friendService.getSentFriendRequests(userId);
 	}
 
 	@Delete(':userId')

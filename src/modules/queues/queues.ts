@@ -1,3 +1,3 @@
 export enum QueueNames {
-    NOTIFICATION = 'notification',
+	NOTIFICATION = 'notification',
 }
