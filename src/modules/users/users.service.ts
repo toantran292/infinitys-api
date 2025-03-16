@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
 	FindManyOptions,
 	type FindOptionsWhere,
-	In,
 	Repository,
 } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -23,7 +22,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
