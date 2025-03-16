@@ -24,6 +24,12 @@ export class PageUserEntity extends AbstractEntity<
 	@Column({ type: 'enum', enum: RoleTypePage, default: RoleTypePage.MEMBER })
 	role!: RoleTypePage;
 
+	@Column({ type: 'date', nullable: true })
+	startDate?: Date;
+
+	@Column({ type: 'date', nullable: true })
+	endDate?: Date;
+
 	@OneToMany(
 		() => RecruitmentPostEntity,
 		(recruitmentPost) => recruitmentPost.pageUser,

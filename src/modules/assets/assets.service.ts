@@ -9,6 +9,7 @@ import { AbstractEntity } from 'src/common/abstract.entity';
 
 export enum FileType {
 	AVATAR = 'avatar',
+	BANNER = 'banner',
 }
 
 @Injectable()
@@ -17,7 +18,7 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) {}
+	) { }
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;

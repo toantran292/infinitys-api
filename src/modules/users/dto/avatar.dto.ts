@@ -33,3 +33,5 @@ export class AvatarDto {
 		this.content_type = content_type;
 	}
 }
+
+export class BannerDto extends AvatarDto { }
