@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
 	FindManyOptions,
 	type FindOptionsWhere,
-	In,
 	Repository,
 } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
@@ -16,8 +15,6 @@ import { UserNotFoundException } from '../../exeptions/user-not-found.exception'
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { AssetsService, FileType } from '../assets/assets.service';
 import { AvatarDto } from './dto/avatar.dto';
-import { parse as uuidParse } from 'uuid';
-import { AssetEntity } from '../assets/entities/asset.entity';
 import { RoleType } from 'src/constants/role-type';
 
 @Injectable()
@@ -27,7 +24,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
