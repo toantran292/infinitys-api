@@ -1,6 +1,12 @@
-import { UUIDField } from '../../../decoractors/field.decoractors';
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateGroupChatDto {
-	@UUIDField()
-	recipientId: Uuid;
+	@IsArray()
+	@IsUUID('4', { each: true })
+	@IsNotEmpty()
+	userIds: Uuid[];
+
+	@IsString()
+	@IsOptional()
+	name?: string;
 }

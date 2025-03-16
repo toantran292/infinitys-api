@@ -4,7 +4,7 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
+import { Brackets, type FindOptionsWhere, Repository } from 'typeorm';
 import {
 	GroupChatEntity,
 	GroupChatMemberEntity,
@@ -14,7 +14,10 @@ import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
 import { Transactional } from 'typeorm-transactional';
-
+import { CreateGroupChatDto } from './dto/create-group-chat.dto';
+import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
+import { FileType } from '../assets/assets.service';
+import { AssetsService } from '../assets/assets.service';
 @Injectable()
 export class ChatsService {
 	constructor(
@@ -25,7 +28,101 @@ export class ChatsService {
 		@InjectRepository(GroupChatMessageEntity)
 		private readonly groupChatMessageRepo: Repository<GroupChatMessageEntity>,
 		private readonly usersService: UsersService,
-	) {}
+		private readonly assetsService: AssetsService,
+	) { }
+
+	findOneGroupChat(
+		findData: FindOptionsWhere<GroupChatEntity>,
+	): Promise<GroupChatEntity | null> {
+		return this.groupChatRepo.findOneBy(findData);
+	}
+
+	// Thêm hàm escape string
+	private escapeLikeString(str: string): string {
+		return str.replace(/[\\%_]/g, '\\$&');
+	}
+
+	async getGroupChatsByUserId(userId: Uuid, groupsChatOptionsDto: GroupChatPageOptionsDto) {
+		const { q } = groupsChatOptionsDto
+
+		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
+
+		queryBuilder
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.where('user.id = :userId', { userId })
+
+		if (q) {
+			const escapedSearch = this.escapeLikeString(q);
+			queryBuilder.andWhere(new Brackets(qb => {
+				qb
+					.where('LOWER(groupChat.name) LIKE LOWER(:search) ESCAPE \'\\\'', {
+						search: `%${escapedSearch}%`
+					})
+					.orWhere(
+						`groupChat.id IN (
+							SELECT gcm.group_chat_id 
+							FROM group_chat_members gcm 
+							INNER JOIN users u ON u.id = gcm.user_id 
+							WHERE (LOWER(u.first_name) LIKE LOWER(:search) ESCAPE '\\'
+							OR LOWER(u.last_name) LIKE LOWER(:search) ESCAPE '\\')
+							AND u.id != :userId
+						)`,
+						{
+							search: `%${escapedSearch}%`,
+							userId
+						}
+					);
+			}));
+		}
+
+		const groupChatIds = (await queryBuilder.select('groupChat.id').getMany()).map(
+			(groupChat) => groupChat.id,
+		);
+
+		if (groupChatIds.length === 0) return [];
+
+		let groups = await this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.leftJoinAndSelect(
+				'groupChat.groupChatMessages',
+				'messages',
+				`messages.id IN (
+					SELECT m2.id FROM group_chat_messages m2 
+					WHERE m2.group_chat_id = groupChat.id 
+					ORDER BY m2.created_at DESC 
+					LIMIT 1
+				)`,
+			)
+			.leftJoinAndSelect('messages.user', 'messageUser')
+			.andWhere('groupChat.id IN (:...groupChatIds)', { groupChatIds })
+			.andWhere('user.id != :userId', { userId })
+			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
+			.getMany();
+
+		await Promise.all(groups.map(async (group) => {
+			group.members = await Promise.all(group.groupChatMembers.map(async (member) => {
+				return await this.assetsService.populateAsset(member.user, 'users', [FileType.AVATAR]);
+			}));
+			return group;
+		}));
+
+		return groups;
+	}
+
+	async getGroupChatById(groupChatId: Uuid): Promise<GroupChatEntity> {
+		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
+
+		const groupChatEntity = await queryBuilder.getOne();
+
+		if (!groupChatEntity) {
+			throw new UserNotFoundException();
+		}
+
+		return groupChatEntity;
+	}
 
 	async getGroupChat(
 		userId: Uuid,
@@ -45,43 +142,30 @@ export class ChatsService {
 
 		if (!isExist) return null;
 
-		return this.groupChatRepo
+		const group = await this.groupChatRepo
 			.createQueryBuilder('groupChat')
 			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
 			.innerJoinAndSelect('members.user', 'user')
+			.leftJoinAndSelect(
+				'groupChat.groupChatMessages',
+				'messages',
+				`messages.id IN (
+					SELECT m2.id FROM group_chat_messages m2 
+					WHERE m2.group_chat_id = groupChat.id 
+					ORDER BY m2.created_at DESC 
+					LIMIT 1
+				)`,
+			)
+			.leftJoinAndSelect('messages.user', 'messageUser')
+			.andWhere('user.id != :userId', { userId })
 			.andWhere('groupChat.id = :groupChatId', { groupChatId })
 			.getOne();
-	}
 
-	findOneGroupChat(
-		findData: FindOptionsWhere<GroupChatEntity>,
-	): Promise<GroupChatEntity | null> {
-		return this.groupChatRepo.findOneBy(findData);
-	}
+		group.members = await Promise.all(group.groupChatMembers.map(async (member) => {
+			return await this.assetsService.populateAsset(member.user, 'users', [FileType.AVATAR]);
+		}));
 
-	async getGroupChatsByUserId(userId: Uuid) {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder
-			.innerJoin('groupChat.groupChatMembers', 'members')
-			.innerJoin('members.user', 'user')
-			.where('user.id = :userId', { userId });
-
-		return queryBuilder.getMany();
-	}
-
-	async getGroupChatById(groupChatId: Uuid): Promise<GroupChatEntity> {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder.where('groupChat.id = :groupChatId', { groupChatId });
-
-		const groupChatEntity = await queryBuilder.getOne();
-
-		if (!groupChatEntity) {
-			throw new UserNotFoundException();
-		}
-
-		return groupChatEntity;
+		return group;
 	}
 
 	async getGroupChatByIdAndUser(
@@ -131,13 +215,11 @@ export class ChatsService {
 	}
 
 	async createGroupChatMember(groupChat: GroupChatEntity, users: UserEntity[]) {
-		const allIsAdmin = users.length === 2;
-
 		const members = users.map((user, index) =>
 			this.groupChatMemberRepo.create({
 				groupChat: groupChat,
 				user: user,
-				isAdmin: allIsAdmin ? true : index == 0,
+				isAdmin: index === 0,
 			}),
 		);
 
@@ -145,24 +227,20 @@ export class ChatsService {
 	}
 
 	@Transactional()
-	async createPrivateGroupChat(user: UserEntity, recipientId: Uuid) {
-		const recipient = await this.usersService.getRawUser(recipientId);
+	async createGroupChat(admin: UserEntity, createGroupChatDto: CreateGroupChatDto) {
+		const { userIds, name } = createGroupChatDto;
 
-		const existingGroupChat = await this.getPrivateGroupChat(user, recipient);
-
-		// console.log({ existingGroupChat });
-
-		if (existingGroupChat) return existingGroupChat;
+		const users = await this.usersService.getUsersByIds(userIds);
 
 		const newGroupChat = this.groupChatRepo.create({
-			name: `${user.id} - ${recipientId}`,
+			name: name || "",
 		});
 
 		await this.groupChatRepo.save(newGroupChat);
 
-		await this.createGroupChatMember(newGroupChat, [user, recipient]);
+		await this.createGroupChatMember(newGroupChat, [admin, ...users]);
 
-		return newGroupChat;
+		return this.getGroupChat(admin.id, newGroupChat.id);
 	}
 
 	async createGroupChatMessage(
@@ -182,15 +260,9 @@ export class ChatsService {
 	}
 
 	async getGroupChatMessages(user: UserEntity, groupChatId: Uuid) {
-		const havePermission = await this.getGroupChat(user.id, groupChatId);
+		await this.getGroupChat(user.id, groupChatId);
 
-		if (!havePermission)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
-
-		const queryBuilder =
-			this.groupChatMessageRepo.createQueryBuilder('message');
+		const queryBuilder = this.groupChatMessageRepo.createQueryBuilder('message');
 
 		queryBuilder
 			.innerJoin('message.groupChat', 'groupChat')
@@ -198,16 +270,18 @@ export class ChatsService {
 			.where('groupChat.id = :groupChatId', { groupChatId })
 			.orderBy('message.createdAt');
 
-		return queryBuilder.getMany();
+		const messages = await queryBuilder.getMany();
+
+		await Promise.all(messages.map(async (message) => {
+			message.user = await this.assetsService.populateAsset(message.user, 'users', [FileType.AVATAR]);
+			return message;
+		}));
+
+		return messages;
 	}
 
 	async sendMessage(user: UserEntity, groupChatId: Uuid, content: string) {
-		const havePermission = await this.getGroupChat(user.id, groupChatId);
-
-		if (!havePermission)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
+		await this.getGroupChat(user.id, groupChatId);
 
 		const message = this.groupChatMessageRepo.create({
 			groupChat: { id: groupChatId },
@@ -216,5 +290,55 @@ export class ChatsService {
 		});
 
 		return await this.groupChatMessageRepo.save(message);
+	}
+
+	async searchGroupChatsByExactMembers(currentUserId: Uuid, memberIds: Uuid[]) {
+		const allMemberIds = [...new Set([currentUserId, ...memberIds])];
+
+		const queryBuilder = await this.groupChatMemberRepo.createQueryBuilder('gcm')
+			.select('gcm.group_chat_id')
+			.where('gcm.user.id IN (:...memberIds)', { memberIds: allMemberIds })
+			.groupBy('gcm.group_chat_id')
+			.having('COUNT(DISTINCT gcm.user) = :memberCount', { memberCount: allMemberIds.length })
+			.andWhere(qb => {
+				const subQuery = qb
+					.subQuery()
+					.select('1')
+					.from('group_chat_members', 'other')
+					.where('other.group_chat_id = gcm.group_chat_id')
+					.andWhere('other.user_id NOT IN (:...memberIds)', { memberIds: allMemberIds })
+					.getQuery();
+				return 'NOT EXISTS (' + subQuery + ')';
+			})
+			.getRawOne();
+
+		if (!queryBuilder) return null;
+
+		const group_chat_id = queryBuilder.group_chat_id;
+
+		let groups = await this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.leftJoinAndSelect(
+				'groupChat.groupChatMessages',
+				'messages',
+				`messages.id IN (
+					SELECT m2.id FROM group_chat_messages m2 
+					WHERE m2.group_chat_id = groupChat.id 
+					ORDER BY m2.created_at DESC 
+					LIMIT 1
+				)`,
+			)
+			.leftJoinAndSelect('messages.user', 'messageUser')
+			.andWhere('groupChat.id = :groupChatId', { groupChatId: group_chat_id })
+			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
+			.getOne();
+
+		groups.members = await Promise.all(groups.groupChatMembers.map(async (member) => {
+			return await this.assetsService.populateAsset(member.user, 'users', [FileType.AVATAR]);
+		}));
+
+		return groups;
 	}
 }

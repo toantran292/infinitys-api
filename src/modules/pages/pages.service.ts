@@ -135,7 +135,6 @@ export class PagesService {
 			});
 
 		const savePage = await this.pageRepository.save(page);
-		console.log('📌 Page đã được lưu:', savePage);
 		try {
 			if (registerPageDto.avatar) {
 				await this.assetRepository.save({
@@ -204,7 +203,6 @@ export class PagesService {
 	}
 
 	private send_noti(pageId: Uuid, status: PageStatus) {
-		console.log(`${status} page ${pageId}`);
 	}
 
 	public async updateAvatarPage(page_id: Uuid, avatar: AvatarDto) {
