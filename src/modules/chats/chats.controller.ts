@@ -7,6 +7,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { CreateGroupChatDto } from './dto/create-group-chat.dto';
 import { GroupChatDto, GroupChatMessageDto, ListGroupChatDto } from './dto/group-chat.dto';
 import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
+import { SearchGroupChatsByMembersDto } from './dto/search-group-chats-by-members.dto';
 
 @Controller('api/chats')
 export class ChatsController {
@@ -27,6 +28,19 @@ export class ChatsController {
 		const groupChats = await this.chatsService.getGroupChatsByUserId(user.id, groupsChatOptionsDto);
 
 		return groupChats.map((groupChat) => new ListGroupChatDto(groupChat));
+	}
+
+	@Post('groups/search-by-members')
+	@Auth([RoleType.USER])
+	async searchGroupChatsByMembers(
+		@AuthUser() user: UserEntity,
+		@Body() searchGroupChatsByMembersDto: SearchGroupChatsByMembersDto,
+	) {
+		const groupChat = await this.chatsService.searchGroupChatsByExactMembers(user.id, searchGroupChatsByMembersDto.memberIds);
+
+		if (!groupChat) return {};
+
+		return new ListGroupChatDto(groupChat);
 	}
 
 	@Get('groups/:id')

@@ -291,4 +291,54 @@ export class ChatsService {
 
 		return await this.groupChatMessageRepo.save(message);
 	}
+
+	async searchGroupChatsByExactMembers(currentUserId: Uuid, memberIds: Uuid[]) {
+		const allMemberIds = [...new Set([currentUserId, ...memberIds])];
+
+		const queryBuilder = await this.groupChatMemberRepo.createQueryBuilder('gcm')
+			.select('gcm.group_chat_id')
+			.where('gcm.user.id IN (:...memberIds)', { memberIds: allMemberIds })
+			.groupBy('gcm.group_chat_id')
+			.having('COUNT(DISTINCT gcm.user) = :memberCount', { memberCount: allMemberIds.length })
+			.andWhere(qb => {
+				const subQuery = qb
+					.subQuery()
+					.select('1')
+					.from('group_chat_members', 'other')
+					.where('other.group_chat_id = gcm.group_chat_id')
+					.andWhere('other.user_id NOT IN (:...memberIds)', { memberIds: allMemberIds })
+					.getQuery();
+				return 'NOT EXISTS (' + subQuery + ')';
+			})
+			.getRawOne();
+
+		if (!queryBuilder) return null;
+
+		const group_chat_id = queryBuilder.group_chat_id;
+
+		let groups = await this.groupChatRepo
+			.createQueryBuilder('groupChat')
+			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
+			.innerJoinAndSelect('members.user', 'user')
+			.leftJoinAndSelect(
+				'groupChat.groupChatMessages',
+				'messages',
+				`messages.id IN (
+					SELECT m2.id FROM group_chat_messages m2 
+					WHERE m2.group_chat_id = groupChat.id 
+					ORDER BY m2.created_at DESC 
+					LIMIT 1
+				)`,
+			)
+			.leftJoinAndSelect('messages.user', 'messageUser')
+			.andWhere('groupChat.id = :groupChatId', { groupChatId: group_chat_id })
+			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
+			.getOne();
+
+		groups.members = await Promise.all(groups.groupChatMembers.map(async (member) => {
+			return await this.assetsService.populateAsset(member.user, 'users', [FileType.AVATAR]);
+		}));
+
+		return groups;
+	}
 }

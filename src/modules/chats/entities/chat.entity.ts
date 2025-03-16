@@ -27,6 +27,8 @@ export class GroupChatMemberEntity extends AbstractEntity {
 	@ManyToOne(() => GroupChatEntity, (groupChat) => groupChat.groupChatMembers)
 	groupChat!: GroupChatEntity;
 
+	// group_chat_id: Uuid;
+
 	@ManyToOne(() => UserEntity, (user) => user.groupChatMembers)
 	user!: UserEntity;
 
