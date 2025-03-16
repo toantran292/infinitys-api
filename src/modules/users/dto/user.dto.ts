@@ -30,6 +30,9 @@ export class BaseUserDto extends AbstractDto {
 	@StringField()
 	lastName!: string;
 
+	@StringField()
+	fullName!: string;
+
 	@EnumFieldOptional(() => RoleType)
 	role?: RoleType;
 
@@ -55,6 +58,7 @@ export class BaseUserDto extends AbstractDto {
 		super(user);
 		this.firstName = user.firstName;
 		this.lastName = user.lastName;
+		this.fullName = `${user.firstName} ${user.lastName}`;
 		this.email = user.email;
 		this.role = user.role;
 		this.dateOfBirth = user.dateOfBirth;
@@ -66,15 +70,11 @@ export class BaseUserDto extends AbstractDto {
 }
 
 export class UserDto extends BaseUserDto {
-	@StringFieldOptional()
-	fullName?: string;
 
 	avatar?: UserAvatarDto;
 
 	constructor(user: UserEntity) {
 		super(user);
-
-		this.fullName = `${user.firstName} ${user.lastName}`;
 		this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
 	}
 }

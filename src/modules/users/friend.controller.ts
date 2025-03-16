@@ -2,6 +2,7 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	Delete,
 	Get,
 	Param,
 	Post,
@@ -57,5 +58,14 @@ export class FriendController {
 	@Auth([RoleType.USER])
 	async getFriends(@UUIDParam('userId') userId: Uuid) {
 		return this.friendService.getFriends(userId);
+	}
+
+	@Delete(':userId')
+	@Auth([RoleType.USER])
+	async unfriend(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('userId') userId: Uuid,
+	) {
+		return this.friendService.unfriend(user.id, userId);
 	}
 }

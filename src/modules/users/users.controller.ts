@@ -14,11 +14,11 @@ import type { UserDto } from './dto/user.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { AvatarDto } from './dto/avatar.dto';
+import { AvatarDto, BannerDto } from './dto/avatar.dto';
 
 @Controller('api/users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	constructor(private readonly usersService: UsersService) { }
 
 	@Get()
 	@Auth([RoleType.USER])
@@ -60,5 +60,19 @@ export class UsersController {
 		}
 
 		return this.usersService.updateAvatar(userId, avatar);
+	}
+
+	@Patch(':id/banner')
+	@Auth([RoleType.USER])
+	async updateBanner(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('id') userId: Uuid,
+		@Body('banner') banner: BannerDto,
+	) {
+		if (userId !== user.id) {
+			throw new ForbiddenException('You can only update your own banner');
+		}
+
+		return this.usersService.updateBanner(userId, banner);
 	}
 }
