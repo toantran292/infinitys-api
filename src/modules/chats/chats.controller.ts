@@ -5,7 +5,7 @@ import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from '../users/entities/user.entity';
 import { CreateGroupChatDto } from './dto/create-group-chat.dto';
-import { ListGroupChatDto } from './dto/group-chat.dto';
+import { GroupChatDto, GroupChatMessageDto, ListGroupChatDto } from './dto/group-chat.dto';
 import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
 
 @Controller('api/chats')
@@ -26,8 +26,6 @@ export class ChatsController {
 	async getGroupChats(@AuthUser() user: UserEntity, @Query() groupsChatOptionsDto: GroupChatPageOptionsDto) {
 		const groupChats = await this.chatsService.getGroupChatsByUserId(user.id, groupsChatOptionsDto);
 
-		console.log({ groupChats });
-		
 		return groupChats.map((groupChat) => new ListGroupChatDto(groupChat));
 	}
 
@@ -46,7 +44,7 @@ export class ChatsController {
 			'You not have permission to retrieve message of this group',
 		);
 
-		return groupChat;
+		return new GroupChatDto(groupChat);
 	}
 
 	@Get('groups/:id/messages')
@@ -55,6 +53,8 @@ export class ChatsController {
 		@AuthUser() user: UserEntity,
 		@UUIDParam('id') groupChatId: Uuid,
 	) {
-		return this.chatsService.getGroupChatMessages(user, groupChatId);
+		const messages = await this.chatsService.getGroupChatMessages(user, groupChatId);
+
+		return messages.map((message) => new GroupChatMessageDto(message));
 	}
 }

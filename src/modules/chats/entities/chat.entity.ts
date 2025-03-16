@@ -18,6 +18,8 @@ export class GroupChatEntity extends AbstractEntity {
 		(groupChatMessage) => groupChatMessage.groupChat,
 	)
 	groupChatMessages!: GroupChatMessageEntity[];
+
+	members: UserEntity[];
 }
 
 @Entity({ name: 'group_chat_members' })

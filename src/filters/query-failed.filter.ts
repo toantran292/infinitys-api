@@ -23,7 +23,7 @@ export class QueryFailedFilter implements ExceptionFilter<QueryFailedError> {
 			? HttpStatus.CONFLICT
 			: HttpStatus.INTERNAL_SERVER_ERROR;
 
-		console.log({ exception });
+		// console.log({ exception });
 
 		response.status(status).json({
 			statusCode: status,

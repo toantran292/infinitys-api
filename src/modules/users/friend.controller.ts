@@ -2,6 +2,7 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	Get,
 	Param,
 	Post,
 } from '@nestjs/common';
@@ -14,7 +15,7 @@ import { AuthUser } from '../../decoractors/auth-user.decorators';
 
 @Controller('api/friends')
 export class FriendController {
-	constructor(private readonly friendService: FriendService) {}
+	constructor(private readonly friendService: FriendService) { }
 
 	@Post(':userId')
 	@Auth([RoleType.USER])
@@ -50,5 +51,11 @@ export class FriendController {
 		@UUIDParam('userId') userId: Uuid,
 	) {
 		return this.friendService.cancelFriendRequest(user.id, userId);
+	}
+
+	@Get(':userId')
+	@Auth([RoleType.USER])
+	async getFriends(@UUIDParam('userId') userId: Uuid) {
+		return this.friendService.getFriends(userId);
 	}
 }

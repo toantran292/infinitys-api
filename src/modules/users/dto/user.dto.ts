@@ -66,11 +66,15 @@ export class BaseUserDto extends AbstractDto {
 }
 
 export class UserDto extends BaseUserDto {
+	@StringFieldOptional()
+	fullName?: string;
+
 	avatar?: UserAvatarDto;
 
 	constructor(user: UserEntity) {
 		super(user);
 
+		this.fullName = `${user.firstName} ${user.lastName}`;
 		this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
 	}
 }
