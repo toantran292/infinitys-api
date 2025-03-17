@@ -1,10 +1,9 @@
 import { PostDto, type PostDtoOptions } from '../dto/post.dto';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
-import { ReactEntity } from 'src/modules/reacts/entities/react.entity';
-import { AssetEntity } from 'src/modules/assets/entities/asset.entity';
+import { PostStatistics } from './post-statistics.entity';
 
 @Entity({ name: 'posts' })
 export class PostEntity extends AbstractEntity<PostDto, PostDtoOptions> {
@@ -14,12 +13,13 @@ export class PostEntity extends AbstractEntity<PostDto, PostDtoOptions> {
 	@ManyToOne(() => UserEntity, (user) => user.posts)
 	author!: UserEntity;
 
-	@ManyToOne(() => CommentEntity, (comment) => comment.post)
+	@OneToMany(() => CommentEntity, (comment) => comment.post, { cascade: true })
 	comments!: CommentEntity[];
 
-	@ManyToOne(() => ReactEntity, (react) => react.post)
-	reacts!: ReactEntity[];
+	@OneToOne(() => PostStatistics, (statistics) => statistics.post, { cascade: true })
+	statistics!: PostStatistics;
 
-	@ManyToOne(() => AssetEntity, (asset) => asset.owner_id)
-	photos!: AssetEntity[];
+	comment_count!: number;
+	react_count!: number;
 }
+

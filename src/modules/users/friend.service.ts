@@ -143,15 +143,14 @@ export class FriendService {
 	}
 
 	async getFriends(userId: Uuid): Promise<UserEntity[]> {
-		// Get all friendships where userId is either source or target
 		const friendships = await this.friendRepository
-			.createQueryBuilder('friend')
-			.leftJoinAndSelect('friend.source', 'source')
-			.leftJoinAndSelect('friend.target', 'target')
-			.where('friend.source_id = :userId OR friend.target_id = :userId', { userId })
+				.createQueryBuilder('friend')
+				.leftJoinAndSelect('friend.source', 'source')
+				.leftJoinAndSelect('friend.target', 'target')
+				.where('friend.source_id = :userId OR friend.target_id = :userId', { userId })
 			.getMany();
 
-		// Extract friend users (excluding the requesting user)
+
 		const friends = friendships.map(friendship => {
 			return friendship.source.id === userId ? friendship.target : friendship.source;
 		});
