@@ -7,16 +7,19 @@ import { CommentEntity } from '../comments/entities/comment.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
-
+import { AssetsModule } from '../assets/assets.module';
+import { ReactsModule } from '../reacts/reacts.module';
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([
 			PostEntity,
-			AssetEntity,
 			ReactEntity,
 			CommentEntity,
 			UserEntity,
+			AssetEntity,
 		]),
+		AssetsModule,
+		ReactsModule,
 	],
 	controllers: [PostsController],
 	providers: [PostsService],
