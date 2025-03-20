@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Order } from '../constants';
+import { StringFieldOptional } from 'src/decoractors/field.decoractors';
 
 export class PageOptionsDto {
 	@IsEnum(Order)
@@ -23,4 +24,7 @@ export class PageOptionsDto {
 	get skip(): number {
 		return (this.page - 1) * this.take;
 	}
+
+	@StringFieldOptional()
+	readonly q?: string;
 }

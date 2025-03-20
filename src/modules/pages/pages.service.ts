@@ -26,7 +26,7 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	async getPages(
 		pagePageOptionsDto: PagePageOptionsDto,
