@@ -15,12 +15,13 @@ export class PostsService {
         @InjectRepository(PostEntity)
         private postRepository: Repository<PostEntity>,
 
+        @InjectRepository(PostStatistics)
+        private readonly postStatisticsRepository: Repository<PostStatistics>,
+
         private readonly assetsService: AssetsService,
 
         private readonly reactsService: ReactsService,
-    ) {
-
-    }
+    ) { }
 
     async createPost(author: UserEntity, createPostDto: CreatePostDto) {
         const { content } = createPostDto;
@@ -30,7 +31,16 @@ export class PostsService {
             author,
         });
 
-        return await this.postRepository.save(post);
+        const savedPost = await this.postRepository.save(post);
+
+        // Tạo statistics cho post
+        await this.postStatisticsRepository.save({
+            postId: savedPost.id,
+            commentCount: 0,
+            reactCount: 0
+        });
+
+        return savedPost;
     }
 
     async getPosts() {

@@ -9,6 +9,8 @@ import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { AssetsModule } from '../assets/assets.module';
 import { ReactsModule } from '../reacts/reacts.module';
+import { PostStatistics } from './entities/post-statistics.entity';
+
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([
@@ -17,6 +19,7 @@ import { ReactsModule } from '../reacts/reacts.module';
 			CommentEntity,
 			UserEntity,
 			AssetEntity,
+			PostStatistics,
 		]),
 		AssetsModule,
 		ReactsModule,

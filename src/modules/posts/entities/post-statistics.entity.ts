@@ -1,21 +1,18 @@
-import { PostEntity } from "./post.entity";
+import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
+import { PostEntity } from './post.entity';
 
-import { JoinColumn, PrimaryColumn, OneToOne, Column } from "typeorm";
-
-import { Entity } from "typeorm";
-
-@Entity("post_statistics")
+@Entity('post_statistics')
 export class PostStatistics {
-    @PrimaryColumn("uuid")
+    @PrimaryColumn('uuid', { name: 'post_id' })
     postId: string;
 
-    @OneToOne(() => PostEntity, (post) => post.statistics, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "postId" })
-    post: PostEntity;
-
-    @Column({ type: "int", default: 0 })
+    @Column({ name: 'comment_count', default: 0 })
     commentCount: number;
 
-    @Column({ type: "int", default: 0 })
+    @Column({ name: 'react_count', default: 0 })
     reactCount: number;
+
+    @OneToOne(() => PostEntity)
+    @JoinColumn({ name: 'post_id' })
+    post: PostEntity;
 }
