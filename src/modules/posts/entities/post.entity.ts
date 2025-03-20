@@ -18,7 +18,10 @@ export class PostEntity extends AbstractEntity {
 	@OneToOne(() => PostStatistics, (statistics) => statistics.post, { cascade: true })
 	statistics!: PostStatistics;
 
+	@Column({ type: 'int', default: 0 })
 	comment_count!: number;
+
+	@Column({ type: 'int', default: 0 })
 	react_count!: number;
 }
 

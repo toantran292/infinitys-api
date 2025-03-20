@@ -7,6 +7,8 @@ import { PostEntity } from '../posts/entities/post.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { AuthsModule } from '../auths/auths.module';
 import { UsersModule } from '../users/users.module';
+import { AssetsModule } from '../assets/assets.module';
+import { PostStatistics } from '../posts/entities/post-statistics.entity';
 
 @Module({
 	imports: [
@@ -16,7 +18,9 @@ import { UsersModule } from '../users/users.module';
 			CommentEntity,
 			PostEntity,
 			UserEntity,
+			PostStatistics,
 		]),
+		AssetsModule,
 	],
 	providers: [
 		CommentsService,
