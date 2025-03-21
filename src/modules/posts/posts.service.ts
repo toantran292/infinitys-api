@@ -33,7 +33,6 @@ export class PostsService {
 
         const savedPost = await this.postRepository.save(post);
 
-        // Tạo statistics cho post
         await this.postStatisticsRepository.save({
             postId: savedPost.id,
             commentCount: 0,
