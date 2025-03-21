@@ -36,4 +36,11 @@ export class PostsController {
     async react(@AuthUser() user: UserEntity, @UUIDParam('id') id: Uuid) {
         return this.postsService.react(user, id);
     }
+
+    @Get('newsfeed')
+    @Auth([RoleType.USER])
+    async getNewsfeed(@AuthUser() user: UserEntity) {
+        const posts = await this.postsService.getNewsfeed(user.id);
+        return posts.map(post => new PostDto(post));
+    }
 }

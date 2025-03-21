@@ -79,4 +79,36 @@ export class PostsService {
 
         return react;
     }
+
+    async getNewsfeed(userId: Uuid) {
+        const queryBuilder = this.postRepository.createQueryBuilder('post');
+
+        queryBuilder
+            .leftJoinAndSelect('post.author', 'author')
+            .leftJoinAndMapOne('post.statistics', PostStatistics, 'stats', 'stats.postId = post.id')
+            .where('author.id = :userId', { userId })
+            .orWhere(qb => {
+                const friendsSubQuery = qb
+                    .subQuery()
+                    .select('DISTINCT CASE ' +
+                        'WHEN friend.source_id = :userId THEN friend.target_id ' +
+                        'ELSE friend.source_id ' +
+                        'END')
+                    .from('friends', 'friend')
+                    .where('friend.source_id = :userId OR friend.target_id = :userId')
+                    .getQuery();
+                return 'author.id IN ' + friendsSubQuery;
+            })
+            .setParameter('userId', userId)
+            .orderBy('post.createdAt', 'DESC');
+
+        const posts = await queryBuilder.getMany();
+
+        // Populate author avatars
+        await Promise.all(posts.map(async (post) => {
+            post.author = await this.assetsService.populateAsset(post.author, 'users', [FileType.AVATAR]);
+        }));
+
+        return posts;
+    }
 }
