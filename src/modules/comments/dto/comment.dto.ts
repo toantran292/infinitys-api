@@ -8,13 +8,16 @@ export type CommentDtoOptions = {};
 
 export class CommentDto extends AbstractDto {
 	content: string;
-	
+
 	author: UserDto;
+
+	react_count: number;
 
 	constructor(comment: CommentEntity) {
 		super(comment);
 		this.content = comment.content;
 		this.author = new UserDto(comment.user);
+		this.react_count = comment.statistics?.reactCount || 0;
 	}
 }
 

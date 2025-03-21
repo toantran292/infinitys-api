@@ -9,6 +9,8 @@ import { AuthsModule } from '../auths/auths.module';
 import { UsersModule } from '../users/users.module';
 import { AssetsModule } from '../assets/assets.module';
 import { PostStatistics } from '../posts/entities/post-statistics.entity';
+import { CommentStatistics } from './entities/comment-statistics.entity';
+import { ReactEntity } from '../reacts/entities/react.entity';
 
 @Module({
 	imports: [
@@ -19,6 +21,8 @@ import { PostStatistics } from '../posts/entities/post-statistics.entity';
 			PostEntity,
 			UserEntity,
 			PostStatistics,
+			CommentStatistics,
+			ReactEntity
 		]),
 		AssetsModule,
 	],
