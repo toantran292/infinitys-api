@@ -15,6 +15,9 @@ export class CommentDto extends AbstractDto {
 	@Expose({ name: 'author' })
 	@Type(() => UserResponseDto)
 	user: UserResponseDto;
+
+	@Expose()
+	react_count: number;
 }
 
 export class CreateCommentDto {

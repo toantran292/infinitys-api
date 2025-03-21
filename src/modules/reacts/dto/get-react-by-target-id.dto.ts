@@ -1,12 +1,8 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
+import { REACT_TARGET_TYPE } from './create-react.dto';
 import { UUIDField } from 'src/decoractors/field.decoractors';
 
-export enum REACT_TARGET_TYPE {
-    POST = 'posts',
-    COMMENT = 'comments'
-}
-
-export class CreateReactDto {
+export class GetReactByTargetIdDto {
     @UUIDField()
     @IsNotEmpty()
     targetId: Uuid;
@@ -14,4 +10,4 @@ export class CreateReactDto {
     @IsEnum(REACT_TARGET_TYPE)
     @IsNotEmpty()
     targetType: REACT_TARGET_TYPE;
-}
+} 
