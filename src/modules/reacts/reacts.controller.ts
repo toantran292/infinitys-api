@@ -20,7 +20,6 @@ export class ReactsController {
         return this.reactsService.createReact(user, createReactDto);
     }
 
-    //get react by target id
     @Post(':targetId')
     @Auth([RoleType.USER])
     async getReactByTargetId(
