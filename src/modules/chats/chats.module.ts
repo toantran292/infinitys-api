@@ -30,4 +30,4 @@ import { AssetsModule } from '../assets/assets.module';
 	controllers: [ChatsController],
 	exports: [ChatsGateway, ChatsService],
 })
-export class ChatsModule { }
+export class ChatsModule {}

@@ -8,24 +8,23 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
 export interface NotificationData {
-    userId: string;
-    data: any;
+	userId: string;
+	data: any;
 }
 
 @Injectable()
 export class NotificationsService {
-    constructor(
-        @InjectQueue(QueueNames.NOTIFICATION)
-        private readonly notificationQueue: Queue,
-        @InjectRepository(NotificationEntity)
-        private readonly notificationRepository: Repository<NotificationEntity>,
-    ) { }
+	constructor(
+		@InjectQueue(QueueNames.NOTIFICATION)
+		private readonly notificationQueue: Queue,
+		@InjectRepository(NotificationEntity)
+		private readonly notificationRepository: Repository<NotificationEntity>,
+	) {}
 
-    async sendNotificationToUser(notificationData: NotificationData) {
-        // await this.notificationRepository.save(notification);
-        await this.notificationQueue.add('send', notificationData, {
-            attempts: 3,
-        });
-    }
-
+	async sendNotificationToUser(notificationData: NotificationData) {
+		// await this.notificationRepository.save(notification);
+		await this.notificationQueue.add('send', notificationData, {
+			attempts: 3,
+		});
+	}
 }

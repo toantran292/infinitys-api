@@ -21,5 +21,6 @@ import { AssetsModule } from '../assets/assets.module';
 	],
 	controllers: [PagesController, PagesAdminController],
 	providers: [PagesService],
+	exports: [PagesService],
 })
 export class PagesModule {}

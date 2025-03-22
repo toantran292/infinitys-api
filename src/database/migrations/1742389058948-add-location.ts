@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Init1739930380770 implements MigrationInterface {
-	name = 'Init1739930380770';
+export class AddLocation1742389058948 implements MigrationInterface {
+	name = 'AddLocation1742389058948';
 
 	public async up(queryRunner: QueryRunner): Promise<void> {
 		await queryRunner.query(
-			`CREATE TABLE "recruitment_posts" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "end_date" TIMESTAMP NOT NULL, "active" boolean NOT NULL, "title" character varying NOT NULL, "description" character varying NOT NULL, "meta" jsonb NOT NULL DEFAULT '{}', "problem_start_date" TIMESTAMP WITH TIME ZONE NOT NULL, "problem_end_date" TIMESTAMP WITH TIME ZONE NOT NULL, "page_user_id" uuid, CONSTRAINT "PK_d38c8d3adff01b768dfd5250486" PRIMARY KEY ("id"))`,
+			`CREATE TABLE "recruitment_posts" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "active" boolean NOT NULL, "title" character varying NOT NULL, "job_position" character varying NOT NULL, "location" character varying NOT NULL, "work_type" character varying NOT NULL, "job_type" character varying NOT NULL, "description" text NOT NULL, "page_user_id" uuid, CONSTRAINT "PK_d38c8d3adff01b768dfd5250486" PRIMARY KEY ("id")); COMMENT ON COLUMN "recruitment_posts"."description" IS 'Markdown formatted text for job description'`,
 		);
 		await queryRunner.query(
 			`CREATE TABLE "applications" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "problem_finished_at" TIMESTAMP WITH TIME ZONE, "user_id" uuid, "recruitment_post_id" uuid, CONSTRAINT "PK_938c0a27255637bde919591888f" PRIMARY KEY ("id"))`,
@@ -32,13 +32,19 @@ export class Init1739930380770 implements MigrationInterface {
 			`CREATE TABLE "problems_recruitment_posts" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "problem_id" uuid, "recruitment_post_id" uuid, CONSTRAINT "PK_ad955bc0d76bad986f0205035a7" PRIMARY KEY ("id"))`,
 		);
 		await queryRunner.query(
-			`CREATE TABLE "pages" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "name" character varying NOT NULL, "content" character varying, "address" character varying NOT NULL, "url" character varying NOT NULL, "email" character varying NOT NULL, CONSTRAINT "PK_8f21ed625aa34c8391d636b7d3b" PRIMARY KEY ("id"))`,
+			`CREATE TYPE "public"."pages_status_enum" AS ENUM('started', 'approved', 'rejected')`,
+		);
+		await queryRunner.query(
+			`CREATE TABLE "pages" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "name" character varying NOT NULL, "content" character varying, "address" character varying NOT NULL, "url" character varying NOT NULL, "email" character varying NOT NULL, "status" "public"."pages_status_enum" NOT NULL DEFAULT 'started', CONSTRAINT "UQ_3edf1d1cf08691a0a432589ac93" UNIQUE ("email"), CONSTRAINT "PK_8f21ed625aa34c8391d636b7d3b" PRIMARY KEY ("id"))`,
+		);
+		await queryRunner.query(
+			`CREATE INDEX "IDX_3edf1d1cf08691a0a432589ac9" ON "pages" ("email") `,
 		);
 		await queryRunner.query(
 			`CREATE TYPE "public"."pages_users_role_enum" AS ENUM('MEMBER', 'OPERATOR', 'ADMIN')`,
 		);
 		await queryRunner.query(
-			`CREATE TABLE "pages_users" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "active" boolean NOT NULL, "role" "public"."pages_users_role_enum" NOT NULL DEFAULT 'MEMBER', "page_id" uuid, "user_id" uuid, CONSTRAINT "PK_733d2c569fa8a65acfc63f5c454" PRIMARY KEY ("id"))`,
+			`CREATE TABLE "pages_users" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "active" boolean NOT NULL DEFAULT true, "role" "public"."pages_users_role_enum" NOT NULL DEFAULT 'MEMBER', "start_date" date, "end_date" date, "page_id" uuid, "user_id" uuid, CONSTRAINT "PK_733d2c569fa8a65acfc63f5c454" PRIMARY KEY ("id"))`,
 		);
 		await queryRunner.query(
 			`CREATE TABLE "comments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "content" text NOT NULL, "user_id" uuid, CONSTRAINT "PK_8bf68bc960f2b69e818bdb90dcb" PRIMARY KEY ("id"))`,
@@ -62,7 +68,10 @@ export class Init1739930380770 implements MigrationInterface {
 			`CREATE TABLE "group_chat_messages" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "content" character varying NOT NULL, "group_chat_id" uuid, "user_id" uuid, CONSTRAINT "PK_c92640c08db1752043a7b77e97a" PRIMARY KEY ("id"))`,
 		);
 		await queryRunner.query(
-			`CREATE TABLE "assets" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "type" character varying NOT NULL, "owner_type" character varying NOT NULL, "owner_id" integer NOT NULL, "file_data" jsonb NOT NULL DEFAULT '{}', CONSTRAINT "PK_da96729a8b113377cfb6a62439c" PRIMARY KEY ("id"))`,
+			`CREATE TABLE "friends" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "source_id" uuid, "target_id" uuid, CONSTRAINT "PK_65e1b06a9f379ee5255054021e1" PRIMARY KEY ("id"))`,
+		);
+		await queryRunner.query(
+			`CREATE TABLE "friends_requests" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "is_available" boolean NOT NULL DEFAULT true, "source_id" uuid, "target_id" uuid, CONSTRAINT "PK_44b734b20b071c5d930b63c9b3c" PRIMARY KEY ("id"))`,
 		);
 		await queryRunner.query(
 			`CREATE TYPE "public"."users_role_enum" AS ENUM('USER', 'ADMIN')`,
@@ -75,6 +84,15 @@ export class Init1739930380770 implements MigrationInterface {
 		);
 		await queryRunner.query(
 			`CREATE TABLE "follows" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "page_id" uuid, "user_id" uuid, CONSTRAINT "PK_8988f607744e16ff79da3b8a627" PRIMARY KEY ("id"))`,
+		);
+		await queryRunner.query(
+			`CREATE TABLE "notifications" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "meta" jsonb NOT NULL DEFAULT '{}', "is_readed" boolean NOT NULL DEFAULT false, "user_id" uuid, CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id"))`,
+		);
+		await queryRunner.query(
+			`CREATE TABLE "assets" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "type" character varying NOT NULL, "owner_type" character varying NOT NULL, "owner_id" uuid NOT NULL DEFAULT uuid_generate_v4(), "file_data" jsonb NOT NULL DEFAULT '{}', CONSTRAINT "PK_da96729a8b113377cfb6a62439c" PRIMARY KEY ("id"))`,
+		);
+		await queryRunner.query(
+			`CREATE INDEX "IDX_ddb83c9599ff3fc19dfef0692c" ON "assets" ("owner_id", "type", "owner_type") `,
 		);
 		await queryRunner.query(
 			`ALTER TABLE "recruitment_posts" ADD CONSTRAINT "FK_2a74bde895d01c06cb61456062e" FOREIGN KEY ("page_user_id") REFERENCES "pages_users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
@@ -152,19 +170,49 @@ export class Init1739930380770 implements MigrationInterface {
 			`ALTER TABLE "group_chat_messages" ADD CONSTRAINT "FK_08c2c17bfecc16fa9c536618f5b" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
 		);
 		await queryRunner.query(
+			`ALTER TABLE "friends" ADD CONSTRAINT "FK_23fac43a0543182b1f1bdd644c7" FOREIGN KEY ("source_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends" ADD CONSTRAINT "FK_7228831e05ab7a5a7bf260c5ce6" FOREIGN KEY ("target_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends_requests" ADD CONSTRAINT "FK_7914ec6460702eabeddbd9b77f8" FOREIGN KEY ("source_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends_requests" ADD CONSTRAINT "FK_e06dd257e072a8aa3c4299ec33e" FOREIGN KEY ("target_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+		);
+		await queryRunner.query(
 			`ALTER TABLE "follows" ADD CONSTRAINT "FK_b7ce63a5ae8f154be7de989ea12" FOREIGN KEY ("page_id") REFERENCES "pages"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
 		);
 		await queryRunner.query(
 			`ALTER TABLE "follows" ADD CONSTRAINT "FK_941d172275662c2b9d8b9f4270c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
 		);
+		await queryRunner.query(
+			`ALTER TABLE "notifications" ADD CONSTRAINT "FK_9a8a82462cab47c73d25f49261f" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
+		);
 	}
 
 	public async down(queryRunner: QueryRunner): Promise<void> {
+		await queryRunner.query(
+			`ALTER TABLE "notifications" DROP CONSTRAINT "FK_9a8a82462cab47c73d25f49261f"`,
+		);
 		await queryRunner.query(
 			`ALTER TABLE "follows" DROP CONSTRAINT "FK_941d172275662c2b9d8b9f4270c"`,
 		);
 		await queryRunner.query(
 			`ALTER TABLE "follows" DROP CONSTRAINT "FK_b7ce63a5ae8f154be7de989ea12"`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends_requests" DROP CONSTRAINT "FK_e06dd257e072a8aa3c4299ec33e"`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends_requests" DROP CONSTRAINT "FK_7914ec6460702eabeddbd9b77f8"`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends" DROP CONSTRAINT "FK_7228831e05ab7a5a7bf260c5ce6"`,
+		);
+		await queryRunner.query(
+			`ALTER TABLE "friends" DROP CONSTRAINT "FK_23fac43a0543182b1f1bdd644c7"`,
 		);
 		await queryRunner.query(
 			`ALTER TABLE "group_chat_messages" DROP CONSTRAINT "FK_08c2c17bfecc16fa9c536618f5b"`,
@@ -241,11 +289,17 @@ export class Init1739930380770 implements MigrationInterface {
 		await queryRunner.query(
 			`ALTER TABLE "recruitment_posts" DROP CONSTRAINT "FK_2a74bde895d01c06cb61456062e"`,
 		);
+		await queryRunner.query(
+			`DROP INDEX "public"."IDX_ddb83c9599ff3fc19dfef0692c"`,
+		);
+		await queryRunner.query(`DROP TABLE "assets"`);
+		await queryRunner.query(`DROP TABLE "notifications"`);
 		await queryRunner.query(`DROP TABLE "follows"`);
 		await queryRunner.query(`DROP TABLE "users"`);
 		await queryRunner.query(`DROP TYPE "public"."users_gender_enum"`);
 		await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
-		await queryRunner.query(`DROP TABLE "assets"`);
+		await queryRunner.query(`DROP TABLE "friends_requests"`);
+		await queryRunner.query(`DROP TABLE "friends"`);
 		await queryRunner.query(`DROP TABLE "group_chat_messages"`);
 		await queryRunner.query(`DROP TABLE "group_chat_members"`);
 		await queryRunner.query(`DROP TABLE "group_chats"`);
@@ -257,7 +311,11 @@ export class Init1739930380770 implements MigrationInterface {
 		await queryRunner.query(`DROP TABLE "comments"`);
 		await queryRunner.query(`DROP TABLE "pages_users"`);
 		await queryRunner.query(`DROP TYPE "public"."pages_users_role_enum"`);
+		await queryRunner.query(
+			`DROP INDEX "public"."IDX_3edf1d1cf08691a0a432589ac9"`,
+		);
 		await queryRunner.query(`DROP TABLE "pages"`);
+		await queryRunner.query(`DROP TYPE "public"."pages_status_enum"`);
 		await queryRunner.query(`DROP TABLE "problems_recruitment_posts"`);
 		await queryRunner.query(`DROP TABLE "problems_users_testcases"`);
 		await queryRunner.query(`DROP TABLE "problems_users"`);

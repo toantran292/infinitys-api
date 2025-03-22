@@ -23,7 +23,7 @@ export class FriendService {
 		private userRepo: Repository<UserEntity>,
 
 		private readonly notificationService: NotificationsService,
-	) { }
+	) {}
 
 	async validate(sourceId: Uuid, targetId: Uuid) {
 		if (sourceId === targetId) {
@@ -91,8 +91,8 @@ export class FriendService {
 				event_name: 'friend_request:sent',
 				meta: {
 					sourceId,
-				}
-			}
+				},
+			},
 		});
 
 		return request;
@@ -126,8 +126,8 @@ export class FriendService {
 				event_name: 'friend_request:accepted',
 				meta: {
 					targetId,
-				}
-			}
+				},
+			},
 		});
 	}
 	async rejectFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
@@ -172,12 +172,16 @@ export class FriendService {
 			.createQueryBuilder('friend')
 			.leftJoinAndSelect('friend.source', 'source')
 			.leftJoinAndSelect('friend.target', 'target')
-			.where('friend.source_id = :userId OR friend.target_id = :userId', { userId })
+			.where('friend.source_id = :userId OR friend.target_id = :userId', {
+				userId,
+			})
 			.getMany();
 
 		// Extract friend users (excluding the requesting user)
-		const friends = friendships.map(friendship => {
-			return friendship.source.id === userId ? friendship.target : friendship.source;
+		const friends = friendships.map((friendship) => {
+			return friendship.source.id === userId
+				? friendship.target
+				: friendship.source;
 		});
 
 		return friends;

@@ -202,8 +202,7 @@ export class PagesService {
 		};
 	}
 
-	private send_noti(pageId: Uuid, status: PageStatus) {
-	}
+	private send_noti(pageId: Uuid, status: PageStatus) {}
 
 	public async updateAvatarPage(page_id: Uuid, avatar: AvatarDto) {
 		return await this.assetsService.create_or_update(

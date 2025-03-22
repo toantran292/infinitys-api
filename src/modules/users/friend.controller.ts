@@ -16,7 +16,7 @@ import { AuthUser } from '../../decoractors/auth-user.decorators';
 
 @Controller('api/friends')
 export class FriendController {
-	constructor(private readonly friendService: FriendService) { }
+	constructor(private readonly friendService: FriendService) {}
 
 	@Post(':userId')
 	@Auth([RoleType.USER])
