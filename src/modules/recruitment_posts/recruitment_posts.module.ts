@@ -5,13 +5,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecruitmentPostEntity } from './entities/recruitment_post.entity';
 import { UsersModule } from '../users/users.module';
 import { PageUserEntity } from '../pages/entities/page-user.entity';
+import { ApplicationEntity } from '../applications/entities/application.entity';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([RecruitmentPostEntity, PageUserEntity]),
-		UsersModule
+		TypeOrmModule.forFeature([
+			RecruitmentPostEntity,
+			PageUserEntity,
+			ApplicationEntity,
+		]),
+		UsersModule,
 	],
 	controllers: [RecruitmentPostsController],
 	providers: [RecruitmentPostsService],
 })
-export class RecruitmentPostsModule { }
+export class RecruitmentPostsModule {}

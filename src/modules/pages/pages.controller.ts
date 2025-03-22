@@ -20,7 +20,7 @@ import { AvatarDto } from '../users/dto/avatar.dto';
 
 @Controller('api/pages')
 export class PagesController {
-	constructor(private readonly pagesService: PagesService) { }
+	constructor(private readonly pagesService: PagesService) {}
 
 	@Get()
 	@Auth([RoleType.USER])

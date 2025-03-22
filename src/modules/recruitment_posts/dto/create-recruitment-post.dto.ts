@@ -1,27 +1,24 @@
-import {
-    StringField,
-    UUIDField,
-} from '../../../decoractors/field.decoractors';
+import { StringField, UUIDField } from '../../../decoractors/field.decoractors';
 
 export class CreateRecruitmentPostDto {
-    @UUIDField()
-    pageId!: Uuid;
+	@UUIDField()
+	pageId!: Uuid;
 
-    @StringField()
-    title!: string;
+	@StringField()
+	title!: string;
 
-    @StringField()
-    jobPosition!: string;
+	@StringField()
+	jobPosition!: string;
 
-    @StringField()
-    workType!: string;
+	@StringField()
+	workType!: string;
 
-    @StringField()
-    jobType!: string;
+	@StringField()
+	jobType!: string;
 
-    @StringField()
-    location!: string;
+	@StringField()
+	location!: string;
 
-    @StringField({ description: 'Markdown formatted text for job description' })
-    description!: string;
-} 
+	@StringField({ description: 'Markdown formatted text for job description' })
+	description!: string;
+}

@@ -11,15 +11,15 @@ import { QueueModule } from '../queues/queue.module';
 import { SendNotificationsJob } from './jobs/send-notifications.job';
 
 @Module({
-  imports: [
-    forwardRef(() => AuthsModule),
-    forwardRef(() => UsersModule),
-    AssetsModule,
-    TypeOrmModule.forFeature([NotificationEntity]),
-    QueueModule,
-  ],
-  providers: [NotificationsService, NotificationsGateway, SendNotificationsJob],
-  controllers: [NotificationsController],
-  exports: [NotificationsService]
+	imports: [
+		forwardRef(() => AuthsModule),
+		forwardRef(() => UsersModule),
+		AssetsModule,
+		TypeOrmModule.forFeature([NotificationEntity]),
+		QueueModule,
+	],
+	providers: [NotificationsService, NotificationsGateway, SendNotificationsJob],
+	controllers: [NotificationsController],
+	exports: [NotificationsService],
 })
-export class NotificationsModule { }
+export class NotificationsModule {}

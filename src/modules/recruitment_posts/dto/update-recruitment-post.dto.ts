@@ -1,34 +1,36 @@
 import {
-    StringFieldOptional,
-    DateFieldOptional,
-    BooleanFieldOptional,
+	StringFieldOptional,
+	DateFieldOptional,
+	BooleanFieldOptional,
 } from '../../../decoractors/field.decoractors';
 
 export class UpdateRecruitmentPostDto {
-    @DateFieldOptional()
-    endDate?: Date;
+	@DateFieldOptional()
+	endDate?: Date;
 
-    @BooleanFieldOptional()
-    active?: boolean;
+	@BooleanFieldOptional()
+	active?: boolean;
 
-    @StringFieldOptional()
-    title?: string;
+	@StringFieldOptional()
+	title?: string;
 
-    @StringFieldOptional()
-    jobPosition?: string;
+	@StringFieldOptional()
+	jobPosition?: string;
 
-    @StringFieldOptional()
-    location?: string;
+	@StringFieldOptional()
+	location?: string;
 
-    @StringFieldOptional()
-    workMode?: string;
+	@StringFieldOptional()
+	workMode?: string;
 
-    @StringFieldOptional({ description: 'Markdown formatted text for job description' })
-    description?: string;
+	@StringFieldOptional({
+		description: 'Markdown formatted text for job description',
+	})
+	description?: string;
 
-    @DateFieldOptional()
-    problemStartDate?: Date;
+	@DateFieldOptional()
+	problemStartDate?: Date;
 
-    @DateFieldOptional()
-    problemEndDate?: Date;
-} 
+	@DateFieldOptional()
+	problemEndDate?: Date;
+}

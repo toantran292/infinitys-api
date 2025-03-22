@@ -27,7 +27,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) { }
+	) {}
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -95,7 +95,9 @@ export class UsersService {
 
 		let users = await queryBuilder.getMany();
 
-		users = await this.assetsService.populateAssets(users, 'users', [FileType.AVATAR]);
+		users = await this.assetsService.populateAssets(users, 'users', [
+			FileType.AVATAR,
+		]);
 
 		if (users.length !== userIds.length) {
 			throw new UserNotFoundException();

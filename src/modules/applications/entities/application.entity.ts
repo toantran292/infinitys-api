@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import {
+	Column,
+	Entity,
+	Generated,
+	Index,
+	ManyToOne,
+	OneToMany,
+} from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
@@ -6,15 +13,24 @@ import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.en
 import { TestcaseEntity } from '../../problems/entities/testcase.entity';
 
 @Entity({ name: 'applications' })
+@Index(['userId', 'recruitmentPostId'], { unique: true })
 export class ApplicationEntity extends AbstractEntity {
-	@ManyToOne(() => UserEntity, (user) => user.applications)
+	@ManyToOne(() => UserEntity, (user) => user.applications, { nullable: false })
 	user!: UserEntity;
+
+	@Column()
+	@Generated('uuid')
+	userId: Uuid;
 
 	@ManyToOne(
 		() => RecruitmentPostEntity,
 		(recruitmentPost) => recruitmentPost.applications,
 	)
 	recruitmentPost!: RecruitmentPostEntity;
+
+	@Column()
+	@Generated('uuid')
+	recruitmentPostId: Uuid;
 
 	@Column({ type: 'timestamptz', nullable: true })
 	problemFinishedAt!: Date;
