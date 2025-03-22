@@ -3,13 +3,13 @@ import { CommentEntity } from "./comment.entity";
 
 @Entity('comment_statistics')
 export class CommentStatistics {
-    @PrimaryColumn('uuid')
+    @PrimaryColumn('uuid', { name: 'comment_id' })
     commentId: string;
 
-    @Column({ default: 0 })
+    @Column({ default: 0, name: 'react_count' })
     reactCount: number;
 
     @OneToOne(() => CommentEntity, comment => comment.statistics)
-    @JoinColumn({ name: 'commentId' })
+    @JoinColumn({ name: 'comment_id' })
     comment: CommentEntity;
 } 

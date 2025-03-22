@@ -11,17 +11,12 @@ export class CommentSubscriber implements EntitySubscriberInterface<CommentEntit
     async afterInsert(event: InsertEvent<CommentEntity>) {
         const { manager, entity } = event;
 
-        await manager
-            .createQueryBuilder()
-            .insert()
-            .into(PostStatistics)
-            .values({
-                postId: entity.post.id,
-                commentCount: 1,
-            })
-            .orUpdate(['commentCount'], ['postId'])
-            .setParameter('commentCount', () => `commentCount + 1`)
-            .execute();
+        await manager.query(`
+            INSERT INTO post_statistics (post_id, comment_count)
+            VALUES ($1, 1)
+            ON CONFLICT (post_id) DO UPDATE
+            SET comment_count = post_statistics.comment_count + 1
+        `, [entity.post.id]);
     }
 
     async afterRemove(event: RemoveEvent<CommentEntity>) {
@@ -31,7 +26,7 @@ export class CommentSubscriber implements EntitySubscriberInterface<CommentEntit
             .createQueryBuilder()
             .update(PostStatistics)
             .set({
-                commentCount: () => `commentCount - 1`
+                commentCount: () => `comment_count - 1`
             })
             .where('postId = :postId', { postId: entity.post.id })
             .andWhere('commentCount > 0')

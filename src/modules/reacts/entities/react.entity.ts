@@ -4,13 +4,16 @@ import { UserEntity } from '../../users/entities/user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
 
 @Entity({ name: 'reacts' })
-@Index(['targetId', 'targetType'], { unique: true })
+@Index(['targetId', 'targetType', 'userId'], { unique: true })
 export class ReactEntity extends AbstractEntity {
 	@Column({ default: true })
 	isActive!: boolean;
 
 	@ManyToOne(() => UserEntity, (user) => user.reacts)
 	user!: UserEntity;
+
+	@Column()
+	userId!: string;
 
 	@Column()
 	@Generated('uuid')

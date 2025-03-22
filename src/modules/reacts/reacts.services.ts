@@ -52,28 +52,6 @@ export class ReactsService {
             savedReact = await this.reactRepository.save(newReact);
         }
 
-        const delta = savedReact.isActive ? 1 : -1;
-
-        if (targetType === REACT_TARGET_TYPE.POST) {
-            await this.reactRepository.manager
-                .createQueryBuilder()
-                .update(PostStatistics)
-                .set({
-                    reactCount: () => `react_count + ${delta}`,
-                })
-                .where("post_id = :postId", { postId: targetId })
-                .execute();
-        } else if (targetType === REACT_TARGET_TYPE.COMMENT) {
-            await this.reactRepository.manager
-                .createQueryBuilder()
-                .update(CommentStatistics)
-                .set({
-                    reactCount: () => `react_count + ${delta}`,
-                })
-                .where("commentId = :commentId", { commentId: targetId })
-                .execute();
-        }
-
         return savedReact;
     }
 }

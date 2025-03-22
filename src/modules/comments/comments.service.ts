@@ -52,22 +52,6 @@ export class CommentsService {
 
         const savedComment = await this.commentRepository.save(comment);
 
-        // Create statistics for the new comment
-        const statistics = this.commentStatisticsRepository.create({
-            commentId: savedComment.id,
-            reactCount: 0
-        });
-        await this.commentStatisticsRepository.save(statistics);
-
-        await this.postStatisticsRepository
-            .createQueryBuilder()
-            .update(PostStatistics)
-            .set({
-                commentCount: () => 'comment_count + 1'
-            })
-            .where('post_id = :postId', { postId })
-            .execute();
-
         return savedComment;
     }
 
@@ -77,7 +61,7 @@ export class CommentsService {
         queryBuilder
             .leftJoinAndSelect('comment.user', 'user')
             .leftJoinAndSelect('comment.post', 'post')
-            .leftJoinAndMapOne('comment.statistics', CommentStatistics, 'stats', 'stats.commentId = comment.id')
+            .leftJoinAndMapOne('comment.statistics', CommentStatistics, 'stats', 'stats.comment_id = comment.id')
             .where('post.id = :postId', { postId })
             .orderBy('comment.createdAt', 'DESC');
 
