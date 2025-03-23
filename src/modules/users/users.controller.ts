@@ -17,6 +17,7 @@ import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { AvatarDto, BannerDto } from './dto/avatar.dto';
 import { FileType } from '../assets/assets.service';
 import { UserResponseDto } from './dto/user-response.dto';
+import { CreateAssetDto } from '../assets/dto/create-asset.dto';
 
 @Controller('api/users')
 export class UsersController {
@@ -67,7 +68,7 @@ export class UsersController {
 	async updateAvatar(
 		@AuthUser() user: UserEntity,
 		@UUIDParam('id') userId: Uuid,
-		@Body('avatar') avatar: AvatarDto,
+		@Body('avatar') avatar: CreateAssetDto,
 	) {
 		if (userId !== user.id) {
 			throw new ForbiddenException('You can only update your own avatar');
@@ -84,7 +85,7 @@ export class UsersController {
 	async updateBanner(
 		@AuthUser() user: UserEntity,
 		@UUIDParam('id') userId: Uuid,
-		@Body('banner') banner: BannerDto,
+		@Body('banner') banner: CreateAssetDto,
 	) {
 		if (userId !== user.id) {
 			throw new ForbiddenException('You can only update your own banner');

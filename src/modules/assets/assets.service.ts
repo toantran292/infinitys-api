@@ -31,7 +31,7 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) { }
+	) {}
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;
@@ -119,6 +119,92 @@ export class AssetsService {
 				...asset,
 				url: signedUrl[asset.file_data.key],
 			};
+		}
+
+		return entity;
+	}
+
+	async addAssetsToEntity<T extends AbstractEntity>(
+		entity: T,
+		inputs: AddAssetInput[],
+	): Promise<T> {
+		if (!entity || !inputs.length) return entity;
+
+		const assetFields = getAssetFields(entity);
+		const fieldsToProcess = assetFields.filter((f) =>
+			inputs.some((i) => i.type === f.type),
+		);
+
+		if (!fieldsToProcess.length) return entity;
+
+		const groupedInputs = new Map<string, AddAssetInput[]>();
+		for (const input of inputs) {
+			const list = groupedInputs.get(input.type) ?? [];
+			list.push(input);
+			groupedInputs.set(input.type, list);
+		}
+
+		for (const field of fieldsToProcess) {
+			const items = groupedInputs.get(field.type) ?? [];
+
+			if (field.multiple) {
+				const newAssets = items.map((item) =>
+					this.assetRepository.create({
+						file_data: item.file_data,
+						owner_id: entity.id,
+						owner_type: entity.entityType,
+						type: item.type,
+					}),
+				);
+
+				const saved = await this.assetRepository.save(newAssets);
+				const urls = await this.awsS3Service.getSignedUrlToViewObjects(
+					saved.map((a) => a.file_data.key),
+				);
+
+				entity[field.propertyKey] = [
+					...(entity[field.propertyKey] ?? []),
+					...saved.map((a) => ({
+						...a,
+						url: urls[a.file_data.key],
+					})),
+				];
+			} else {
+				const input = items[0];
+				if (!input) continue;
+
+				const existing = await this.assetRepository.findOne({
+					where: {
+						owner_id: entity.id,
+						owner_type: entity.entityType,
+						type: field.type,
+					},
+				});
+
+				let asset: AssetEntity;
+
+				if (existing) {
+					existing.file_data = input.file_data;
+					asset = await this.assetRepository.save(existing);
+				} else {
+					asset = await this.assetRepository.save(
+						this.assetRepository.create({
+							file_data: input.file_data,
+							owner_id: entity.id,
+							owner_type: entity.entityType,
+							type: input.type,
+						}),
+					);
+				}
+
+				const url = await this.awsS3Service.getSignedUrlToViewObjects([
+					asset.file_data.key,
+				]);
+				entity[field.propertyKey] = {
+					...asset,
+					url: url[asset.file_data.key],
+				};
+			}
 		}
 
 		return entity;

@@ -28,6 +28,12 @@ export class SendNotificationsJob {
 			case 'friend_request:accepted':
 				await this.handleFriendRequestAccepted(userId, meta);
 				break;
+			case 'react:created':
+				await this.handleReactCreated(userId, meta);
+				break;
+			case 'comment:created':
+				await this.handleCommentCreated(userId, meta);
+				break;
 		}
 	}
 
@@ -59,6 +65,49 @@ export class SendNotificationsJob {
 				firstName: user.firstName,
 				lastName: user.lastName,
 				avatar: user.avatar?.url,
+			},
+		});
+	}
+
+	async handleReactCreated(userId: string, meta: any) {
+		const { targetId, targetType, reacterId } = meta;
+
+		const user = await this.usersService.getUser(null, reacterId);
+
+		await this.notificationGateway.sendNotificationToUser(userId, {
+			event_name: 'react:created',
+			meta: {
+				reacter: {
+					id: user.id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					fullName: `${user.firstName} ${user.lastName}`,
+					avatar: user.avatar?.url,
+				},
+				target: {
+					id: targetId,
+					type: targetType,
+				},
+			},
+		});
+	}
+
+	async handleCommentCreated(userId: string, meta: any) {
+		const { commenterId, content } = meta;
+
+		const user = await this.usersService.getUser(null, commenterId);
+
+		await this.notificationGateway.sendNotificationToUser(userId, {
+			event_name: 'comment:created',
+			meta: {
+				commenter: {
+					id: user.id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					fullName: `${user.firstName} ${user.lastName}`,
+					avatar: user.avatar?.url,
+				},
+				content,
 			},
 		});
 	}

@@ -1,5 +1,13 @@
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
+import {
+	Column,
+	Entity,
+	JoinColumn,
+	ManyToOne,
+	OneToMany,
+	OneToOne,
+	PrimaryColumn,
+} from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { PostStatistics } from './post-statistics.entity';
@@ -16,7 +24,9 @@ export class PostEntity extends AbstractEntity {
 	@OneToMany(() => CommentEntity, (comment) => comment.post, { cascade: true })
 	comments!: CommentEntity[];
 
-	@OneToOne(() => PostStatistics, (statistics) => statistics.post, { cascade: true })
+	@OneToOne(() => PostStatistics, (statistics) => statistics.post, {
+		cascade: true,
+	})
 	statistics!: PostStatistics;
 
 	@Column({ type: 'int', default: 0 })
@@ -28,4 +38,3 @@ export class PostEntity extends AbstractEntity {
 	@AssetField({ multiple: true })
 	images!: AssetEntity[];
 }
-

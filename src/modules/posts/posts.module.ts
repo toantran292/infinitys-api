@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PostEntity } from './entities/post.entity';
 import { AssetEntity } from '../assets/entities/asset.entity';
 import { ReactEntity } from '../reacts/entities/react.entity';
@@ -28,4 +28,4 @@ import { PostStatistics } from './entities/post-statistics.entity';
 	providers: [PostsService],
 	exports: [PostsService],
 })
-export class PostsModule { }
+export class PostsModule {}
