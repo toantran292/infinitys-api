@@ -5,16 +5,18 @@ import {
 	Get,
 	Patch,
 	Query,
+	SerializeOptions,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { UsersPageOptionsDto } from './dto/user-page-options.dto';
-import type { UserDto } from './dto/user.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { AvatarDto, BannerDto } from './dto/avatar.dto';
+import { FileType } from '../assets/assets.service';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Controller('api/users')
 export class UsersController {
@@ -26,14 +28,20 @@ export class UsersController {
 		return this.usersService.getUsers(pageOptionsDto);
 	}
 
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
 	@Get(':id')
 	@Auth([RoleType.USER])
 	async getUser(@UUIDParam('id') userId: Uuid) {
 		const user = await this.usersService.getUser(userId);
 
-		return user.toDto<UserDto>();
+		return user;
 	}
 
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
 	@Patch(':id')
 	@Auth([RoleType.USER])
 	async updateProfile(
@@ -48,6 +56,9 @@ export class UsersController {
 		return this.usersService.editUserProfile(user, updateProfileDto);
 	}
 
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
 	@Patch(':id/avatar')
 	@Auth([RoleType.USER])
 	async updateAvatar(
@@ -59,9 +70,12 @@ export class UsersController {
 			throw new ForbiddenException('You can only update your own avatar');
 		}
 
-		return this.usersService.updateAvatar(userId, avatar);
+		return this.usersService.updateAsset(userId, avatar, FileType.AVATAR);
 	}
 
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
 	@Patch(':id/banner')
 	@Auth([RoleType.USER])
 	async updateBanner(
@@ -73,6 +87,6 @@ export class UsersController {
 			throw new ForbiddenException('You can only update your own banner');
 		}
 
-		return this.usersService.updateBanner(userId, banner);
+		return this.usersService.updateAsset(userId, banner, FileType.BANNER);
 	}
 }

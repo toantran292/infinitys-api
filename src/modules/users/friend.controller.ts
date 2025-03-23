@@ -6,6 +6,7 @@ import {
 	Get,
 	Param,
 	Post,
+	SerializeOptions,
 } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { SendFriendRequestDto } from './dto/create-friend-request.dto';
@@ -13,7 +14,7 @@ import { UserEntity } from './entities/user.entity';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-
+import { ListFriendResponseDto } from './dto/list-friend-response.dto';
 @Controller('api/friends')
 export class FriendController {
 	constructor(private readonly friendService: FriendService) {}
@@ -54,6 +55,7 @@ export class FriendController {
 		return this.friendService.cancelFriendRequest(user.id, userId);
 	}
 
+	@SerializeOptions({ type: ListFriendResponseDto })
 	@Get(':userId')
 	@Auth([RoleType.USER])
 	async getFriends(@UUIDParam('userId') userId: Uuid) {

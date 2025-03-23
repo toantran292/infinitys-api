@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
 import { AuthsService } from './auths.service';
 import { UserLoginDto } from './dto/user-login.dto';
 import { LoginPayloadDto } from './dto/login-payload.dto';
@@ -7,10 +7,9 @@ import { LoginPayloadDto } from './dto/login-payload.dto';
 export class AuthsAdminController {
 	constructor(private readonly authsService: AuthsService) {}
 
+	@SerializeOptions({ type: LoginPayloadDto })
 	@Post('login')
-	async userLogin(
-		@Body() userLoginDto: UserLoginDto,
-	): Promise<LoginPayloadDto> {
+	async userLogin(@Body() userLoginDto: UserLoginDto) {
 		const userEntity = await this.authsService.validateUser(userLoginDto);
 
 		const token = await this.authsService.createAccessToken({
@@ -19,7 +18,7 @@ export class AuthsAdminController {
 			email: userEntity.email,
 		});
 
-		return new LoginPayloadDto(token);
+		return { token };
 	}
 
 	@Get('ping')

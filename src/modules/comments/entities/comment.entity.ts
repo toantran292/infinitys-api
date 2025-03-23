@@ -6,10 +6,7 @@ import { PostEntity } from '../../posts/entities/post.entity';
 import { ReactEntity } from '../../reacts/entities/react.entity';
 
 @Entity({ name: 'comments' })
-export class CommentEntity extends AbstractEntity<
-	CommentDto,
-	CommentDtoOptions
-> {
+export class CommentEntity extends AbstractEntity {
 	@Column({ type: 'text' })
 	content!: string;
 

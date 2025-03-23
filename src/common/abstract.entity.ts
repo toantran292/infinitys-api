@@ -1,15 +1,11 @@
-import { AbstractDto } from './dto/abstract.dto';
 import {
 	CreateDateColumn,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
-import type { Constructor } from '../types';
+import { getEntityTypeFromInstance } from './utils';
 
-export abstract class AbstractEntity<
-	DTO extends AbstractDto = AbstractDto,
-	O = never,
-> {
+export abstract class AbstractEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id!: Uuid;
 
@@ -19,25 +15,7 @@ export abstract class AbstractEntity<
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt!: Date;
 
-	toDto<CDTO extends AbstractDto = DTO>(
-		options?: O & {
-			dto: Constructor<CDTO>;
-		},
-	): CDTO {
-		// console.log(options);
-		const { dto, ...remainingOptions } = options || {};
-
-		let dtoClass = undefined;
-
-		if (dto) dtoClass = dto;
-		else dtoClass = Object.getPrototypeOf(this).dtoClass;
-
-		if (!dtoClass) {
-			throw new Error(
-				`You need to use @UseDto on class (${this.constructor.name}) be able to call toDto function`,
-			);
-		}
-
-		return new dtoClass(this, remainingOptions);
+	get entityType(): string {
+		return getEntityTypeFromInstance(this);
 	}
 }

@@ -3,11 +3,7 @@ import { PostEntity } from '../entities/post.entity';
 
 export type PostDtoOptions = {};
 
-export class PostDto extends AbstractDto {
-	constructor(post: PostEntity) {
-		super(post);
-	}
-}
+export class PostDto extends AbstractDto {}
 
 //
 // export class ProfilePostDto {

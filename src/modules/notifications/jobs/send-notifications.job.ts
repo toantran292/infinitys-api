@@ -34,7 +34,7 @@ export class SendNotificationsJob {
 	async handleFriendRequestSent(userId: string, meta: any) {
 		const { sourceId } = meta;
 
-		const user = (await this.usersService.getUser(sourceId)).toDto();
+		const user = await this.usersService.getUser(sourceId);
 
 		this.notificationGateway.sendNotificationToUser(userId, {
 			event_name: 'friend_request:received',
@@ -50,7 +50,7 @@ export class SendNotificationsJob {
 	async handleFriendRequestAccepted(userId: string, meta: any) {
 		const { targetId } = meta;
 
-		const user = (await this.usersService.getUser(targetId)).toDto();
+		const user = await this.usersService.getUser(targetId);
 
 		await this.notificationGateway.sendNotificationToUser(userId, {
 			event_name: 'friend_request:accepted',

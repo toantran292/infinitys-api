@@ -1,11 +1,10 @@
-import { PostDto, type PostDtoOptions } from '../dto/post.dto';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 
 @Entity({ name: 'posts' })
-export class PostEntity extends AbstractEntity<PostDto, PostDtoOptions> {
+export class PostEntity extends AbstractEntity {
 	@Column({ type: 'text' })
 	content!: string;
 

@@ -1,6 +1,4 @@
-import { Column, Entity, OneToMany, VirtualColumn } from 'typeorm';
-import { UseDto } from '../../../decoractors/use-dto.decorators';
-import { UserDto, type UserDtoOptions } from '../dto/user.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { RoleType } from '../../../constants/role-type';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
@@ -17,21 +15,14 @@ import { AssetEntity } from '../../assets/entities/asset.entity';
 import { FriendEntity } from './friend.entity';
 import { FriendRequestEntity } from './friend-request.entity';
 import { GenderType } from '../../../constants/gender-type';
-
+import { AssetField } from '../../../decoractors/asset.decoractor';
 @Entity({ name: 'users' })
-@UseDto(UserDto)
-export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
+export class UserEntity extends AbstractEntity {
 	@Column()
 	firstName!: string;
 
 	@Column()
 	lastName!: string;
-
-	@VirtualColumn({
-		query: (alias) =>
-			`SELECT CONCAT(${alias}.first_name, ' ', ${alias}.last_name)`,
-	})
-	fullName!: string;
 
 	@Column({ type: 'enum', enum: RoleType, default: RoleType.USER })
 	role!: RoleType;
@@ -57,7 +48,13 @@ export class UserEntity extends AbstractEntity<UserDto, UserDtoOptions> {
 	@Column({ default: true })
 	active!: boolean;
 
-	avatar?: AssetEntity[];
+	@AssetField()
+	avatar?: AssetEntity;
+
+	@AssetField()
+	banner?: AssetEntity;
+
+	friend_status?: string;
 
 	// Relations
 

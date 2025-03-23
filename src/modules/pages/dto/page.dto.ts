@@ -10,11 +10,6 @@ export type PageDtoOptions = Partial<{ isActive: boolean }>;
 export class PageAvatarDto extends AbstractDto {
 	@StringField()
 	url!: string;
-
-	constructor(avatar: AssetEntity) {
-		super(avatar);
-		this.url = avatar.url;
-	}
 }
 
 export class PageDto extends AbstractDto {
@@ -40,16 +35,16 @@ export class PageDto extends AbstractDto {
 
 	admin_user_id?: Uuid;
 
-	constructor(page: PageEntity) {
-		super(page);
-		this.name = page.name;
-		this.address = page.address;
-		this.url = page.url;
-		this.email = page.email;
-		this.status = page.status;
-		this.content = page.content;
+	// constructor(page: PageEntity) {
+	// 	super(page);
+	// 	this.name = page.name;
+	// 	this.address = page.address;
+	// 	this.url = page.url;
+	// 	this.email = page.email;
+	// 	this.status = page.status;
+	// 	this.content = page.content;
 
-		this.avatar = page.avatar ? new PageAvatarDto(page.avatar[0]) : null;
-		this.admin_user_id = page.admin_user_id;
-	}
+	// 	this.avatar = page.avatar ? new PageAvatarDto(page.avatar[0]) : null;
+	// 	this.admin_user_id = page.admin_user_id;
+	// }
 }

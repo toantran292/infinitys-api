@@ -1,15 +1,13 @@
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { PageDto, type PageDtoOptions } from '../dto/page.dto';
-import { UseDto } from '../../../decoractors/use-dto.decorators';
 import { PageUserEntity } from './page-user.entity';
 import { ProblemEntity } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
 import { AssetEntity } from '../../assets/entities/asset.entity';
+import { AssetField } from 'src/decoractors/asset.decoractor';
 
 @Entity({ name: 'pages' })
-@UseDto(PageDto)
-export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
+export class PageEntity extends AbstractEntity {
 	@Column()
 	name!: string;
 
@@ -29,7 +27,8 @@ export class PageEntity extends AbstractEntity<PageDto, PageDtoOptions> {
 	@Column({ type: 'enum', enum: PageStatus, default: PageStatus.STARTED })
 	status: PageStatus;
 
-	avatar?: AssetEntity[];
+	@AssetField()
+	avatar?: AssetEntity;
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];

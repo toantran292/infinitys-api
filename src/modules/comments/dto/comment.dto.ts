@@ -3,8 +3,4 @@ import { CommentEntity } from '../entities/comment.entity';
 
 export type CommentDtoOptions = {};
 
-export class CommentDto extends AbstractDto {
-	constructor(comment: CommentEntity) {
-		super(comment);
-	}
-}
+export class CommentDto extends AbstractDto {}

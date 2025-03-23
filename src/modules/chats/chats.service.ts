@@ -79,13 +79,12 @@ export class ChatsService {
 			);
 		}
 
-		const groupChatIds = (
-			await queryBuilder.select('groupChat.id').getMany()
-		).map((groupChat) => groupChat.id);
+		const [items, pageMeta] = await queryBuilder.paginate(groupsChatOptionsDto);
 
+		const groupChatIds = items.map((groupChat) => groupChat.id);
 		if (groupChatIds.length === 0) return [];
 
-		let groups = await this.groupChatRepo
+		const groups = await this.groupChatRepo
 			.createQueryBuilder('groupChat')
 			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
 			.innerJoinAndSelect('members.user', 'user')
@@ -105,22 +104,16 @@ export class ChatsService {
 			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
 			.getMany();
 
-		await Promise.all(
-			groups.map(async (group) => {
-				group.members = await Promise.all(
-					group.groupChatMembers.map(async (member) => {
-						return await this.assetsService.populateAsset(
-							member.user,
-							'users',
-							[FileType.AVATAR],
-						);
-					}),
-				);
-				return group;
-			}),
+		await this.assetsService.attachAssetToEntities(
+			groups.flatMap((group) => group.groupChatMembers.map((m) => m.user)),
 		);
 
-		return groups;
+		console.log({ groups });
+
+		return {
+			items: groups,
+			meta: pageMeta,
+		};
 	}
 
 	async getGroupChatById(groupChatId: Uuid): Promise<GroupChatEntity> {
@@ -172,12 +165,8 @@ export class ChatsService {
 			.andWhere('groupChat.id = :groupChatId', { groupChatId })
 			.getOne();
 
-		group.members = await Promise.all(
-			group.groupChatMembers.map(async (member) => {
-				return await this.assetsService.populateAsset(member.user, 'users', [
-					FileType.AVATAR,
-				]);
-			}),
+		await this.assetsService.attachAssetToEntities(
+			group.groupChatMembers.map((m) => m.user),
 		);
 
 		return group;
@@ -291,28 +280,19 @@ export class ChatsService {
 
 		const messages = await queryBuilder.getMany();
 
-		await Promise.all(
-			messages.map(async (message) => {
-				message.user = await this.assetsService.populateAsset(
-					message.user,
-					'users',
-					[FileType.AVATAR],
-				);
-				return message;
-			}),
-		);
+		await this.assetsService.attachAssetToEntities(messages.map((m) => m.user));
 
 		return messages;
 	}
 
 	async sendMessage(user: UserEntity, groupChatId: Uuid, content: string) {
-		await this.getGroupChat(user.id, groupChatId);
-
 		const message = this.groupChatMessageRepo.create({
 			groupChat: { id: groupChatId },
 			content,
 			user,
 		});
+
+		await this.assetsService.attachAssetToEntity(message.user);
 
 		return await this.groupChatMessageRepo.save(message);
 	}
@@ -346,7 +326,7 @@ export class ChatsService {
 
 		const group_chat_id = queryBuilder.group_chat_id;
 
-		let groups = await this.groupChatRepo
+		const group = await this.groupChatRepo
 			.createQueryBuilder('groupChat')
 			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
 			.innerJoinAndSelect('members.user', 'user')
@@ -365,14 +345,10 @@ export class ChatsService {
 			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
 			.getOne();
 
-		groups.members = await Promise.all(
-			groups.groupChatMembers.map(async (member) => {
-				return await this.assetsService.populateAsset(member.user, 'users', [
-					FileType.AVATAR,
-				]);
-			}),
+		await this.assetsService.attachAssetToEntities(
+			group.groupChatMembers.map((m) => m.user),
 		);
 
-		return groups;
+		return group;
 	}
 }

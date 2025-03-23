@@ -9,11 +9,7 @@ import { FriendEntity } from '../../users/entities/friend.entity';
 import { UseDto } from '../../../decoractors/use-dto.decorators';
 
 @Entity({ name: 'pages_users' })
-@UseDto(PageUserDto)
-export class PageUserEntity extends AbstractEntity<
-	PageUserDto,
-	PageUserDtoOptions
-> {
+export class PageUserEntity extends AbstractEntity {
 	@ManyToOne(() => PageEntity, (page) => page.pageUsers)
 	page!: PageEntity;
 

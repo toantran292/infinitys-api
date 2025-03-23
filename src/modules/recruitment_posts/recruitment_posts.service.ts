@@ -26,7 +26,7 @@ export class RecruitmentPostsService {
 
 	async getAllPosts(
 		pageOptionsDto: PageOptionsDto,
-	): Promise<PageDto<RecruitmentPostDto>> {
+	): Promise<[RecruitmentPostEntity[], number]> {
 		const queryBuilder = this.recruitmentPostRepo.createQueryBuilder('post');
 
 		const { active = true } = pageOptionsDto;
@@ -43,18 +43,15 @@ export class RecruitmentPostsService {
 
 		const [items, itemCount] = await queryBuilder.getManyAndCount();
 
-		const pageMetaDto = new PageMetaDto({
-			itemCount,
-			pageOptionsDto,
-		});
+		// const pageMetaDto = new PageMetaDto({
+		// 	itemCount,
+		// 	pageOptionsDto,
+		// });
 
-		return new PageDto(
-			items.map((item) => item.toDto()),
-			pageMetaDto,
-		);
+		return [items, itemCount];
 	}
 
-	async getRecruitmentPost(id: string): Promise<RecruitmentPostDto> {
+	async getRecruitmentPost(id: string): Promise<RecruitmentPostEntity> {
 		const post = await this.recruitmentPostRepo.findOne({
 			where: { id: id as Uuid },
 			relations: ['pageUser', 'pageUser.user', 'pageUser.page'],
@@ -64,13 +61,13 @@ export class RecruitmentPostsService {
 			throw new NotFoundException('Recruitment post not found');
 		}
 
-		return post.toDto<RecruitmentPostDto>();
+		return post;
 	}
 
 	async createPost(
 		user: UserEntity,
 		post: CreateRecruitmentPostDto,
-	): Promise<RecruitmentPostDto> {
+	): Promise<RecruitmentPostEntity> {
 		const pageUser = await this.pageUserRepo.findOne({
 			where: {
 				user: { id: user.id },
@@ -96,13 +93,16 @@ export class RecruitmentPostsService {
 		});
 
 		const savedPost = await this.recruitmentPostRepo.save(newPost);
-		return savedPost.toDto<RecruitmentPostDto>();
+		return savedPost;
 	}
 
 	async getPostsByPageId(
 		pageId: string,
 		pageOptionsDto: PageOptionsDto,
-	): Promise<PageDto<RecruitmentPostDto>> {
+	): Promise<{
+		items: RecruitmentPostEntity[];
+		meta: PageMetaDto;
+	}> {
 		const queryBuilder = this.recruitmentPostRepo.createQueryBuilder('post');
 
 		const { active = true } = pageOptionsDto;
@@ -117,24 +117,19 @@ export class RecruitmentPostsService {
 			.skip(pageOptionsDto.skip)
 			.take(pageOptionsDto.take);
 
-		const [items, itemCount] = await queryBuilder.getManyAndCount();
+		const [items, pageMeta] = await queryBuilder.paginate(pageOptionsDto);
 
-		const pageMetaDto = new PageMetaDto({
-			itemCount,
-			pageOptionsDto,
-		});
-
-		return new PageDto(
-			items.map((item) => item.toDto()),
-			pageMetaDto,
-		);
+		return {
+			items,
+			meta: pageMeta,
+		};
 	}
 
 	async getUserApplications(
 		user: UserEntity,
 		postId: Uuid,
 		pageOptionsDto: PageOptionsDto,
-	): Promise<PageDto<ApplicationEntity>> {
+	): Promise<[ApplicationEntity[], number]> {
 		const queryBuilder = this.applicationRepo.createQueryBuilder('application');
 
 		queryBuilder
@@ -147,22 +142,17 @@ export class RecruitmentPostsService {
 
 		const [items, itemCount] = await queryBuilder.getManyAndCount();
 
-		const pageMetaDto = new PageMetaDto({
-			itemCount,
-			pageOptionsDto,
-		});
-
-		return new PageDto(
-			items.map((item) => item.toDto()),
-			pageMetaDto,
-		);
+		return [items, itemCount];
 	}
 
 	async getApplicationsByPostId(
 		user: UserEntity,
 		postId: string,
 		pageOptionsDto: PageOptionsDto,
-	): Promise<PageDto<ApplicationEntity>> {
+	): Promise<{
+		items: ApplicationEntity[];
+		meta: PageMetaDto;
+	}> {
 		// First check if the post exists and get its pageId
 		const post = await this.recruitmentPostRepo.findOne({
 			where: { id: postId as Uuid },
@@ -199,13 +189,11 @@ export class RecruitmentPostsService {
 			.skip(pageOptionsDto.skip)
 			.take(pageOptionsDto.take);
 
-		const [items, itemCount] = await queryBuilder.getManyAndCount();
+		const [items, pageMeta] = await queryBuilder.paginate(pageOptionsDto);
 
-		const pageMetaDto = new PageMetaDto({
-			itemCount,
-			pageOptionsDto,
-		});
-
-		return new PageDto(items, pageMetaDto);
+		return {
+			items,
+			meta: pageMeta,
+		};
 	}
 }

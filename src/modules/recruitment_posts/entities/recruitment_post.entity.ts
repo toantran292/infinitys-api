@@ -3,12 +3,9 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
 import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.entity';
-import { RecruitmentPostDto } from '../dto/recruitment-post.dto';
-import { UseDto } from '../../../decoractors/use-dto.decorators';
 
 @Entity('recruitment_posts')
-@UseDto(RecruitmentPostDto)
-export class RecruitmentPostEntity extends AbstractEntity<RecruitmentPostDto> {
+export class RecruitmentPostEntity extends AbstractEntity {
 	@Column()
 	active!: boolean;
 
