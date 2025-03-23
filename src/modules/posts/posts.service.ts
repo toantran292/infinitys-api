@@ -70,6 +70,8 @@ export class PostsService {
 			posts.map((post) => post.author),
 		);
 
+		await this.assetsService.attachAssetToEntities(posts);
+
 		return posts;
 	}
 
