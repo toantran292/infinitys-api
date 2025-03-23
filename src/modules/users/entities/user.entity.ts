@@ -56,6 +56,8 @@ export class UserEntity extends AbstractEntity {
 
 	friend_status?: string;
 
+	total_connections: number;
+
 	// Relations
 
 	@OneToMany(() => FriendRequestEntity, (request) => request.source)

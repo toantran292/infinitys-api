@@ -16,6 +16,7 @@ import { AssetsService, FileType } from '../assets/assets.service';
 import { AvatarDto, BannerDto } from './dto/avatar.dto';
 import { RoleType } from 'src/constants/role-type';
 import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { FriendService } from './friend.service';
 @Injectable()
 export class UsersService {
 	constructor(
@@ -23,7 +24,9 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) { }
+
+		private readonly friendService: FriendService,
+	) {}
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);
@@ -83,12 +86,21 @@ export class UsersService {
 	}
 
 	async getUser(
+		currentUser: UserEntity,
 		userId: Uuid,
 		findData?: Omit<FindOptionsWhere<UserEntity>, 'id'>,
 	): Promise<UserEntity> {
 		const user = await this.findOne({ id: userId, ...findData });
 
 		await this.assetsService.attachAssetToEntity(user);
+
+		if (currentUser) {
+			await this.friendService.loadFriendStatus(currentUser, user);
+		}
+
+		user.total_connections = (
+			await this.friendService.getFriends(userId)
+		).length;
 
 		return user;
 	}

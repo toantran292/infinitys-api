@@ -33,8 +33,11 @@ export class UsersController {
 	})
 	@Get(':id')
 	@Auth([RoleType.USER])
-	async getUser(@UUIDParam('id') userId: Uuid) {
-		const user = await this.usersService.getUser(userId);
+	async getUser(
+		@AuthUser() currentUser: UserEntity,
+		@UUIDParam('id') userId: Uuid,
+	) {
+		const user = await this.usersService.getUser(currentUser, userId);
 
 		return user;
 	}

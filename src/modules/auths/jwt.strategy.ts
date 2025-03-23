@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException();
 		}
 
-		const user = await this.userService.getUser(args.userId, {
+		const user = await this.userService.getUser(null, args.userId, {
 			role: args.role,
 		});
 

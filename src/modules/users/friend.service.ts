@@ -200,4 +200,66 @@ export class FriendService {
 
 		await this.friendRepository.delete(friendship.id);
 	}
+
+	async loadFriendStatuses(currentUser: UserEntity, targets: UserEntity[]) {
+		if (targets.length === 0) return;
+		const userIds = targets.map((u) => u.id);
+
+		const friendships = await this.friendRepository
+			.createQueryBuilder('friend')
+			.where(
+				'(friend.source IN (:...userIds) AND friend.target = :currentUserId) OR (friend.target IN (:...userIds) AND friend.source = :currentUserId)',
+				{ userIds, currentUserId: currentUser.id },
+			)
+			.getRawMany();
+
+		const friendRequests = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.where(
+				'(request.source IN (:...userIds) AND request.target = :currentUserId) OR (request.target IN (:...userIds) AND request.source = :currentUserId)',
+				{ userIds, currentUserId: currentUser.id },
+			)
+			.andWhere('request.is_available = true')
+			.getRawMany();
+
+		const friendshipMap = new Map<string, boolean>();
+		friendships.forEach((f) => {
+			const key =
+				f.friend_target_id === currentUser.id
+					? f.friend_source_id
+					: f.friend_target_id;
+			friendshipMap.set(key, true);
+		});
+
+		const sentRequestMap = new Map<string, boolean>();
+		const receivedRequestMap = new Map<string, boolean>();
+
+		friendRequests.forEach((r) => {
+			if (r.request_source_id === currentUser.id) {
+				sentRequestMap.set(r.request_target_id, true);
+			} else {
+				receivedRequestMap.set(r.request_source_id, true);
+			}
+		});
+
+		targets.map((user) => {
+			const isFriend = friendshipMap.has(user.id);
+			const sent = sentRequestMap.has(user.id);
+			const received = receivedRequestMap.has(user.id);
+
+			const friend_status = isFriend
+				? 'friend'
+				: sent
+					? 'sent'
+					: received
+						? 'waiting'
+						: null;
+
+			user.friend_status = friend_status;
+		});
+	}
+
+	async loadFriendStatus(currentUser: UserEntity, target: UserEntity) {
+		await this.loadFriendStatuses(currentUser, [target]);
+	}
 }

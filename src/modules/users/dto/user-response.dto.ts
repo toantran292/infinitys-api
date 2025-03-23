@@ -54,4 +54,10 @@ export class UserResponseDto extends AbstractDto {
 	@Expose()
 	@Type(() => AssetResponseDto)
 	banner!: AssetResponseDto;
+
+	@Expose()
+	friend_status?: string;
+
+	@Expose()
+	total_connections!: number;
 }
