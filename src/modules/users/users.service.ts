@@ -17,6 +17,7 @@ import { AvatarDto, BannerDto } from './dto/avatar.dto';
 import { RoleType } from 'src/constants/role-type';
 import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 import { FriendService } from './friend.service';
+import { CreateAssetDto } from '../assets/dto/create-asset.dto';
 @Injectable()
 export class UsersService {
 	constructor(
@@ -130,11 +131,7 @@ export class UsersService {
 		return updatedUser;
 	}
 
-	async updateAsset(
-		user_id: Uuid,
-		asset: AvatarDto | BannerDto,
-		type: FileType,
-	) {
+	async updateAsset(user_id: Uuid, asset: CreateAssetDto, type: FileType) {
 		const user = await this.userRepository.findOne({
 			where: {
 				id: user_id,

@@ -26,12 +26,6 @@ export class AvatarDto {
 
 	@StringField()
 	readonly content_type!: string;
-
-	constructor(size: number, name: string, content_type: FileType) {
-		this.size = size;
-		this.name = name;
-		this.content_type = content_type;
-	}
 }
 
 export class BannerDto extends AvatarDto {}

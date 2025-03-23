@@ -11,6 +11,7 @@ import { AssetsModule } from '../assets/assets.module';
 import { PostStatistics } from '../posts/entities/post-statistics.entity';
 import { CommentStatistics } from './entities/comment-statistics.entity';
 import { ReactEntity } from '../reacts/entities/react.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
 	imports: [
@@ -22,18 +23,13 @@ import { ReactEntity } from '../reacts/entities/react.entity';
 			UserEntity,
 			PostStatistics,
 			CommentStatistics,
-			ReactEntity
+			ReactEntity,
 		]),
 		AssetsModule,
+		NotificationsModule,
 	],
-	providers: [
-		CommentsService,
-	],
-	controllers: [
-		CommentsController,
-	],
-	exports: [
-		CommentsService,
-	],
+	providers: [CommentsService],
+	controllers: [CommentsController],
+	exports: [CommentsService],
 })
-export class CommentsModule { }
+export class CommentsModule {}
