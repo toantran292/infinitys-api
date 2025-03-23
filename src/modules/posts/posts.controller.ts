@@ -6,11 +6,16 @@ import { AuthUser } from 'src/decoractors/auth-user.decorators';
 import { RoleType } from 'src/constants/role-type';
 import { UserEntity } from '../users/entities/user.entity';
 import { PostDto } from './dto/post.dto';
+import { AssetResponseDto } from '../users/dto/user-response.dto';
+import { CreateAssetDto } from '../assets/dto/create-asset.dto';
 
 @Controller('api/posts')
 export class PostsController {
-	constructor(private readonly postsService: PostsService) {}
+	constructor(private readonly postsService: PostsService) { }
 
+	@SerializeOptions({
+		type: PostDto,
+	})
 	@Post()
 	@Auth([RoleType.USER])
 	async createPost(
@@ -20,6 +25,9 @@ export class PostsController {
 		return this.postsService.createPost(author, createPostDto);
 	}
 
+	@SerializeOptions({
+		type: PostDto,
+	})
 	@Get()
 	@Auth([RoleType.USER])
 	async getPosts() {
@@ -48,5 +56,15 @@ export class PostsController {
 	@Auth([RoleType.USER])
 	async getNewsfeed(@AuthUser() user: UserEntity) {
 		return this.postsService.getNewsfeed(user.id);
+	}
+
+	@Post(':id/upload-image')
+	@Auth([RoleType.USER])
+	async uploadImage(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('id') id: Uuid,
+		@Body('images') images: CreateAssetDto[],
+	) {
+		return this.postsService.uploadImages(user, id, images);
 	}
 }

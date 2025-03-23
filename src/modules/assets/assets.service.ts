@@ -11,6 +11,7 @@ import { getAssetFields } from 'src/decoractors/asset.decoractor';
 export enum FileType {
 	AVATAR = 'avatar',
 	BANNER = 'banner',
+	IMAGE = 'image',
 }
 
 export interface FileData {
@@ -31,7 +32,7 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) {}
+	) { }
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;
@@ -40,11 +41,25 @@ export class AssetsService {
 	async getPresignUrl(
 		data: PresignLinkDto,
 	): Promise<{ url: string; key: string }> {
+		console.log(data);
 		const key = await this.generateKey(data.type, data.suffix);
 
 		const url = await this.awsS3Service.getPreSignedUrl(key);
 
 		return { url, key };
+	}
+
+	async getPresignUrls(
+		data: PresignLinkDto[],
+	) {
+		const keys = await Promise.all(data.map(async (d) => this.generateKey(d.type, d.suffix)));
+		const result = await this.awsS3Service.getPreSignedUrlToUploadObjects(keys);
+		return keys.map((key, index) => {
+			return {
+				key,
+				url: result[key],
+			}
+		})
 	}
 
 	async getViewUrl(key: string): Promise<{ url: string }> {

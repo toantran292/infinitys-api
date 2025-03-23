@@ -13,13 +13,27 @@ import { PresignLinkDto } from './dto/presign-link.dto';
 
 @Controller('api/assets')
 export class AssetsController {
-	constructor(private readonly assetsService: AssetsService) {}
+	constructor(private readonly assetsService: AssetsService) { }
 
 	@Post('presign-link')
 	@Auth([RoleType.USER])
 	async getPresignLink(@Body() body: PresignLinkDto) {
 		return this.assetsService.getPresignUrl(body);
 	}
+
+	@Post('presign-links')
+	@Auth([RoleType.USER])
+	async getPresignLinks(@Body() body: PresignLinkDto[]) {
+		if (!Array.isArray(body) || body.length === 0) {
+			throw new BadRequestException('Body must be an array of PresignLinkDto');
+		}
+		// Xử lý song song tất cả các requests
+		const presignedUrls = await Promise.all(
+			body.map(dto => this.assetsService.getPresignUrl(dto))
+		);
+		return presignedUrls;
+	}
+
 	@Get('view-url')
 	@Auth([RoleType.USER])
 	async getViewUrl(@Query('key') key: string) {

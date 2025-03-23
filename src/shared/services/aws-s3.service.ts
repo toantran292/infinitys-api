@@ -47,6 +47,20 @@ export class AwsS3Service {
 		return await this.getSignedUrl(command);
 	}
 
+
+	async getPreSignedUrlToUploadObjects(keys: string[]) {
+		const urlMap: Record<string, string> = {};
+
+		await Promise.all(
+			keys.map(async (key) => {
+				const url = await this.getPreSignedUrl(key);
+				urlMap[key] = url;
+			}),
+		);
+
+		return urlMap;
+	}
+
 	async getPreSignedUrlToViewObject(key: string) {
 		const command = new GetObjectCommand({
 			Bucket: this.bucketName,
