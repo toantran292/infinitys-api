@@ -1,5 +1,3 @@
-import { FileType } from 'src/modules/assets/assets.service';
-
 const ASSET_METADATA_KEY = 'asset:fields';
 
 export interface AssetFieldOptions {

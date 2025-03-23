@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, SerializeOptions } from "@nestjs/common";
 import { PostsService } from "./posts.service";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { Auth, UUIDParam } from "src/decoractors/http.decorators";
@@ -23,12 +23,13 @@ export class PostsController {
         return this.postsService.getPosts();
     }
 
+    @SerializeOptions({
+        type: PostDto
+    })
     @Get('me')
     @Auth([RoleType.USER])
     async getPostByUserId(@AuthUser() user: UserEntity) {
-        const posts = await this.postsService.getPostByUserId(user.id);
-
-        return posts.map((post) => new PostDto(post));
+        return this.postsService.getPostByUserId(user.id);
     }
 
     @Post(':id/react')
@@ -37,10 +38,12 @@ export class PostsController {
         return this.postsService.react(user, id);
     }
 
+    @SerializeOptions({
+        type: PostDto
+    })
     @Get('newsfeed')
     @Auth([RoleType.USER])
     async getNewsfeed(@AuthUser() user: UserEntity) {
-        const posts = await this.postsService.getNewsfeed(user.id);
-        return posts.map(post => new PostDto(post));
+        return this.postsService.getNewsfeed(user.id);
     }
 }

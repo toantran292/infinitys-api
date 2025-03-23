@@ -4,7 +4,7 @@ import { PageUserEntity } from './page-user.entity';
 import { ProblemEntity } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
 import { AssetEntity } from '../../assets/entities/asset.entity';
-import { AssetField } from 'src/decoractors/asset.decoractor';
+import { AssetField } from '../../../decoractors/asset.decoractor';
 
 @Entity({ name: 'pages' })
 export class PageEntity extends AbstractEntity {

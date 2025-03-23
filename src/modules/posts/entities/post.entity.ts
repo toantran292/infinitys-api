@@ -3,7 +3,8 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColu
 import { UserEntity } from '../../users/entities/user.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { PostStatistics } from './post-statistics.entity';
-
+import { AssetEntity } from 'src/modules/assets/entities/asset.entity';
+import { AssetField } from '../../../decoractors/asset.decoractor';
 @Entity({ name: 'posts' })
 export class PostEntity extends AbstractEntity {
 	@Column({ type: 'text' })
@@ -23,5 +24,8 @@ export class PostEntity extends AbstractEntity {
 
 	@Column({ type: 'int', default: 0 })
 	react_count!: number;
+
+	@AssetField({ multiple: true })
+	images!: AssetEntity[];
 }
 

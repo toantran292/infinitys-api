@@ -67,12 +67,12 @@ export class CommentsService {
 
         const comments = await queryBuilder.getMany();
 
-        await Promise.all(comments.map(async (comment) => {
-            if (comment.user) {
-                comment.user = await this.assetsService.populateAsset(comment.user, 'users', [FileType.AVATAR]);
-            }
-        }));
 
+        await this.assetsService.attachAssetToEntities(
+            comments.map(comment => comment.user)
+        )
+
+        console.log(comments)
 
         return comments;
     }

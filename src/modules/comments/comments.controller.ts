@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CommentDto, CreateCommentDto } from './dto/comment.dto';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
@@ -10,13 +10,18 @@ import { RoleType } from 'src/constants/role-type';
 export class CommentsController {
     constructor(private readonly commentsService: CommentsService) { }
 
+    @SerializeOptions({
+        type: CommentDto
+    })
     @Get(':postId/comments')
     @Auth([RoleType.USER])
     async getCommentsByPostId(@UUIDParam('postId') postId: Uuid) {
-        const comments = await this.commentsService.getCommentsByPostId(postId);
-        return comments.map(comment => new CommentDto(comment));
+        return this.commentsService.getCommentsByPostId(postId);
     }
 
+    @SerializeOptions({
+        type: CommentDto
+    })
     @Post(':postId/comments')
     @Auth([RoleType.USER])
     async createComment(

@@ -59,9 +59,9 @@ export class PostsService {
 
         const posts = await queryBuilder.getMany();
 
-        await Promise.all(posts.map(async (post) => {
-            post.author = await this.assetsService.populateAsset(post.author, 'users', [FileType.AVATAR]);
-        }));
+        await this.assetsService.attachAssetToEntities(
+            posts.map(post => post.author)
+        )
 
         return posts;
     }
@@ -104,10 +104,9 @@ export class PostsService {
 
         const posts = await queryBuilder.getMany();
 
-        // Populate author avatars
-        await Promise.all(posts.map(async (post) => {
-            post.author = await this.assetsService.populateAsset(post.author, 'users', [FileType.AVATAR]);
-        }));
+        await this.assetsService.attachAssetToEntities(
+            posts.map(post => post.author)
+        )
 
         return posts;
     }

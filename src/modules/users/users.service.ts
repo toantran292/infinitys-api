@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
 	FindManyOptions,
 	type FindOptionsWhere,
+	In,
 	Repository,
 } from 'typeorm';
 import { UserEntity } from './entities/user.entity';

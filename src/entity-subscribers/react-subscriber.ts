@@ -27,8 +27,6 @@ export class ReactSubscriber implements EntitySubscriberInterface<ReactEntity> {
 
             await query.execute();
         } else {
-            console.log("TESY");
-
             const query = manager
                 .createQueryBuilder()
                 .insert()
