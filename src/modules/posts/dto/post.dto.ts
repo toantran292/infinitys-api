@@ -1,22 +1,38 @@
+import { UserDto } from 'src/modules/users/dto/user.dto';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { PostEntity } from '../entities/post.entity';
+import { Expose, Transform, Type } from 'class-transformer';
+import { UserResponseDto } from 'src/modules/users/dto/user-response.dto';
 
 export type PostDtoOptions = {};
 
-export class PostDto extends AbstractDto {}
+export class PostStatisticsDto extends AbstractDto {
+	@Expose()
+	commentCount: number;
 
-//
-// export class ProfilePostDto {
-// 	@Expose()
-// 	id: string;
-//
-// 	@Expose()
-// 	content: string;
-//
-// 	@Expose()
-// 	createdAt: Date;
-//
-// 	@Expose()
-// 	@Type(() => CommentDto)
-// 	comments: CommentDto[];
-// }
+	@Expose()
+	reactCount: number;
+}
+
+export class PostDto extends AbstractDto {
+	@Expose()
+	content: string;
+
+	@Expose()
+	@Type(() => UserResponseDto)
+	author: UserResponseDto;
+
+	@Expose({ toClassOnly: true })
+	@Type(() => PostStatisticsDto)
+	statistics: PostStatisticsDto;
+
+	@Expose()
+	@Transform(({ obj }) => obj.statistics?.commentCount || 0)
+	@Type(() => Number)
+	comment_count: number;
+
+	@Expose()
+	@Transform(({ obj }) => obj.statistics?.reactCount || 0)
+	@Type(() => Number)
+	react_count: number;
+}
+

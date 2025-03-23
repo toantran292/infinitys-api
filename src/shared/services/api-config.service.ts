@@ -6,10 +6,11 @@ import { ConfigService } from '@nestjs/config';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from '../../snake-naming.strategy';
 import { UserSubscriber } from '../../entity-subscribers/user-subscriber';
-
+import { ReactSubscriber } from 'src/entity-subscribers/react-subscriber';
+import { CommentSubscriber } from 'src/entity-subscribers/comment-subscriber';
 @Injectable()
 export class ApiConfigService {
-	constructor(private readonly configService: ConfigService) {}
+	constructor(private readonly configService: ConfigService) { }
 
 	get isDevelopment(): boolean {
 		return this.nodeEnv === 'development';
@@ -86,7 +87,7 @@ export class ApiConfigService {
 			username: this.getString('DB_USERNAME'),
 			password: this.getString('DB_PASSWORD'),
 			database: this.getString('DB_DATABASE'),
-			subscribers: [UserSubscriber],
+			subscribers: [UserSubscriber, ReactSubscriber, CommentSubscriber],
 			migrationsRun: true,
 			logging: this.getBoolean('ENABLE_ORM_LOGS'),
 			namingStrategy: new SnakeNamingStrategy(),

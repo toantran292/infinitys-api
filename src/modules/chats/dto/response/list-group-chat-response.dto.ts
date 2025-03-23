@@ -29,7 +29,6 @@ export class ListGroupChatResponseDto extends AbstractDto {
 
 	@Expose()
 	@Transform(({ obj }) => {
-		console.log({ obj });
 		return Array.isArray(obj.groupChatMessages)
 			? (obj.groupChatMessages[0] ?? null)
 			: null;

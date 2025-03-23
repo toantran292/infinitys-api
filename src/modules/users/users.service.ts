@@ -23,7 +23,7 @@ export class UsersService {
 		private readonly userRepository: Repository<UserEntity>,
 
 		private readonly assetsService: AssetsService,
-	) {}
+	) { }
 
 	findAll(option: FindManyOptions<UserEntity>) {
 		return this.userRepository.find(option);

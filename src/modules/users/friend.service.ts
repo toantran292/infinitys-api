@@ -170,7 +170,6 @@ export class FriendService {
 	}
 
 	async getFriends(userId: Uuid): Promise<UserEntity[]> {
-		// Get all friendships where userId is either source or target
 		const friendships = await this.friendRepository
 			.createQueryBuilder('friend')
 			.leftJoinAndSelect('friend.source', 'source')
