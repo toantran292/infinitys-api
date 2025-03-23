@@ -64,4 +64,17 @@ export class AwsS3Service {
 
 		return await this.getSignedUrl(command);
 	}
+
+	async getSignedUrlToViewObjects(keys: string[]) {
+		const urlMap: Record<string, string> = {};
+
+		await Promise.all(
+			keys.map(async (key) => {
+				const url = await this.getPreSignedUrlToViewObject(key);
+				urlMap[key] = url;
+			}),
+		);
+
+		return urlMap;
+	}
 }

@@ -9,6 +9,7 @@ import { UserEntity } from './entities/user.entity';
 import { FriendRequestEntity } from './entities/friend-request.entity';
 import { FriendEntity } from './entities/friend.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AssetsService } from '../assets/assets.service';
 
 @Injectable()
 export class FriendService {
@@ -23,6 +24,8 @@ export class FriendService {
 		private userRepo: Repository<UserEntity>,
 
 		private readonly notificationService: NotificationsService,
+
+		private readonly assetService: AssetsService,
 	) {}
 
 	async validate(sourceId: Uuid, targetId: Uuid) {
@@ -183,6 +186,8 @@ export class FriendService {
 				? friendship.target
 				: friendship.source;
 		});
+
+		await this.assetService.attachAssetToEntities(friends);
 
 		return friends;
 	}

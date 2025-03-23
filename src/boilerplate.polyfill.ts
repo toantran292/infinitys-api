@@ -11,23 +11,7 @@ import { PageDto } from './common/dto/page.dto';
 declare global {
 	export type Uuid = string & { _uuidBrand: undefined };
 
-	interface Array<T> {
-		toDtos<Dto extends AbstractDto>(
-			this: T[],
-			options?: unknown & {
-				dto: Constructor<Dto>;
-			},
-		): Dto[];
-
-		toPageDto<Dto extends AbstractDto>(
-			this: T[],
-			pageMetaDto: PageMetaDto,
-			// FIXME make option type visible from entity
-			options?: unknown & {
-				dto: Constructor<Dto>;
-			},
-		): PageDto<Dto>;
-	}
+	interface Array<T> {}
 }
 
 declare module 'typeorm' {
@@ -92,24 +76,6 @@ declare module 'typeorm' {
 	}
 }
 
-Array.prototype.toDtos = function <
-	Entity extends AbstractEntity<Dto>,
-	Dto extends AbstractDto,
->(options?: unknown): Dto[] {
-	return _.compact(
-		_.map<Entity, Dto>(this as Entity[], (item) =>
-			item.toDto(options as never),
-		),
-	);
-};
-
-Array.prototype.toPageDto = function <Dto extends AbstractDto>(
-	pageMetaDto: PageMetaDto,
-	options?: unknown & { dto: Constructor<Dto> },
-) {
-	return new PageDto(this.toDtos(options), pageMetaDto);
-};
-
 SelectQueryBuilder.prototype.searchByString = function (
 	q,
 	columnNames,
@@ -155,10 +121,15 @@ SelectQueryBuilder.prototype.paginate = async function (
 		itemCount = await this.getCount();
 	}
 
-	const pageMetaDto = new PageMetaDto({
+	const pageMeta = {
+		page: pageOptionsDto.page,
+		take: pageOptionsDto.take,
 		itemCount,
-		pageOptionsDto,
-	});
+		pageCount: Math.ceil(itemCount / pageOptionsDto.take),
+		hasPreviousPage: pageOptionsDto.page > 1,
+		hasNextPage:
+			pageOptionsDto.page < Math.ceil(itemCount / pageOptionsDto.take),
+	};
 
-	return [entities, pageMetaDto];
+	return [entities, pageMeta];
 };

@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import { getMetadataArgsStorage } from 'typeorm';
 
 /**
  * generate hash from password or string
@@ -44,4 +45,18 @@ export function getVariableName<TResult>(
 	const memberParts = fullMemberName.split('.');
 
 	return memberParts.at(-1);
+}
+
+export function getEntityTypeFromInstance(entity: object): string {
+	const target = entity.constructor;
+
+	const entityMeta = getMetadataArgsStorage().tables.find(
+		(table) => table.target === target,
+	);
+
+	if (!entityMeta) {
+		throw new Error(`Entity metadata not found for ${target.name}`);
+	}
+
+	return entityMeta.name ?? target.name;
 }

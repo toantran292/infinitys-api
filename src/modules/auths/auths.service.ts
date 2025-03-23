@@ -22,8 +22,8 @@ export class AuthsService {
 		role: RoleType;
 		userId: Uuid;
 		email: string;
-	}): Promise<TokenPayloadDto> {
-		return new TokenPayloadDto({
+	}) {
+		return {
 			expiresIn: this.configService.authConfig.jwtExpirationTime,
 			accessToken: await this.jwtService.signAsync({
 				userId: data.userId,
@@ -31,7 +31,7 @@ export class AuthsService {
 				role: data.role,
 				email: data.email,
 			}),
-		});
+		};
 	}
 
 	async validateUser(userLoginDto: UserLoginDto): Promise<UserEntity> {

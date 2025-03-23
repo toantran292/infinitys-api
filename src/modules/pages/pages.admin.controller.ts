@@ -1,20 +1,27 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+	Controller,
+	Get,
+	Param,
+	Post,
+	Query,
+	SerializeOptions,
+} from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decoractors/http.decorators';
 import { PagePageOptionsDto } from './dto/page-page-options.dto';
-import { PageDto } from './dto/page.dto';
-import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
+import { PaginationPageResponseDto } from './dto/list-page-response.dto';
 
 @Controller('admin_api/pages')
 export class PagesAdminController {
 	constructor(private readonly pagesService: PagesService) {}
 
+	@SerializeOptions({
+		type: PaginationPageResponseDto,
+	})
 	@Get()
 	@Auth([RoleType.ADMIN])
-	async getPages(
-		@Query() pagePageOptionsDto: PagePageOptionsDto,
-	): Promise<CommonPageDto<PageDto>> {
+	async getPages(@Query() pagePageOptionsDto: PagePageOptionsDto) {
 		return this.pagesService.getPages(pagePageOptionsDto);
 	}
 

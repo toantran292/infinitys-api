@@ -30,15 +30,15 @@ export class RecruitmentPostDto extends AbstractDto {
 
 	pageUser?: PageUserDto;
 
-	constructor(recruitmentPost: RecruitmentPostEntity) {
-		super(recruitmentPost);
-		this.active = recruitmentPost.active;
-		this.title = recruitmentPost.title;
-		this.jobPosition = recruitmentPost.jobPosition;
-		this.location = recruitmentPost.location;
-		this.workType = recruitmentPost.workType;
-		this.jobType = recruitmentPost.jobType;
-		this.description = recruitmentPost.description;
-		this.pageUser = recruitmentPost.pageUser?.toDto();
-	}
+	// constructor(recruitmentPost: RecruitmentPostEntity) {
+	// 	super(	recruitmentPost);
+	// 	this.active = recruitmentPost.active;
+	// 	this.title = recruitmentPost.title;
+	// 	this.jobPosition = recruitmentPost.jobPosition;
+	// 	this.location = recruitmentPost.location;
+	// 	this.workType = recruitmentPost.workType;
+	// 	this.jobType = recruitmentPost.jobType;
+	// 	this.description = recruitmentPost.description;
+	// 	this.pageUser = recruitmentPost.pageUser?.toDto();
+	// }
 }

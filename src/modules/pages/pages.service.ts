@@ -14,7 +14,8 @@ import { PageStatus } from '../../constants/page-status';
 import { AvatarDto } from '../users/dto/avatar.dto';
 import { AssetEntity } from '../assets/entities/asset.entity';
 import { AssetsService, FileType } from '../assets/assets.service';
-
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 @Injectable()
 export class PagesService {
 	constructor(
@@ -28,21 +29,22 @@ export class PagesService {
 		private readonly assetsService: AssetsService,
 	) {}
 
-	async getPages(
-		pagePageOptionsDto: PagePageOptionsDto,
-	): Promise<CommonPageDto<PageDto>> {
+	async getPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
+		items: PageEntity[];
+		meta: PageMetaDto;
+	}> {
 		const queryBuilder = await this.pageRepository
 			.createQueryBuilder('page')
 			.where('page.status = :status', { status: PageStatus.APPROVED });
 
-		const [items, pageMetaDto] =
-			await queryBuilder.paginate(pagePageOptionsDto);
+		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
 
-		const pages = await this.assetsService.populateAssets(items, 'pages', [
-			FileType.AVATAR,
-		]);
+		await this.assetsService.attachAssetToEntities(items);
 
-		return pages.toPageDto(pageMetaDto);
+		return {
+			items,
+			meta: pageMeta,
+		};
 	}
 
 	async getPageById(user: UserEntity, pageId: Uuid): Promise<PageEntity> {
@@ -72,9 +74,7 @@ export class PagesService {
 			}
 		}
 
-		page = await this.assetsService.populateAsset(page, 'pages', [
-			FileType.AVATAR,
-		]);
+		page = await this.assetsService.attachAssetToEntity(page);
 
 		page.admin_user_id = userAdmin.id;
 
@@ -84,8 +84,11 @@ export class PagesService {
 	async getMyPages(
 		user: UserEntity,
 		pagePageOptionsDto: PagePageOptionsDto,
-	): Promise<CommonPageDto<PageDto>> {
-		const queryBuilder = await this.pageRepository
+	): Promise<{
+		items: PageEntity[];
+		meta: PageMetaDto;
+	}> {
+		const queryBuilder = this.pageRepository
 			.createQueryBuilder('page')
 			.select()
 			.innerJoin('page.pageUsers', 'pageUsers')
@@ -96,25 +99,21 @@ export class PagesService {
 			.searchByString(pagePageOptionsDto.q, ['name'])
 			.orderBy('page.createdAt', 'DESC');
 
-		const [items, pageMetaDto] =
-			await queryBuilder.paginate(pagePageOptionsDto);
+		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
 
-		if (!queryBuilder) {
-			throw new BadRequestException('Page not found');
-		}
+		await this.assetsService.attachAssetToEntities(items);
 
-		const pages = await this.assetsService.populateAssets(items, 'pages', [
-			FileType.AVATAR,
-		]);
-
-		return pages.toPageDto(pageMetaDto);
+		return {
+			items,
+			meta: pageMeta,
+		};
 	}
 
 	@Transactional()
 	async registerPage(
 		user: UserEntity,
 		registerPageDto: RegisterPageDto,
-	): Promise<PageDto> {
+	): Promise<PageEntity> {
 		const existingPage = await this.pageRepository.findOne({
 			where: { email: registerPageDto.email },
 		});
@@ -163,7 +162,7 @@ export class PagesService {
 			await this.pageUserRepository.save(pageUser);
 		}
 
-		return page.toDto<PageDto>();
+		return page;
 	}
 
 	async approvePage(pageId: Uuid) {
@@ -205,11 +204,15 @@ export class PagesService {
 	private send_noti(pageId: Uuid, status: PageStatus) {}
 
 	public async updateAvatarPage(page_id: Uuid, avatar: AvatarDto) {
-		return await this.assetsService.create_or_update(
-			FileType.AVATAR,
-			'pages',
-			page_id,
-			avatar,
-		);
+		const page = await this.pageRepository.findOne({
+			where: {
+				id: page_id,
+			},
+		});
+
+		return await this.assetsService.addAssetToEntity(page, {
+			type: FileType.AVATAR,
+			file_data: avatar,
+		});
 	}
 }

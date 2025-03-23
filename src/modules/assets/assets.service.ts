@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AwsS3Service } from '../../shared/services/aws-s3.service';
 import { AssetEntity } from './entities/asset.entity';
 import { In, Repository } from 'typeorm';
@@ -6,10 +6,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PresignLinkDto } from './dto/presign-link.dto';
 import { AvatarDto } from '../users/dto/avatar.dto';
 import { AbstractEntity } from 'src/common/abstract.entity';
+import { getAssetFields } from 'src/decoractors/asset.decoractor';
 
 export enum FileType {
 	AVATAR = 'avatar',
 	BANNER = 'banner',
+}
+
+export interface FileData {
+	key: string;
+	size: number;
+	name: string;
+	content_type: string;
+}
+
+export interface AddAssetInput {
+	type: string;
+	file_data: FileData;
 }
 
 @Injectable()
@@ -34,125 +47,162 @@ export class AssetsService {
 		return { url, key };
 	}
 
-	async create_or_update(
-		type: FileType,
-		owner_type: string,
-		owner_id: Uuid,
-		file_data: AvatarDto,
-	) {
-		const existingAsset = await this.assetRepository.findOne({
-			where: { type, owner_type, owner_id },
-		});
-
-		const asset =
-			existingAsset ||
-			this.assetRepository.create({
-				type,
-				owner_type,
-				owner_id,
-			});
-
-		asset.file_data = file_data;
-		return this.assetRepository.save(asset);
-	}
-
-	private createAssetsMap(
-		assets: AssetEntity[],
-	): Record<string, Record<string, AssetEntity[]>> {
-		return assets.reduce(
-			(map, asset) => {
-				map[asset.owner_id] ??= {};
-				map[asset.owner_id][asset.type] ??= [];
-				map[asset.owner_id][asset.type].push(asset);
-
-				return map;
-			},
-			{} as Record<string, Record<string, AssetEntity[]>>,
-		);
-	}
-
-	private async populateAssetUrl(asset: AssetEntity): Promise<AssetEntity> {
-		if (!asset?.file_data?.key) return asset;
-
-		const url = await this.awsS3Service.getPreSignedUrlToViewObject(
-			asset.file_data.key,
-		);
-
-		asset.url = url;
-
-		return asset;
-	}
-
-	async _populateAsset<T extends { [key: string]: any }>(
-		entity: T,
-		key: keyof T,
-	): Promise<T> {
-		if (!entity[key]) return entity;
-
-		const assets = await Promise.all(
-			entity[key].map(async (asset) => await this.populateAssetUrl(asset)),
-		);
-		entity[key] = assets as T[keyof T];
-		return entity;
-	}
-
-	async populateAsset<E extends AbstractEntity>(
-		entity: E,
-		owner_type: string,
-		types: FileType[],
-	): Promise<E> {
-		const assets = await this.assetRepository.find({
-			where: { owner_id: entity.id, owner_type, type: In(types) },
-		});
-
-		const assetsMap = this.createAssetsMap(assets);
-		const entityAssets = assetsMap[entity.id] || {};
-
-		await Promise.all(
-			types.map(async (type) => {
-				entity[type] = entityAssets[type];
-				await this._populateAsset(entity, type as keyof E);
-			}),
-		);
-
-		return entity;
-	}
-
-	async populateAssets<E extends AbstractEntity>(
-		entities: E[],
-		owner_type: string,
-		types: FileType[],
-	): Promise<E[]> {
-		if (!entities.length) return entities;
-
-		const assets = await this.assetRepository.find({
-			where: {
-				owner_id: In(entities.map((entity) => entity.id)),
-				owner_type,
-				type: In(types),
-			},
-		});
-
-		const assetsMap = this.createAssetsMap(assets);
-
-		return Promise.all(
-			entities.map(async (entity) => {
-				const entityAssets = assetsMap[entity.id] || {};
-
-				await Promise.all(
-					types.map(async (type) => {
-						entity[type] = entityAssets[type];
-						await this._populateAsset(entity, type as keyof E);
-					}),
-				);
-
-				return entity;
-			}),
-		);
-	}
-
 	async getViewUrl(key: string): Promise<{ url: string }> {
 		const url = await this.awsS3Service.getPreSignedUrlToViewObject(key);
 		return { url };
+	}
+
+	async addAssetToEntity<T extends AbstractEntity>(
+		entity: T,
+		input: AddAssetInput,
+	): Promise<T> {
+		const { file_data, type } = input;
+
+		const assetFields = getAssetFields(entity);
+		const field = assetFields.find((field) => field.type === type);
+
+		if (!field) {
+			throw new BadRequestException('Invalid asset type');
+		}
+
+		let asset: AssetEntity;
+
+		if (field.multiple) {
+			asset = this.assetRepository.create({
+				type,
+				owner_type: entity.entityType,
+				owner_id: entity.id,
+				file_data,
+			});
+
+			const saved = await this.assetRepository.save(asset);
+			const signedUrl = await this.awsS3Service.getSignedUrlToViewObjects([
+				saved.file_data.key,
+			]);
+
+			if (!Array.isArray(entity[field.propertyKey])) {
+				entity[field.propertyKey] = [];
+			}
+
+			entity[field.propertyKey].push({
+				...saved,
+				url: signedUrl[saved.file_data.key],
+			});
+		} else {
+			const existing = await this.assetRepository.findOne({
+				where: {
+					owner_id: entity.id,
+					owner_type: entity.entityType,
+					type,
+				},
+			});
+
+			if (existing) {
+				existing.file_data = file_data;
+				asset = await this.assetRepository.save(existing);
+			} else {
+				asset = await this.assetRepository.save(
+					this.assetRepository.create({
+						type,
+						owner_type: entity.entityType,
+						owner_id: entity.id,
+						file_data,
+					}),
+				);
+			}
+
+			const signedUrl = await this.awsS3Service.getSignedUrlToViewObjects([
+				asset.file_data.key,
+			]);
+
+			entity[field.propertyKey] = {
+				...asset,
+				url: signedUrl[asset.file_data.key],
+			};
+		}
+
+		return entity;
+	}
+
+	/**
+	 * Attaches signed URLs for assets to an array of entities by using their asset metadata
+	 * @param entities Array of entities to attach assets to. Each entity must extend AbstractEntity
+	 * @returns The same array of entities with asset URLs attached to their decorated fields
+	 *
+	 * @example
+	 * // Attach avatar URLs to an array of users
+	 * const users = await this.assetsService.attachAssetToEntities(userArray);
+	 *
+	 * // Each user's decorated fields will now have URLs:
+	 * console.log(users[0].avatar.url); // https://...
+	 */
+	async attachAssetToEntities<T extends AbstractEntity>(
+		entities: T[],
+	): Promise<T[]> {
+		if (!entities.length) return entities;
+
+		const sample = entities[0];
+		const entityType = sample.entityType;
+		const assetFields = getAssetFields(sample);
+		if (!assetFields.length) return entities;
+
+		const assetTypes = assetFields.map((field) => field.type);
+		const ids = Array.from(new Set(entities.map((e) => e.id)));
+
+		const assets = await this.assetRepository.find({
+			where: {
+				owner_id: In(ids),
+				owner_type: entityType,
+				type: In(assetTypes),
+			},
+		});
+
+		const keys = assets.map((asset) => asset.file_data.key);
+		const signedUrls = await this.awsS3Service.getSignedUrlToViewObjects(keys);
+
+		const assetMap = new Map<string, AssetEntity[]>();
+		for (const asset of assets) {
+			const key = `${asset.owner_id}_${asset.type}`;
+			if (!assetMap.has(key)) assetMap.set(key, []);
+			assetMap.get(key)!.push(asset);
+		}
+
+		for (const entity of entities) {
+			for (const { propertyKey, type, multiple } of assetFields) {
+				const key = `${entity.id}_${type}`;
+				const matched = assetMap.get(key) ?? [];
+
+				if (multiple) {
+					entity[propertyKey] = matched.map((asset) => {
+						const signedUrl = signedUrls[asset.file_data.key];
+						return {
+							...asset,
+							url: signedUrl,
+						};
+					});
+				} else {
+					const asset = matched[0];
+					if (asset) {
+						entity[propertyKey] = {
+							...asset,
+							url: signedUrls[asset.file_data.key],
+						};
+					}
+				}
+			}
+		}
+
+		return entities;
+	}
+
+	/**
+	 * Attaches signed URLs for assets to a single entity by using the entity's asset metadata
+	 * @param entity The entity to attach assets to. Must extend AbstractEntity
+	 * @returns The same entity with asset URLs attached to the decorated fields
+	 */
+	async attachAssetToEntity<T extends AbstractEntity>(entity: T): Promise<T> {
+		if (!entity) return entity;
+		await this.attachAssetToEntities([entity]);
+		return entity;
 	}
 }

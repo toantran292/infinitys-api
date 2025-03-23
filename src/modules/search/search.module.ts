@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { FriendEntity } from '../users/entities/friend.entity';
 import { FriendRequestEntity } from '../users/entities/friend-request.entity';
-
+import { AssetsModule } from '../assets/assets.module';
 @Module({
 	imports: [
 		UsersModule,
+		AssetsModule,
 		TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity]),
 	],
 	controllers: [SearchController],

@@ -1,16 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ClassField } from '../../decoractors/field.decoractors';
+import { Expose, Type } from 'class-transformer';
 import { PageMetaDto } from './page-meta.dto';
-
-export class PageDto<T> {
-	@ApiProperty({ isArray: true })
-	readonly items: T[];
-
-	@ClassField(() => PageMetaDto)
+export class PageDto {
+	@Expose()
+	@Type(() => PageMetaDto)
 	readonly meta: PageMetaDto;
-
-	constructor(items: T[], meta: PageMetaDto) {
-		this.items = items;
-		this.meta = meta;
-	}
 }

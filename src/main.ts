@@ -59,7 +59,11 @@ export async function bootstrap(): Promise<NestExpressApplication> {
 		new QueryFailedFilter(reflector),
 	);
 
-	app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
+	app.useGlobalInterceptors(
+		new ClassSerializerInterceptor(reflector, {
+			excludeExtraneousValues: true,
+		}),
+	);
 
 	app.useGlobalPipes(
 		new ValidationPipe({

@@ -17,10 +17,10 @@ export class UserAvatarDto extends AbstractDto {
 	@StringField()
 	url!: string;
 
-	constructor(avatar: AssetEntity) {
-		super(avatar);
-		this.url = avatar.url;
-	}
+	// constructor(avatar: AssetEntity) {
+	// 	super(avatar);
+	// 	this.url = avatar.url;
+	// }
 }
 
 export class BaseUserDto extends AbstractDto {
@@ -54,26 +54,26 @@ export class BaseUserDto extends AbstractDto {
 	@BooleanFieldOptional()
 	active?: boolean;
 
-	constructor(user: UserEntity) {
-		super(user);
-		this.firstName = user.firstName;
-		this.lastName = user.lastName;
-		this.fullName = `${user.firstName} ${user.lastName}`;
-		this.email = user.email;
-		this.role = user.role;
-		this.dateOfBirth = user.dateOfBirth;
-		this.gender = user.gender;
-		this.major = user.major;
-		this.desiredJobPosition = user.desiredJobPosition;
-		this.active = user.active;
-	}
+	// constructor(user: UserEntity) {
+	// 	super(	user);
+	// 	this.firstName = user.firstName;
+	// 	this.lastName = user.lastName;
+	// 	this.fullName = `${user.firstName} ${user.lastName}`;
+	// 	this.email = user.email;
+	// 	this.role = user.role;
+	// 	this.dateOfBirth = user.dateOfBirth;
+	// 	this.gender = user.gender;
+	// 	this.major = user.major;
+	// 	this.desiredJobPosition = user.desiredJobPosition;
+	// 	this.active = user.active;
+	// }
 }
 
 export class UserDto extends BaseUserDto {
 	avatar?: UserAvatarDto;
 
-	constructor(user: UserEntity) {
-		super(user);
-		this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
-	}
+	// constructor(user: UserEntity) {
+	// 	super(user);
+	// 	this.avatar = user.avatar ? new UserAvatarDto(user.avatar[0]) : null;
+	// }
 }
