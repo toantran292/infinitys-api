@@ -1,24 +1,31 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { TestcaseEntity } from './testcase.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { PageEntity } from '../../pages/entities/page.entity';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
 import { ApplicationProblemEntity } from '../../applications/entities/application.entity';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { AssetField } from '../../../decoractors/asset.decoractor';
 
 @Entity({ name: 'problems' })
 export class ProblemEntity extends AbstractEntity {
 	@Column()
+	title!: string;
+
+	@Column()
 	content!: string;
+
+	@AssetField({ multiple: true })
+	images!: AssetEntity[];
+
+	@AssetField({ multiple: true })
+	testcases!: AssetEntity[];
 
 	@ManyToOne(() => PageEntity, (page) => page.problems, { nullable: true })
 	page?: PageEntity;
 
 	@OneToMany(() => ProblemUserEntity, (problemUser) => problemUser.problem)
 	problemUsers!: ProblemUserEntity[];
-
-	@OneToMany(() => TestcaseEntity, (testcase) => testcase.problem)
-	testcases!: TestcaseEntity[];
 
 	@OneToMany(
 		() => ProblemRecruitmentPostEntity,
@@ -35,26 +42,8 @@ export class ProblemUserEntity extends AbstractEntity {
 	@ManyToOne(() => UserEntity, (user) => user.problemUsers)
 	user!: UserEntity;
 
-	@OneToMany(
-		() => ProblemUserTestcaseEntity,
-		(problemUserTestcase) => problemUserTestcase.problemUser,
-	)
-	problemUserTestcases!: ProblemUserTestcaseEntity[];
-}
-
-@Entity({ name: 'problems_users_testcases' })
-export class ProblemUserTestcaseEntity extends AbstractEntity {
-	@ManyToOne(
-		() => ProblemUserEntity,
-		(problemUser) => problemUser.problemUserTestcases,
-	)
-	problemUser!: ProblemUserEntity;
-
-	@ManyToOne(() => TestcaseEntity, (testcase) => testcase.problemUserTestcases)
-	testcase!: TestcaseEntity;
-
-	@Column()
-	isAccepted!: boolean;
+	@Column({ type: 'jsonb', nullable: true })
+	result!: object;
 }
 
 @Entity({ name: 'problems_recruitment_posts' })

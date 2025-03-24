@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { AwsS3Service } from '../../shared/services/aws-s3.service';
 import { AssetEntity } from './entities/asset.entity';
 import { In, Repository } from 'typeorm';
@@ -12,6 +16,7 @@ export enum FileType {
 	AVATAR = 'avatar',
 	BANNER = 'banner',
 	IMAGE = 'image',
+	TESTCASE = 'testcase',
 }
 
 export interface FileData {
@@ -32,7 +37,37 @@ export class AssetsService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly awsS3Service: AwsS3Service,
-	) { }
+	) {}
+
+	async findAssetById(id: Uuid, owner_id: Uuid, owner_type: string) {
+		return this.assetRepository.findOne({
+			where: { id, owner_id, owner_type },
+		});
+	}
+
+	async findAssetsByIds(ids: Uuid[], owner_id: Uuid, owner_type: string) {
+		return this.assetRepository.find({
+			where: { id: In(ids), owner_id, owner_type },
+		});
+	}
+
+	async deleteAsset(id: Uuid, owner_id: Uuid, owner_type: string) {
+		const asset = await this.assetRepository.findOne({
+			where: { id, owner_id, owner_type },
+		});
+
+		if (!asset) return;
+
+		await this.awsS3Service.deleteObject(asset.file_data.key);
+		await this.assetRepository.remove(asset);
+	}
+
+	async deleteAssets(ids: Uuid[], owner_id: Uuid, owner_type: string) {
+		const assets = await this.findAssetsByIds(ids, owner_id, owner_type);
+		await Promise.all(
+			assets.map((asset) => this.deleteAsset(asset.id, owner_id, owner_type)),
+		);
+	}
 
 	async generateKey(type: FileType, suffix: string) {
 		return `${type}/${suffix}`;
@@ -49,17 +84,17 @@ export class AssetsService {
 		return { url, key };
 	}
 
-	async getPresignUrls(
-		data: PresignLinkDto[],
-	) {
-		const keys = await Promise.all(data.map(async (d) => this.generateKey(d.type, d.suffix)));
+	async getPresignUrls(data: PresignLinkDto[]) {
+		const keys = await Promise.all(
+			data.map(async (d) => this.generateKey(d.type, d.suffix)),
+		);
 		const result = await this.awsS3Service.getPreSignedUrlToUploadObjects(keys);
 		return keys.map((key, index) => {
 			return {
 				key,
 				url: result[key],
-			}
-		})
+			};
+		});
 	}
 
 	async getViewUrl(key: string): Promise<{ url: string }> {
@@ -83,16 +118,31 @@ export class AssetsService {
 		let asset: AssetEntity;
 
 		if (field.multiple) {
-			asset = this.assetRepository.create({
-				type,
-				owner_type: entity.entityType,
-				owner_id: entity.id,
-				file_data,
-			});
+			const existingByKey = await this.assetRepository
+				.createQueryBuilder('asset')
+				.where(`asset.file_data->>'key' = :key`, {
+					key: file_data.key,
+				})
+				.getOne();
 
-			const saved = await this.assetRepository.save(asset);
+			if (existingByKey) {
+				existingByKey.owner_id = entity.id;
+				existingByKey.owner_type = entity.entityType;
+				existingByKey.type = type;
+				asset = await this.assetRepository.save(existingByKey);
+			} else {
+				asset = await this.assetRepository.save(
+					this.assetRepository.create({
+						type,
+						owner_type: entity.entityType,
+						owner_id: entity.id,
+						file_data,
+					}),
+				);
+			}
+
 			const signedUrl = await this.awsS3Service.getSignedUrlToViewObjects([
-				saved.file_data.key,
+				asset.file_data.key,
 			]);
 
 			if (!Array.isArray(entity[field.propertyKey])) {
@@ -100,11 +150,18 @@ export class AssetsService {
 			}
 
 			entity[field.propertyKey].push({
-				...saved,
-				url: signedUrl[saved.file_data.key],
+				...asset,
+				url: signedUrl[asset.file_data.key],
 			});
 		} else {
-			const existing = await this.assetRepository.findOne({
+			const existingByKey = await this.assetRepository
+				.createQueryBuilder('asset')
+				.where(`asset.file_data->>'key' = :key`, {
+					key: file_data.key,
+				})
+				.getOne();
+
+			const existingByOwner = await this.assetRepository.findOne({
 				where: {
 					owner_id: entity.id,
 					owner_type: entity.entityType,
@@ -112,9 +169,18 @@ export class AssetsService {
 				},
 			});
 
-			if (existing) {
-				existing.file_data = file_data;
-				asset = await this.assetRepository.save(existing);
+			if (existingByKey) {
+				existingByKey.owner_id = entity.id;
+				existingByKey.owner_type = entity.entityType;
+				existingByKey.type = type;
+				asset = await this.assetRepository.save(existingByKey);
+
+				if (existingByOwner && existingByOwner.id !== existingByKey.id) {
+					await this.assetRepository.remove(existingByOwner);
+				}
+			} else if (existingByOwner) {
+				existingByOwner.file_data = file_data;
+				asset = await this.assetRepository.save(existingByOwner);
 			} else {
 				asset = await this.assetRepository.save(
 					this.assetRepository.create({
@@ -163,16 +229,37 @@ export class AssetsService {
 			const items = groupedInputs.get(field.type) ?? [];
 
 			if (field.multiple) {
-				const newAssets = items.map((item) =>
-					this.assetRepository.create({
-						file_data: item.file_data,
-						owner_id: entity.id,
-						owner_type: entity.entityType,
-						type: item.type,
+				const existingAssets = await this.assetRepository
+					.createQueryBuilder('asset')
+					.where(`asset.file_data->>'key' IN (:...keys)`, {
+						keys: items.map((item) => item.file_data.key),
+					})
+					.getMany();
+
+				const existingAssetMap = new Map(
+					existingAssets.map((asset) => [asset.file_data.key, asset]),
+				);
+
+				const assetsToSave = await Promise.all(
+					items.map(async (item) => {
+						const existing = existingAssetMap.get(item.file_data.key);
+						if (existing) {
+							existing.owner_id = entity.id;
+							existing.owner_type = entity.entityType;
+							existing.type = item.type;
+							return existing;
+						} else {
+							return this.assetRepository.create({
+								file_data: item.file_data,
+								owner_id: entity.id,
+								owner_type: entity.entityType,
+								type: item.type,
+							});
+						}
 					}),
 				);
 
-				const saved = await this.assetRepository.save(newAssets);
+				const saved = await this.assetRepository.save(assetsToSave);
 				const urls = await this.awsS3Service.getSignedUrlToViewObjects(
 					saved.map((a) => a.file_data.key),
 				);
@@ -188,7 +275,14 @@ export class AssetsService {
 				const input = items[0];
 				if (!input) continue;
 
-				const existing = await this.assetRepository.findOne({
+				const existingByKey = await this.assetRepository
+					.createQueryBuilder('asset')
+					.where(`asset.file_data->>'key' = :key`, {
+						key: input.file_data.key,
+					})
+					.getOne();
+
+				const existingByOwner = await this.assetRepository.findOne({
 					where: {
 						owner_id: entity.id,
 						owner_type: entity.entityType,
@@ -198,9 +292,18 @@ export class AssetsService {
 
 				let asset: AssetEntity;
 
-				if (existing) {
-					existing.file_data = input.file_data;
-					asset = await this.assetRepository.save(existing);
+				if (existingByKey) {
+					existingByKey.owner_id = entity.id;
+					existingByKey.owner_type = entity.entityType;
+					existingByKey.type = input.type;
+					asset = await this.assetRepository.save(existingByKey);
+
+					if (existingByOwner && existingByOwner.id !== existingByKey.id) {
+						await this.assetRepository.remove(existingByOwner);
+					}
+				} else if (existingByOwner) {
+					existingByOwner.file_data = input.file_data;
+					asset = await this.assetRepository.save(existingByOwner);
 				} else {
 					asset = await this.assetRepository.save(
 						this.assetRepository.create({
