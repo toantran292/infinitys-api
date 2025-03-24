@@ -22,7 +22,7 @@ export class PostsService {
 		private readonly assetsService: AssetsService,
 
 		private readonly reactsService: ReactsService,
-	) { }
+	) {}
 
 	async createPost(author: UserEntity, createPostDto: CreatePostDto) {
 		const { content } = createPostDto;
@@ -35,10 +35,13 @@ export class PostsService {
 		const savedPost = await this.postRepository.save(post);
 
 		if (createPostDto.images) {
-			await this.assetsService.addAssetsToEntity(savedPost, createPostDto.images.map((image) => ({
-				type: `${FileType.IMAGE}s`,
-				file_data: image,
-			})));
+			await this.assetsService.addAssetsToEntity(
+				savedPost,
+				createPostDto.images.map((image) => ({
+					type: `${FileType.IMAGE}s`,
+					file_data: image,
+				})),
+			);
 		}
 
 		return savedPost;
@@ -104,9 +107,9 @@ export class PostsService {
 					.subQuery()
 					.select(
 						'DISTINCT CASE ' +
-						'WHEN friend.source_id = :userId THEN friend.target_id ' +
-						'ELSE friend.source_id ' +
-						'END',
+							'WHEN friend.source_id = :userId THEN friend.target_id ' +
+							'ELSE friend.source_id ' +
+							'END',
 					)
 					.from('friends', 'friend')
 					.where('friend.source_id = :userId OR friend.target_id = :userId')
@@ -128,16 +131,21 @@ export class PostsService {
 	}
 
 	async uploadImages(user: UserEntity, postId: Uuid, images: CreateAssetDto[]) {
-		const post = await this.postRepository.findOne({ where: { id: postId, author: { id: user.id } } });
+		const post = await this.postRepository.findOne({
+			where: { id: postId, author: { id: user.id } },
+		});
 		if (!post) {
 			throw new NotFoundException('Post not found');
 		}
 
-		return await this.assetsService.addAssetsToEntity(post, images.map((i) => {
-			return {
-				type: `${FileType.IMAGE}s`,
-				file_data: i,
-			};
-		}));
+		return await this.assetsService.addAssetsToEntity(
+			post,
+			images.map((i) => {
+				return {
+					type: `${FileType.IMAGE}s`,
+					file_data: i,
+				};
+			}),
+		);
 	}
 }

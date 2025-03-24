@@ -47,7 +47,6 @@ export class AwsS3Service {
 		return await this.getSignedUrl(command);
 	}
 
-
 	async getPreSignedUrlToUploadObjects(keys: string[]) {
 		const urlMap: Record<string, string> = {};
 
@@ -90,5 +89,14 @@ export class AwsS3Service {
 		);
 
 		return urlMap;
+	}
+
+	async deleteObject(key: string) {
+		const command = new DeleteObjectCommand({
+			Bucket: this.bucketName,
+			Key: key,
+		});
+
+		await this.s3Client.send(command);
 	}
 }
