@@ -39,10 +39,7 @@ export class NotificationsGateway
 		}
 	}
 
-	handleDisconnect(client: Socket) {
-		// Xóa socket khỏi danh sách khi người dùng ngắt kết nối
-		// this.removeSocket(client.id);
-	}
+	handleDisconnect(client: Socket) {}
 
 	@SubscribeMessage('notifications.test')
 	@AuthWs()

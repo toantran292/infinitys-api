@@ -1,8 +1,8 @@
-import { AbstractEntity } from 'src/common/abstract.entity';
+import { AbstractEntity } from '../../../common/abstract.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { Conversation } from './conversation.entity';
-import { Page } from 'src/modules/pages/entities/page.entity';
-import { User } from 'src/modules/users/entities/user.entity';
+import { Page } from '../../../modules/pages/entities/page.entity';
+import { User } from '../../../modules/users/entities/user.entity';
 
 @Entity({ name: 'messages' })
 export class Message extends AbstractEntity {
@@ -12,7 +12,7 @@ export class Message extends AbstractEntity {
 	@ManyToOne(() => Conversation, (c) => c.id)
 	conversation: Conversation;
 
-	@ManyToOne(() => User, { nullable: true })
+	@ManyToOne(() => User, { onDelete: 'NO ACTION' })
 	senderUser: User;
 
 	@ManyToOne(() => Page, { nullable: true })

@@ -1,7 +1,7 @@
-import { AbstractEntity } from 'src/common/abstract.entity';
+import { AbstractEntity } from '../../../common/abstract.entity';
 import { Entity, ManyToOne } from 'typeorm';
 import { Conversation } from './conversation.entity';
-import { User } from 'src/modules/users/entities/user.entity';
+import { User } from '../../../modules/users/entities/user.entity';
 import { Message } from './message.entity';
 
 @Entity({ name: 'conversation_read_status' })

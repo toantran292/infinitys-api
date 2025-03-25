@@ -89,10 +89,12 @@ export class ChatsService {
 		const existing = await this.convRepo
 			.createQueryBuilder('c')
 			.leftJoin('c.participants', 'p')
-			.where('c.isGroup = false')
+			.where('c.is_group = false')
 			.groupBy('c.id')
 			.having('COUNT(p.id) = 2')
-			.andHaving('bool_and(p.userId IN (:...ids))', { ids: [userId1, userId2] })
+			.andHaving(`bool_and(p.user_id IN (:...ids))`, {
+				ids: [userId1, userId2],
+			})
 			.getOne();
 
 		if (existing) return existing;
@@ -177,7 +179,6 @@ export class ChatsService {
 		const saved = await this.msgRepo.save(message);
 		await this.convRepo.update(conversationId, {
 			lastMessage: saved,
-			updatedAt: new Date(),
 		});
 
 		return saved;
@@ -188,9 +189,9 @@ export class ChatsService {
 			.createQueryBuilder('c')
 			.leftJoin('c.participants', 'p')
 			.leftJoin('p.user', 'u')
-			.where('c.isGroup = true')
-			.andWhere(
-				'(LOWER(u.firstName) LIKE LOWER(:query) OR LOWER(u.lastName) LIKE LOWER(:query) OR LOWER(c.name) LIKE LOWER(:query))',
+			.leftJoin('p.page', 'pg')
+			.where(
+				'((LOWER(u.firstName) LIKE LOWER(:query) OR LOWER(u.lastName) LIKE LOWER(:query) OR LOWER(pg.name) LIKE LOWER(:query)) OR (LOWER(c.name) LIKE LOWER(:query)))',
 				{ query: `%${query}%` },
 			)
 			.leftJoinAndSelect('c.participants', 'participants')
@@ -202,9 +203,11 @@ export class ChatsService {
 	async getUserConversations(userId: Uuid, limit = 10, cursor?: Date) {
 		const qb = this.convRepo
 			.createQueryBuilder('c')
-			.innerJoin('c.participants', 'p', 'p.userId = :userId', { userId })
+			.innerJoin('c.participants', 'p', 'p.user_id = :userId', { userId })
 			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
 			.leftJoinAndSelect('c.participants', 'participants')
+			.leftJoinAndSelect('participants.user', 'participantUser')
+			.leftJoinAndSelect('participants.page', 'participantPage')
 			.orderBy('c.updatedAt', 'DESC')
 			.limit(limit + 1);
 
@@ -221,7 +224,7 @@ export class ChatsService {
 				user: { id: userId },
 				conversation: In(trimmed.map((c) => c.id)),
 			},
-			relations: ['lastReadMessage'],
+			relations: ['lastReadMessage', 'conversation'],
 		});
 
 		const result = trimmed.map((conv) => {
@@ -236,7 +239,7 @@ export class ChatsService {
 		});
 
 		return {
-			conversations: result,
+			items: result,
 			hasMore,
 			nextCursor: hasMore ? trimmed[trimmed.length - 1].updatedAt : null,
 		};
@@ -248,6 +251,10 @@ export class ChatsService {
 		limit = 10,
 		cursor?: Date,
 	) {
+		const { isMember } = await this.pageService.checkMember(pageId, userId);
+		if (!isMember)
+			throw new NotFoundException('Bạn không phải là thành viên của Page này');
+
 		const qb = this.convRepo
 			.createQueryBuilder('c')
 			.innerJoin('c.participants', 'p', 'p.pageId = :pageId', { pageId })
@@ -291,17 +298,39 @@ export class ChatsService {
 	}
 
 	async getMessages(
-		conversationId: string,
+		userId: Uuid,
+		pageId: Uuid | null,
+		conversationId: Uuid,
 		limit = 20,
 		cursor?: Date,
 	): Promise<{
-		messages: Message[];
+		items: Message[];
 		hasMore: boolean;
 		nextCursor: Date | null;
 	}> {
+		if (pageId) {
+			const { isMember } = await this.pageService.checkMember(pageId, userId);
+			if (!isMember)
+				throw new NotFoundException(
+					'Bạn không phải là thành viên của Page này',
+				);
+		} else {
+			const isValid = await this.participantRepo.findOne({
+				where: {
+					user: { id: userId },
+					conversation: { id: conversationId },
+				},
+			});
+
+			if (!isValid)
+				throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+		}
+
 		const qb = this.msgRepo
 			.createQueryBuilder('m')
-			.where('m.conversationId = :conversationId', { conversationId })
+			.where('m.conversation_id = :conversationId', { conversationId })
+			.leftJoinAndSelect('m.senderUser', 'senderUser')
+			.leftJoinAndSelect('m.senderPage', 'senderPage')
 			.orderBy('m.createdAt', 'DESC')
 			.limit(limit + 1);
 
@@ -314,7 +343,7 @@ export class ChatsService {
 		const trimmed = hasMore ? messages.slice(0, limit) : messages;
 
 		return {
-			messages: trimmed.reverse(),
+			items: trimmed.reverse(),
 			hasMore,
 			nextCursor: hasMore ? trimmed[0].createdAt : null,
 		};
@@ -323,7 +352,12 @@ export class ChatsService {
 	async findConversationById(id: Uuid): Promise<Conversation> {
 		const conv = await this.convRepo.findOne({
 			where: { id },
-			relations: ['participants', 'lastMessage'],
+			relations: [
+				'participants',
+				'lastMessage',
+				'participants.user',
+				'participants.page',
+			],
 		});
 		if (!conv) throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
 		return conv;

@@ -5,3 +5,11 @@ export class PageDto {
 	@Type(() => PageMetaDto)
 	readonly meta: PageMetaDto;
 }
+
+export class CursorPageDto {
+	@Expose()
+	readonly hasMore: boolean;
+
+	@Expose()
+	readonly nextCursor: string;
+}

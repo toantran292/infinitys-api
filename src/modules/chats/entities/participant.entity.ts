@@ -1,8 +1,8 @@
-import { AbstractEntity } from 'src/common/abstract.entity';
+import { AbstractEntity } from '../../../common/abstract.entity';
 import { Entity, ManyToOne } from 'typeorm';
 import { Conversation } from './conversation.entity';
-import { User } from 'src/modules/users/entities/user.entity';
-import { Page } from 'src/modules/pages/entities/page.entity';
+import { User } from '../../../modules/users/entities/user.entity';
+import { Page } from '../../../modules/pages/entities/page.entity';
 
 @Entity({ name: 'participants' })
 export class Participant extends AbstractEntity {

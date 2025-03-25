@@ -12,8 +12,8 @@ export function AuthWs(
 	const isPublicRoute = options?.public;
 
 	return applyDecorators(
-		Roles(...roles),
 		UseGuards(JwtAuthWsGuard, RolesWsGuard),
+		Roles(...roles),
 		PublicRoute(isPublicRoute),
 	);
 }
