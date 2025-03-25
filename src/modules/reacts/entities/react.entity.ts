@@ -1,6 +1,6 @@
 import { Column, Entity, Generated, Index, ManyToOne } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
 
 @Entity({ name: 'reacts' })
@@ -9,8 +9,8 @@ export class ReactEntity extends AbstractEntity {
 	@Column({ default: true })
 	isActive!: boolean;
 
-	@ManyToOne(() => UserEntity, (user) => user.reacts)
-	user!: UserEntity;
+	@ManyToOne(() => User, (user) => user.reacts)
+	user!: User;
 
 	@Column()
 	userId!: string;

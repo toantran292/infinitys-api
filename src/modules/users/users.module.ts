@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { UsersController } from './users.controller';
 import { FriendEntity } from './entities/friend.entity';
 import { FriendRequestEntity } from './entities/friend-request.entity';
@@ -13,7 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([
-			UserEntity,
+			User,
 			FriendEntity,
 			FriendRequestEntity,
 			AssetEntity,

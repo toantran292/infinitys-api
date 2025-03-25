@@ -16,8 +16,9 @@ import { FriendRequestEntity } from './friend-request.entity';
 import { GenderType } from '../../../constants/gender-type';
 import { AssetField } from '../../../decoractors/asset.decoractor';
 import { SubmissionSummary, Submission } from '../../problems/entities';
+import { Participant } from 'src/modules/chats/entities/participant.entity';
 @Entity({ name: 'users' })
-export class UserEntity extends AbstractEntity {
+export class User extends AbstractEntity {
 	@Column()
 	firstName!: string;
 
@@ -109,4 +110,7 @@ export class UserEntity extends AbstractEntity {
 
 	@OneToMany(() => SubmissionSummary, (summary) => summary.user)
 	submissionSummaries!: SubmissionSummary[];
+
+	@OneToMany(() => Participant, (participant) => participant.user)
+	participants!: Participant[];
 }

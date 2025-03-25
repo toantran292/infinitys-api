@@ -1,14 +1,14 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from './user.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'friends_requests' })
 export class FriendRequestEntity extends AbstractEntity {
-	@ManyToOne(() => UserEntity, (user) => user.sentFriendRequests)
-	source!: UserEntity;
+	@ManyToOne(() => User, (user) => user.sentFriendRequests)
+	source!: User;
 
-	@ManyToOne(() => UserEntity, (user) => user.receivedFriendRequests)
-	target!: UserEntity;
+	@ManyToOne(() => User, (user) => user.receivedFriendRequests)
+	target!: User;
 
 	@Column({ default: true })
 	is_available!: boolean;

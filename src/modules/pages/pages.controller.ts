@@ -14,7 +14,7 @@ import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decoractors/http.decorators';
 import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import type { UserEntity } from '../users/entities/user.entity';
+import type { User } from '../users/entities/user.entity';
 import { AvatarDto } from '../users/dto/avatar.dto';
 import { PaginationPageResponseDto } from './dto/list-page-response.dto';
 import { PageResponseDto } from './dto/page-response.dto';
@@ -37,7 +37,7 @@ export class PagesController {
 	@Get('me')
 	@Auth([RoleType.USER])
 	async getMyPages(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Query() pagePageOptionsDto: PagePageOptionsDto,
 	) {
 		return this.pagesService.getMyPages(user, pagePageOptionsDto);
@@ -48,10 +48,7 @@ export class PagesController {
 	})
 	@Get(':pageId')
 	@Auth([RoleType.USER, RoleType.ADMIN])
-	async getPageById(
-		@AuthUser() user: UserEntity,
-		@Param('pageId') pageId: Uuid,
-	) {
+	async getPageById(@AuthUser() user: User, @Param('pageId') pageId: Uuid) {
 		const page = await this.pagesService.getPageById(user, pageId);
 		return page;
 	}
@@ -62,7 +59,7 @@ export class PagesController {
 	@Post('register')
 	@Auth([RoleType.USER])
 	async registerPage(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Body() registerPageDto: RegisterPageDto,
 	) {
 		return this.pagesService.registerPage(user, registerPageDto);

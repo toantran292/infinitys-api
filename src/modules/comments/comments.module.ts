@@ -4,7 +4,7 @@ import { CommentsService } from './comments.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommentEntity } from './entities/comment.entity';
 import { PostEntity } from '../posts/entities/post.entity';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { AuthsModule } from '../auths/auths.module';
 import { UsersModule } from '../users/users.module';
 import { AssetsModule } from '../assets/assets.module';
@@ -20,7 +20,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 		TypeOrmModule.forFeature([
 			CommentEntity,
 			PostEntity,
-			UserEntity,
+			User,
 			PostStatistics,
 			CommentStatistics,
 			ReactEntity,

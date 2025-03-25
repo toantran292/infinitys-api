@@ -7,15 +7,15 @@ import {
 	OneToMany,
 } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
 import { ProblemRecruitmentPost } from '../../problems/entities';
 
 @Entity({ name: 'applications' })
 @Index(['userId', 'recruitmentPostId'], { unique: true })
 export class ApplicationEntity extends AbstractEntity {
-	@ManyToOne(() => UserEntity, (user) => user.applications, { nullable: false })
-	user!: UserEntity;
+	@ManyToOne(() => User, (user) => user.applications, { nullable: false })
+	user!: User;
 
 	@Column()
 	@Generated('uuid')

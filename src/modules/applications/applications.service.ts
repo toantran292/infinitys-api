@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApplicationEntity } from './entities/application.entity';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { RecruitmentPostEntity } from '../recruitment_posts/entities/recruitment_post.entity';
 import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 import { PageMetaDto } from 'src/common/dto/page-meta.dto';
@@ -22,7 +22,7 @@ export class ApplicationsService {
 	) {}
 
 	async createApplication(
-		user: UserEntity,
+		user: User,
 		postId: Uuid,
 	): Promise<ApplicationEntity> {
 		const recruitmentPost = await this.recruitmentPostRepo.findOne({
@@ -50,10 +50,7 @@ export class ApplicationsService {
 		return savedApplication;
 	}
 
-	async getApplicationById(
-		id: Uuid,
-		user: UserEntity,
-	): Promise<ApplicationEntity> {
+	async getApplicationById(id: Uuid, user: User): Promise<ApplicationEntity> {
 		const application = await this.applicationRepo.findOne({
 			where: { recruitmentPost: { id }, user: { id: user.id } },
 			relations: ['user', 'recruitmentPost', 'recruitmentPost.pageUser'],

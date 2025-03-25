@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PageEntity } from './entities/page.entity';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { Page } from './entities/page.entity';
 import { PageUserEntity } from './entities/page-user.entity';
 import { RegisterPageDto } from './dto/create-page.dto';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { RoleTypePage } from '../../constants/role-type';
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
@@ -19,8 +19,8 @@ import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 @Injectable()
 export class PagesService {
 	constructor(
-		@InjectRepository(PageEntity)
-		private readonly pageRepository: Repository<PageEntity>,
+		@InjectRepository(Page)
+		private readonly pageRepository: Repository<Page>,
 		@InjectRepository(PageUserEntity)
 		private readonly pageUserRepository: Repository<PageUserEntity>,
 
@@ -29,8 +29,34 @@ export class PagesService {
 		private readonly assetsService: AssetsService,
 	) {}
 
+	findOne(findData: FindOptionsWhere<Page>): Promise<Page | null> {
+		return this.pageRepository.findOneBy(findData);
+	}
+
+	async checkMember(
+		pageId: Uuid,
+		userId: Uuid,
+	): Promise<{
+		isMember: boolean;
+		page: Page;
+		user: User;
+	}> {
+		const pageUser = await this.pageUserRepository.findOne({
+			where: {
+				page: { id: pageId },
+				user: { id: userId },
+			},
+			relations: ['page', 'user'],
+		});
+		return {
+			isMember: !!pageUser,
+			page: pageUser?.page,
+			user: pageUser?.user,
+		};
+	}
+
 	async getPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
-		items: PageEntity[];
+		items: Page[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = await this.pageRepository
@@ -47,7 +73,7 @@ export class PagesService {
 		};
 	}
 
-	async getPageById(user: UserEntity, pageId: Uuid): Promise<PageEntity> {
+	async getPageById(user: User, pageId: Uuid): Promise<Page> {
 		const _error = 'error.page_not_found';
 
 		let page = await this.pageRepository.findOne({
@@ -82,10 +108,10 @@ export class PagesService {
 	}
 
 	async getMyPages(
-		user: UserEntity,
+		user: User,
 		pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<{
-		items: PageEntity[];
+		items: Page[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = this.pageRepository
@@ -111,9 +137,9 @@ export class PagesService {
 
 	@Transactional()
 	async registerPage(
-		user: UserEntity,
+		user: User,
 		registerPageDto: RegisterPageDto,
-	): Promise<PageEntity> {
+	): Promise<Page> {
 		const existingPage = await this.pageRepository.findOne({
 			where: { email: registerPageDto.email },
 		});

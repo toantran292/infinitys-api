@@ -1,7 +1,9 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from '../../users/entities/user.entity';
-import { PageEntity } from '../../pages/entities/page.entity';
+import { User } from '../../users/entities/user.entity';
+import { Page } from '../../pages/entities/page.entity';
+import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
+import { ApplicationProblemEntity } from '../../applications/entities/application.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
 import { Submission } from './submission.entity';
@@ -44,8 +46,8 @@ export class Problem extends AbstractEntity {
 	@AssetField({ multiple: true })
 	testcases!: AssetEntity[];
 
-	@ManyToOne(() => PageEntity, (page) => page.problems, { nullable: true })
-	page?: PageEntity;
+	@ManyToOne(() => Page, (page) => page.problems, { nullable: true })
+	page?: Page;
 
 	@OneToMany(() => ProblemRecruitmentPost, (prp) => prp.problem)
 	problemRecruitmentPosts!: ProblemRecruitmentPost[];

@@ -6,7 +6,7 @@ import {
 	In,
 	Repository,
 } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { Transactional } from 'typeorm-transactional';
 import type { UserRegisterDto } from '../auths/dto/user-register.dto';
@@ -21,24 +21,24 @@ import { CreateAssetDto } from '../assets/dto/create-asset.dto';
 @Injectable()
 export class UsersService {
 	constructor(
-		@InjectRepository(UserEntity)
-		private readonly userRepository: Repository<UserEntity>,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
 
 		private readonly assetsService: AssetsService,
 
 		private readonly friendService: FriendService,
 	) {}
 
-	findAll(option: FindManyOptions<UserEntity>) {
+	findAll(option: FindManyOptions<User>) {
 		return this.userRepository.find(option);
 	}
 
-	findOne(findData: FindOptionsWhere<UserEntity>): Promise<UserEntity | null> {
+	findOne(findData: FindOptionsWhere<User>): Promise<User | null> {
 		return this.userRepository.findOneBy(findData);
 	}
 
 	@Transactional()
-	async createUser(createUserDto: UserRegisterDto): Promise<UserEntity> {
+	async createUser(createUserDto: UserRegisterDto): Promise<User> {
 		const existingUser = await this.findOne({ email: createUserDto.email });
 
 		if (existingUser) {
@@ -53,7 +53,7 @@ export class UsersService {
 	}
 
 	async getUsers(pageOptionsDto: UsersPageOptionsDto): Promise<{
-		items: UserEntity[];
+		items: User[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
@@ -65,10 +65,7 @@ export class UsersService {
 		};
 	}
 
-	async getRawUser(
-		userId: Uuid,
-		options?: { role?: RoleType },
-	): Promise<UserEntity> {
+	async getRawUser(userId: Uuid, options?: { role?: RoleType }): Promise<User> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 
 		queryBuilder.where('user.id = :userId', { userId });
@@ -87,10 +84,10 @@ export class UsersService {
 	}
 
 	async getUser(
-		currentUser: UserEntity,
+		currentUser: User,
 		userId: Uuid,
-		findData?: Omit<FindOptionsWhere<UserEntity>, 'id'>,
-	): Promise<UserEntity> {
+		findData?: Omit<FindOptionsWhere<User>, 'id'>,
+	): Promise<User> {
 		const user = await this.findOne({ id: userId, ...findData });
 
 		await this.assetsService.attachAssetToEntity(user);
@@ -106,7 +103,7 @@ export class UsersService {
 		return user;
 	}
 
-	async getUsersByIds(userIds: Uuid[]): Promise<UserEntity[]> {
+	async getUsersByIds(userIds: Uuid[]): Promise<User[]> {
 		const users = await this.userRepository.find({
 			where: { id: In(userIds) },
 		});
@@ -120,10 +117,7 @@ export class UsersService {
 		return users;
 	}
 
-	async editUserProfile(
-		user: UserEntity,
-		userProfileDto: UpdateUserProfileDto,
-	) {
+	async editUserProfile(user: User, userProfileDto: UpdateUserProfileDto) {
 		this.userRepository.merge(user, userProfileDto);
 
 		const updatedUser = await this.userRepository.save(user);

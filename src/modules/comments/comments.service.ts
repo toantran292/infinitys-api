@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { CommentEntity } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PostEntity } from '../posts/entities/post.entity';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { AssetsService, FileType } from '../assets/assets.service';
 import { Transactional } from 'typeorm-transactional';
 import { PostStatistics } from '../posts/entities/post-statistics.entity';
@@ -20,8 +20,8 @@ export class CommentsService {
 		private readonly commentRepository: Repository<CommentEntity>,
 		@InjectRepository(PostEntity)
 		private readonly postRepository: Repository<PostEntity>,
-		@InjectRepository(UserEntity)
-		private readonly userRepository: Repository<UserEntity>,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
 		@InjectRepository(CommentStatistics)
 		private readonly commentStatisticsRepository: Repository<CommentStatistics>,
 		@InjectRepository(ReactEntity)
@@ -33,7 +33,7 @@ export class CommentsService {
 	) {}
 
 	@Transactional()
-	async createComment(user: UserEntity, createCommentDto: CreateCommentDto) {
+	async createComment(user: User, createCommentDto: CreateCommentDto) {
 		const { content, postId } = createCommentDto;
 
 		const post = await this.postRepository
@@ -97,7 +97,7 @@ export class CommentsService {
 	}
 
 	async getCommentReactStatus(
-		user: UserEntity,
+		user: User,
 		commentId: Uuid,
 	): Promise<ReactStatus> {
 		const comment = await this.commentRepository.findOne({

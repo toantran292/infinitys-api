@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { SendFriendRequestDto } from './dto/create-friend-request.dto';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
@@ -22,7 +22,7 @@ export class FriendController {
 	@Post(':userId')
 	@Auth([RoleType.USER])
 	async sendFriendRequest(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('userId') userId: Uuid,
 	) {
 		return this.friendService.sendFriendRequest(user.id, userId);
@@ -31,7 +31,7 @@ export class FriendController {
 	@Post(':userId/accept')
 	@Auth([RoleType.USER])
 	async acceptFriendRequest(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('userId') userId: Uuid,
 	) {
 		return this.friendService.acceptFriendRequest(user.id, userId);
@@ -40,7 +40,7 @@ export class FriendController {
 	@Post(':userId/reject')
 	@Auth([RoleType.USER])
 	async rejectFriendRequest(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('userId') userId: Uuid,
 	) {
 		return this.friendService.rejectFriendRequest(user.id, userId);
@@ -49,7 +49,7 @@ export class FriendController {
 	@Post(':userId/cancel')
 	@Auth([RoleType.USER])
 	async cancelFriendRequest(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('userId') userId: Uuid,
 	) {
 		return this.friendService.cancelFriendRequest(user.id, userId);
@@ -64,10 +64,7 @@ export class FriendController {
 
 	@Delete(':userId')
 	@Auth([RoleType.USER])
-	async unfriend(
-		@AuthUser() user: UserEntity,
-		@UUIDParam('userId') userId: Uuid,
-	) {
+	async unfriend(@AuthUser() user: User, @UUIDParam('userId') userId: Uuid) {
 		return this.friendService.unfriend(user.id, userId);
 	}
 }

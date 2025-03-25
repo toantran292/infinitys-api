@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { AuthWsUser } from 'src/decoractors/auth-user-ws.decoractors';
 import { AuthWs } from 'src/decoractors/ws.decoractors';
 import { AuthsService } from '../auths/auths.service';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 // import { Notification } from './interfaces/notification.interface';
 
 @WebSocketGateway({
@@ -48,7 +48,7 @@ export class NotificationsGateway
 	@AuthWs()
 	async handleTest(
 		@MessageBody() data: any,
-		@AuthWsUser() user: UserEntity,
+		@AuthWsUser() user: User,
 		@ConnectedSocket() client: Socket,
 	) {
 		console.log(data);

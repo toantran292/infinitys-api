@@ -13,9 +13,9 @@ import { CreateProblemDto } from './dto/create-problem.dto';
 import { ProblemsService } from './problems.service';
 import { Auth, UUIDParam } from 'src/decoractors/http.decorators';
 import { RoleType } from 'src/constants/role-type';
-import { ProblemResponseDto } from './dto/problem-response.dto';
+import { AdminProblemResponseDto } from './dto/problem-response.dto';
 import { ProblemPageOptionDto } from './dto/problem-page-option';
-import { PaginatedProblemsResponseDto } from './dto/list-problems-response.dto';
+import { AdminPaginatedProblemsResponseDto } from './dto/list-problems-response.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 import { DeleteTestcaseDto } from './dto/delete-testcase.dto';
 
@@ -24,7 +24,7 @@ export class ProblemsAdminController {
 	constructor(private readonly problemsService: ProblemsService) {}
 
 	@SerializeOptions({
-		type: ProblemResponseDto,
+		type: AdminProblemResponseDto,
 	})
 	@Post()
 	@Auth([RoleType.ADMIN])
@@ -33,7 +33,7 @@ export class ProblemsAdminController {
 	}
 
 	@SerializeOptions({
-		type: PaginatedProblemsResponseDto,
+		type: AdminPaginatedProblemsResponseDto,
 	})
 	@Get()
 	async getProblems(@Query() pageOptionsDto: ProblemPageOptionDto) {
@@ -42,7 +42,7 @@ export class ProblemsAdminController {
 	}
 
 	@SerializeOptions({
-		type: ProblemResponseDto,
+		type: AdminProblemResponseDto,
 	})
 	@Get(':id')
 	async getProblem(@UUIDParam('id') id: Uuid) {

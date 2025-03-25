@@ -4,7 +4,7 @@ import {
 	Injectable,
 	ForbiddenException,
 } from '@nestjs/common';
-import { UserEntity } from '../modules/users/entities/user.entity';
+import { User } from '../modules/users/entities/user.entity';
 import { RoleType } from '../constants/role-type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,8 +12,8 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class OwnerOrAdminGuard implements CanActivate {
 	constructor(
-		@InjectRepository(UserEntity)
-		private readonly userRepository: Repository<UserEntity>,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {

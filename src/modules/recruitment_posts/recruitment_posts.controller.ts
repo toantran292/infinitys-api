@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { RecruitmentPostsService } from './recruitment_posts.service';
 import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateRecruitmentPostDto } from './dto/create-recruitment-post.dto';
 import { Auth } from 'src/decoractors/http.decorators';
 import { RoleType } from 'src/constants/role-type';
@@ -53,7 +53,7 @@ export class RecruitmentPostsController {
 	@Post()
 	@Auth([RoleType.USER])
 	async createPost(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Body() post: CreateRecruitmentPostDto,
 	) {
 		return this.recruitmentPostsService.createPost(user, post);
@@ -79,7 +79,7 @@ export class RecruitmentPostsController {
 	@Get(':id/applications')
 	@Auth([RoleType.USER])
 	async getApplicationsByPostId(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Param('id') postId: string,
 		@Query() pageOptionsDto: PageOptionsDto,
 	) {

@@ -4,7 +4,7 @@ import { AssetEntity } from '../assets/entities/asset.entity';
 import { ReactEntity } from '../reacts/entities/react.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommentEntity } from '../comments/entities/comment.entity';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { AssetsModule } from '../assets/assets.module';
@@ -17,7 +17,7 @@ import { PostStatistics } from './entities/post-statistics.entity';
 			PostEntity,
 			ReactEntity,
 			CommentEntity,
-			UserEntity,
+			User,
 			AssetEntity,
 			PostStatistics,
 		]),

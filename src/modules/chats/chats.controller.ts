@@ -10,7 +10,7 @@ import { ChatsService } from './chats.service';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateGroupChatDto } from './dto/create-group-chat.dto';
 
 import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
@@ -30,7 +30,7 @@ export class ChatsController {
 	@Post('groups')
 	@Auth([RoleType.USER])
 	async createGroupChat(
-		@AuthUser() admin: UserEntity,
+		@AuthUser() admin: User,
 		@Body() createGroupChatDto: CreateGroupChatDto,
 	) {
 		return this.chatsService.createGroupChat(admin, createGroupChatDto);
@@ -40,7 +40,7 @@ export class ChatsController {
 	@Get('groups')
 	@Auth([RoleType.USER])
 	async getGroupChats(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Query() groupsChatOptionsDto: GroupChatPageOptionsDto,
 	) {
 		return this.chatsService.getGroupChatsByUserId(
@@ -53,7 +53,7 @@ export class ChatsController {
 	@Post('groups/search-by-members')
 	@Auth([RoleType.USER])
 	async searchGroupChatsByMembers(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Body() searchGroupChatsByMembersDto: SearchGroupChatsByMembersDto,
 	) {
 		const groupChat = await this.chatsService.searchGroupChatsByExactMembers(
@@ -70,7 +70,7 @@ export class ChatsController {
 	@Get('groups/:id')
 	@Auth([RoleType.USER])
 	async getGroupChat(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') groupChatId: Uuid,
 	) {
 		const groupChat = await this.chatsService.getGroupChat(
@@ -90,7 +90,7 @@ export class ChatsController {
 	@Get('groups/:id/messages')
 	@Auth([RoleType.USER])
 	async getGroupChatMessages(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') groupChatId: Uuid,
 	) {
 		const messages = await this.chatsService.getGroupChatMessages(

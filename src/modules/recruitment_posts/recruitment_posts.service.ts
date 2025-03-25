@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RecruitmentPostEntity } from './entities/recruitment_post.entity';
 import { CreateRecruitmentPostDto } from './dto/create-recruitment-post.dto';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { PageUserEntity } from '../pages/entities/page-user.entity';
 import { RoleTypePage } from 'src/constants/role-type';
 import { RecruitmentPostDto } from './dto/recruitment-post.dto';
@@ -65,7 +65,7 @@ export class RecruitmentPostsService {
 	}
 
 	async createPost(
-		user: UserEntity,
+		user: User,
 		post: CreateRecruitmentPostDto,
 	): Promise<RecruitmentPostEntity> {
 		const pageUser = await this.pageUserRepo.findOne({
@@ -126,7 +126,7 @@ export class RecruitmentPostsService {
 	}
 
 	async getUserApplications(
-		user: UserEntity,
+		user: User,
 		postId: Uuid,
 		pageOptionsDto: PageOptionsDto,
 	): Promise<[ApplicationEntity[], number]> {
@@ -146,7 +146,7 @@ export class RecruitmentPostsService {
 	}
 
 	async getApplicationsByPostId(
-		user: UserEntity,
+		user: User,
 		postId: string,
 		pageOptionsDto: PageOptionsDto,
 	): Promise<{

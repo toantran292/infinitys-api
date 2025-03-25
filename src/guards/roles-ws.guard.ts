@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 import type { RoleType } from '../constants/role-type';
-import { UserEntity } from '../modules/users/entities/user.entity';
+import { User } from '../modules/users/entities/user.entity';
 import { ROLES } from '../decoractors/roles.decorator';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class RolesWsGuard implements CanActivate {
 			return true;
 		}
 
-		const client = context.switchToWs().getClient<{ user: UserEntity }>();
+		const client = context.switchToWs().getClient<{ user: User }>();
 		const user = client.user;
 
 		return roles.includes(user.role);

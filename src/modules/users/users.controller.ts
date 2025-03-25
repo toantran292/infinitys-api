@@ -12,7 +12,7 @@ import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { RoleType } from '../../constants/role-type';
 import { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { AvatarDto, BannerDto } from './dto/avatar.dto';
 import { FileType } from '../assets/assets.service';
@@ -34,10 +34,7 @@ export class UsersController {
 	})
 	@Get(':id')
 	@Auth([RoleType.USER])
-	async getUser(
-		@AuthUser() currentUser: UserEntity,
-		@UUIDParam('id') userId: Uuid,
-	) {
+	async getUser(@AuthUser() currentUser: User, @UUIDParam('id') userId: Uuid) {
 		const user = await this.usersService.getUser(currentUser, userId);
 
 		return user;
@@ -49,7 +46,7 @@ export class UsersController {
 	@Patch(':id')
 	@Auth([RoleType.USER])
 	async updateProfile(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body() updateProfileDto: UpdateUserProfileDto,
 	) {
@@ -66,7 +63,7 @@ export class UsersController {
 	@Patch(':id/avatar')
 	@Auth([RoleType.USER])
 	async updateAvatar(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body('avatar') avatar: CreateAssetDto,
 	) {
@@ -83,7 +80,7 @@ export class UsersController {
 	@Patch(':id/banner')
 	@Auth([RoleType.USER])
 	async updateBanner(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body('banner') banner: CreateAssetDto,
 	) {

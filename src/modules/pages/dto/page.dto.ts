@@ -1,4 +1,4 @@
-import { PageEntity } from '../entities/page.entity';
+import { Page } from '../entities/page.entity';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { PageStatus } from '../../../constants/page-status';

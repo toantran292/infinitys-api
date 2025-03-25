@@ -7,7 +7,7 @@ import {
 	StringField,
 	StringFieldOptional,
 } from '../../../decoractors/field.decoractors';
-import { UserEntity } from '../entities/user.entity';
+import { User } from '../entities/user.entity';
 import { RoleType } from '../../../constants/role-type';
 import { GenderType } from '../../../constants/gender-type';
 import { AssetEntity } from '../../assets/entities/asset.entity';

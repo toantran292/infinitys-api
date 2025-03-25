@@ -4,7 +4,7 @@ import { PostEntity } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { AssetsService, FileType } from '../assets/assets.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { PostStatistics } from './entities/post-statistics.entity';
 import { ReactsService } from '../reacts/reacts.services';
 import { REACT_TARGET_TYPE } from '../reacts/dto/create-react.dto';
@@ -24,7 +24,7 @@ export class PostsService {
 		private readonly reactsService: ReactsService,
 	) {}
 
-	async createPost(author: UserEntity, createPostDto: CreatePostDto) {
+	async createPost(author: User, createPostDto: CreatePostDto) {
 		const { content } = createPostDto;
 
 		const post = this.postRepository.create({
@@ -78,7 +78,7 @@ export class PostsService {
 		return posts;
 	}
 
-	async react(user: UserEntity, postId: Uuid) {
+	async react(user: User, postId: Uuid) {
 		const post = await this.postRepository.findOne({ where: { id: postId } });
 		if (!post) {
 			throw new NotFoundException('Post not found');
@@ -132,7 +132,7 @@ export class PostsService {
 		return posts;
 	}
 
-	async uploadImages(user: UserEntity, postId: Uuid, images: CreateAssetDto[]) {
+	async uploadImages(user: User, postId: Uuid, images: CreateAssetDto[]) {
 		const post = await this.postRepository.findOne({
 			where: { id: postId, author: { id: user.id } },
 		});

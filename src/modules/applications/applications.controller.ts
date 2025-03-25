@@ -8,7 +8,7 @@ import {
 	SerializeOptions,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { ApplicationEntity } from './entities/application.entity';
 import { AuthUser } from 'src/decoractors/auth-user.decorators';
 import { RoleType, RoleTypePage } from 'src/constants/role-type';
@@ -27,7 +27,7 @@ export class ApplicationsController {
 	@Post()
 	@Auth([RoleType.USER])
 	async createApplication(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Body() body: { jobId: Uuid },
 	): Promise<ApplicationEntity> {
 		return this.applicationsService.createApplication(user, body.jobId);
@@ -39,7 +39,7 @@ export class ApplicationsController {
 	@Get(':id')
 	@Auth([RoleType.USER])
 	async getApplication(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Param('id') id: Uuid,
 	): Promise<ApplicationEntity> {
 		return this.applicationsService.getApplicationById(id, user);

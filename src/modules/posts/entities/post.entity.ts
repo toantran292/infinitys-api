@@ -8,7 +8,7 @@ import {
 	OneToOne,
 	PrimaryColumn,
 } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { PostStatistics } from './post-statistics.entity';
 import { AssetEntity } from 'src/modules/assets/entities/asset.entity';
@@ -18,8 +18,8 @@ export class PostEntity extends AbstractEntity {
 	@Column({ type: 'text' })
 	content!: string;
 
-	@ManyToOne(() => UserEntity, (user) => user.posts)
-	author!: UserEntity;
+	@ManyToOne(() => User, (user) => user.posts)
+	author!: User;
 
 	@OneToMany(() => CommentEntity, (comment) => comment.post, { cascade: true })
 	comments!: CommentEntity[];

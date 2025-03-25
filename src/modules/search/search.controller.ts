@@ -15,7 +15,7 @@ import { CreateSearchDto } from './dto/create-search.dto';
 import { UpdateSearchDto } from './dto/update-search.dto';
 import { Auth } from '../../decoractors/http.decorators';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { SearchPageOptionDto } from './dto/search-page-option.dto';
 import { PaginationListSearchResponseDto } from './dto/list-search-response.dto';
 
@@ -26,10 +26,7 @@ export class SearchController {
 	@SerializeOptions({ type: PaginationListSearchResponseDto })
 	@Get('user')
 	@Auth()
-	searchUser(
-		@AuthUser() user: UserEntity,
-		@Query() query: SearchPageOptionDto,
-	) {
+	searchUser(@AuthUser() user: User, @Query() query: SearchPageOptionDto) {
 		return this.searchService.searchUser(user, query);
 	}
 }

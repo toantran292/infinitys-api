@@ -6,7 +6,7 @@ import { RoleType } from 'src/constants/role-type';
 import { UnauthorizedException } from '@nestjs/common';
 import { Auth } from 'src/decoractors/http.decorators';
 import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Controller('admin_api/auths')
@@ -34,7 +34,7 @@ export class AuthsAdminController {
 	@SerializeOptions({ type: UserResponseDto })
 	@Get('me')
 	@Auth([RoleType.ADMIN])
-	async me(@AuthUser() user: UserEntity) {
+	async me(@AuthUser() user: User) {
 		return user;
 	}
 }

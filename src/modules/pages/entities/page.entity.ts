@@ -5,9 +5,10 @@ import { Problem } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { Participant } from 'src/modules/chats/entities/participant.entity';
 
 @Entity({ name: 'pages' })
-export class PageEntity extends AbstractEntity {
+export class Page extends AbstractEntity {
 	@Column()
 	name!: string;
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FriendEntity } from '../users/entities/friend.entity';
 import { FriendRequestEntity } from '../users/entities/friend-request.entity';
@@ -18,14 +18,11 @@ export class SearchService {
 		private readonly friendRepository: Repository<FriendEntity>,
 		@InjectRepository(FriendRequestEntity)
 		private readonly friendRequestRepository: Repository<FriendRequestEntity>,
-		@InjectRepository(UserEntity)
-		private readonly userRepository: Repository<UserEntity>,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
 	) {}
 
-	async searchUser(
-		currentUser: UserEntity,
-		searchPageOption: SearchPageOptionDto,
-	) {
+	async searchUser(currentUser: User, searchPageOption: SearchPageOptionDto) {
 		if (!searchPageOption.q) return [];
 
 		const [users, pageMeta] = await this.userRepository

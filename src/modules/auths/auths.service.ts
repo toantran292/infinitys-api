@@ -8,7 +8,7 @@ import { ApiConfigService } from '../../shared/services/api-config.service';
 import type { UserLoginDto } from './dto/user-login.dto';
 import { TokenPayloadDto } from './dto/token-payload.dto';
 import { UsersService } from '../users/users.service';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthsService {
@@ -34,7 +34,7 @@ export class AuthsService {
 		};
 	}
 
-	async validateUser(userLoginDto: UserLoginDto): Promise<UserEntity> {
+	async validateUser(userLoginDto: UserLoginDto): Promise<User> {
 		const user = await this.userService.findOne({
 			email: userLoginDto.email,
 		});

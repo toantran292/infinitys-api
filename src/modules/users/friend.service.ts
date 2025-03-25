@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { FriendRequestEntity } from './entities/friend-request.entity';
 import { FriendEntity } from './entities/friend.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -20,8 +20,8 @@ export class FriendService {
 		@InjectRepository(FriendEntity)
 		private friendRepository: Repository<FriendEntity>,
 
-		@InjectRepository(UserEntity)
-		private userRepo: Repository<UserEntity>,
+		@InjectRepository(User)
+		private userRepo: Repository<User>,
 
 		private readonly notificationService: NotificationsService,
 
@@ -169,7 +169,7 @@ export class FriendService {
 		await this.friendRequestRepository.save(friendRequest);
 	}
 
-	async getFriends(userId: Uuid): Promise<UserEntity[]> {
+	async getFriends(userId: Uuid): Promise<User[]> {
 		const friendships = await this.friendRepository
 			.createQueryBuilder('friend')
 			.leftJoinAndSelect('friend.source', 'source')
@@ -201,7 +201,7 @@ export class FriendService {
 		await this.friendRepository.delete(friendship.id);
 	}
 
-	async loadFriendStatuses(currentUser: UserEntity, targets: UserEntity[]) {
+	async loadFriendStatuses(currentUser: User, targets: User[]) {
 		if (targets.length === 0) return;
 		const userIds = targets.map((u) => u.id);
 
@@ -259,7 +259,7 @@ export class FriendService {
 		});
 	}
 
-	async loadFriendStatus(currentUser: UserEntity, target: UserEntity) {
+	async loadFriendStatus(currentUser: User, target: User) {
 		await this.loadFriendStatuses(currentUser, [target]);
 	}
 }

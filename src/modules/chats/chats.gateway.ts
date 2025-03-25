@@ -12,7 +12,7 @@ import { ChatsService } from './chats.service';
 import { AuthsService } from '../auths/auths.service';
 import { AuthWs } from '../../decoractors/ws.decoractors';
 import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/send-message.dto';
 
 /**
@@ -55,7 +55,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleJoinRoom(
 		@MessageBody() room_id: Uuid,
 		@ConnectedSocket() client: Socket,
-		@AuthWsUser() user: UserEntity,
+		@AuthWsUser() user: User,
 	) {
 		const room = await this.chatsService.getGroupChatByIdAndUser(user, room_id);
 
@@ -75,7 +75,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleMessage(
 		@MessageBody() sendMessageDto: SendMessageDto,
 		@ConnectedSocket() client: Socket,
-		@AuthWsUser() user: UserEntity,
+		@AuthWsUser() user: User,
 	) {
 		try {
 			const message = await this.chatsService.sendMessage(
