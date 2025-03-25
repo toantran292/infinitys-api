@@ -7,16 +7,38 @@ import { ApplicationProblemEntity } from '../../applications/entities/applicatio
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
 
+export enum ProblemDifficulty {
+	Easy = 'easy',
+	Medium = 'medium',
+	Hard = 'hard',
+}
+
 @Entity({ name: 'problems' })
-export class ProblemEntity extends AbstractEntity {
+export class Problem extends AbstractEntity {
 	@Column()
 	title!: string;
 
 	@Column()
 	content!: string;
 
-	@AssetField({ multiple: true })
-	images!: AssetEntity[];
+	@Column({
+		type: 'enum',
+		enum: ProblemDifficulty,
+		default: ProblemDifficulty.Easy,
+	})
+	difficulty!: ProblemDifficulty;
+
+	@Column({ default: 1000 })
+	timeLimit!: number;
+
+	@Column({ default: 262144 })
+	memoryLimit!: number;
+
+	@Column({ type: 'jsonb', nullable: true })
+	examples!: object;
+
+	@Column({ type: 'jsonb', nullable: true })
+	constraints!: object;
 
 	@AssetField({ multiple: true })
 	testcases!: AssetEntity[];
@@ -24,20 +46,20 @@ export class ProblemEntity extends AbstractEntity {
 	@ManyToOne(() => PageEntity, (page) => page.problems, { nullable: true })
 	page?: PageEntity;
 
-	@OneToMany(() => ProblemUserEntity, (problemUser) => problemUser.problem)
-	problemUsers!: ProblemUserEntity[];
+	@OneToMany(() => ProblemUser, (problemUser) => problemUser.problem)
+	problemUsers!: ProblemUser[];
 
 	@OneToMany(
-		() => ProblemRecruitmentPostEntity,
+		() => ProblemRecruitmentPost,
 		(problemRecruitmentPost) => problemRecruitmentPost.problem,
 	)
-	problemRecruitmentPosts!: ProblemRecruitmentPostEntity[];
+	problemRecruitmentPosts!: ProblemRecruitmentPost[];
 }
 
 @Entity({ name: 'problems_users' })
-export class ProblemUserEntity extends AbstractEntity {
-	@ManyToOne(() => ProblemEntity, (problem) => problem.problemUsers)
-	problem!: ProblemEntity;
+export class ProblemUser extends AbstractEntity {
+	@ManyToOne(() => Problem, (problem) => problem.problemUsers)
+	problem!: Problem;
 
 	@ManyToOne(() => UserEntity, (user) => user.problemUsers)
 	user!: UserEntity;
@@ -47,9 +69,9 @@ export class ProblemUserEntity extends AbstractEntity {
 }
 
 @Entity({ name: 'problems_recruitment_posts' })
-export class ProblemRecruitmentPostEntity extends AbstractEntity {
-	@ManyToOne(() => ProblemEntity, (problem) => problem.problemRecruitmentPosts)
-	problem!: ProblemEntity;
+export class ProblemRecruitmentPost extends AbstractEntity {
+	@ManyToOne(() => Problem, (problem) => problem.problemRecruitmentPosts)
+	problem!: Problem;
 
 	@ManyToOne(
 		() => RecruitmentPostEntity,

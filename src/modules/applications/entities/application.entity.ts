@@ -9,7 +9,7 @@ import {
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
-import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.entity';
+import { ProblemRecruitmentPost } from '../../problems/entities/problem.entity';
 
 @Entity({ name: 'applications' })
 @Index(['userId', 'recruitmentPostId'], { unique: true })
@@ -50,10 +50,10 @@ export class ApplicationProblemEntity extends AbstractEntity {
 	application!: ApplicationEntity;
 
 	@ManyToOne(
-		() => ProblemRecruitmentPostEntity,
+		() => ProblemRecruitmentPost,
 		(problem) => problem.applicationProblems,
 	)
-	problem!: ProblemRecruitmentPostEntity;
+	problem!: ProblemRecruitmentPost;
 
 	@Column({ type: 'jsonb', nullable: true })
 	result!: object;

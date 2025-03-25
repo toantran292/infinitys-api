@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProblemDto } from './dto/create-problem.dto';
-import { ProblemEntity } from './entities/problem.entity';
+import { Problem } from './entities/problem.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AssetsService, FileType } from 'src/modules/assets/assets.service';
@@ -13,23 +13,36 @@ import { DeleteTestcaseDto } from './dto/delete-testcase.dto';
 @Injectable()
 export class ProblemsService {
 	constructor(
-		@InjectRepository(ProblemEntity)
-		private problemRepository: Repository<ProblemEntity>,
+		@InjectRepository(Problem)
+		private problemRepository: Repository<Problem>,
 
 		private readonly assetsService: AssetsService,
 	) {}
 
 	async createProblem(createProblemDto: CreateProblemDto) {
-		const { content, title } = createProblemDto;
+		const {
+			content,
+			title,
+			difficulty,
+			timeLimit,
+			memoryLimit,
+			examples,
+			constraints,
+		} = createProblemDto;
 
 		const problem = this.problemRepository.create({
 			content,
 			title,
+			difficulty,
+			timeLimit,
+			memoryLimit,
+			examples,
+			constraints,
 		});
 
 		const savedProblem = await this.problemRepository.save(problem);
 
-		const fieldToAddAssets = getAssetFields(ProblemEntity);
+		const fieldToAddAssets = getAssetFields(Problem);
 		for (const field of fieldToAddAssets) {
 			if (createProblemDto[field.propertyKey]) {
 				await this.assetsService.addAssetsToEntity(
@@ -46,7 +59,15 @@ export class ProblemsService {
 	}
 
 	async updateProblem(id: Uuid, updateProblemDto: UpdateProblemDto) {
-		const { content, title } = updateProblemDto;
+		const {
+			content,
+			title,
+			difficulty,
+			timeLimit,
+			memoryLimit,
+			examples,
+			constraints,
+		} = updateProblemDto;
 
 		const problem = await this.problemRepository.findOne({
 			where: { id },
@@ -58,6 +79,11 @@ export class ProblemsService {
 
 		problem.content = content;
 		problem.title = title;
+		problem.difficulty = difficulty;
+		problem.timeLimit = timeLimit;
+		problem.memoryLimit = memoryLimit;
+		problem.examples = examples;
+		problem.constraints = constraints;
 
 		await this.problemRepository.save(problem);
 
@@ -84,12 +110,15 @@ export class ProblemsService {
 
 	async getProblems(
 		pageOptionsDto: ProblemPageOptionDto,
-	): Promise<{ items: ProblemEntity[]; meta: PageMetaDto }> {
+		attachAssets: boolean = true,
+	): Promise<{ items: Problem[]; meta: PageMetaDto }> {
 		const [items, pageMeta] = await this.problemRepository
 			.createQueryBuilder('problem')
 			.paginate(pageOptionsDto);
 
-		await this.assetsService.attachAssetToEntities(items);
+		if (attachAssets) {
+			await this.assetsService.attachAssetToEntities(items);
+		}
 
 		return {
 			items,
@@ -97,12 +126,14 @@ export class ProblemsService {
 		};
 	}
 
-	async getProblem(problemId: Uuid) {
+	async getProblem(problemId: Uuid, attachAssets: boolean = true) {
 		const problem = await this.problemRepository.findOne({
 			where: { id: problemId },
 		});
 
-		await this.assetsService.attachAssetToEntity(problem);
+		if (attachAssets) {
+			await this.assetsService.attachAssetToEntity(problem);
+		}
 
 		return {
 			...problem,
@@ -110,7 +141,7 @@ export class ProblemsService {
 		};
 	}
 
-	private transformTestcases(problem: ProblemEntity) {
+	private transformTestcases(problem: Problem) {
 		const testcaseGroups = new Map<
 			string,
 			{ input?: AssetEntity; output?: AssetEntity }

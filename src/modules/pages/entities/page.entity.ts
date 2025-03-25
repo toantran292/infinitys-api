@@ -1,7 +1,7 @@
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { PageUserEntity } from './page-user.entity';
-import { ProblemEntity } from '../../problems/entities/problem.entity';
+import { Problem } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
@@ -33,8 +33,8 @@ export class PageEntity extends AbstractEntity {
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.page)
 	pageUsers!: PageUserEntity[];
 
-	@OneToMany(() => ProblemEntity, (problem) => problem.page)
-	problems!: ProblemEntity[];
+	@OneToMany(() => Problem, (problem) => problem.page)
+	problems!: Problem[];
 
 	admin_user_id?: Uuid;
 }
