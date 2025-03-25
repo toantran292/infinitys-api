@@ -10,7 +10,7 @@ import {
 	GroupChatMemberEntity,
 	GroupChatMessageEntity,
 } from '../../chats/entities/chat.entity';
-import { ProblemUserEntity } from '../../problems/entities/problem.entity';
+import { ProblemUser } from '../../problems/entities/problem.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { FriendEntity } from './friend.entity';
 import { FriendRequestEntity } from './friend-request.entity';
@@ -104,6 +104,6 @@ export class UserEntity extends AbstractEntity {
 	)
 	groupChatMessages!: GroupChatMessageEntity[];
 
-	@OneToMany(() => ProblemUserEntity, (problemUser) => problemUser.user)
-	problemUsers!: ProblemUserEntity[];
+	@OneToMany(() => ProblemUser, (problemUser) => problemUser.user)
+	problemUsers!: ProblemUser[];
 }

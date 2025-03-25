@@ -2,7 +2,7 @@ import { AbstractEntity } from '../../../common/abstract.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
-import { ProblemRecruitmentPostEntity } from '../../problems/entities/problem.entity';
+import { ProblemRecruitmentPost } from '../../problems/entities/problem.entity';
 
 @Entity('recruitment_posts')
 export class RecruitmentPostEntity extends AbstractEntity {
@@ -37,8 +37,8 @@ export class RecruitmentPostEntity extends AbstractEntity {
 	applications!: ApplicationEntity[];
 
 	@OneToMany(
-		() => ProblemRecruitmentPostEntity,
+		() => ProblemRecruitmentPost,
 		(problemRecruitmentPost) => problemRecruitmentPost.recruitmentPost,
 	)
-	problems!: ProblemRecruitmentPostEntity[];
+	problems!: ProblemRecruitmentPost[];
 }
