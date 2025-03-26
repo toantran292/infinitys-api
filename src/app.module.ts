@@ -20,7 +20,7 @@ import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { SearchModule } from './modules/search/search.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 @Module({
 	imports: [
 		ClsModule.forRoot({
@@ -62,6 +62,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 		AuthsModule,
 		SearchModule,
 		NotificationsModule,
+		WebhooksModule,
 	],
 	controllers: [],
 	providers: [],

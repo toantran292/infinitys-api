@@ -24,6 +24,38 @@ export class TestcaseResponseDto extends AbstractDto {
 	output: InOutResponseDto | null;
 }
 
+export class ProblemStatisticsDto {
+	@Expose()
+	totalSubmissions: number;
+
+	@Expose()
+	totalAccepted: number;
+}
+
+export class UserProblemStatusDto {
+	@Expose()
+	attempted: boolean;
+
+	@Expose()
+	solved: boolean;
+
+	@Expose()
+	submissions: {
+		total: number;
+		accepted: number;
+		wrongAnswer: number;
+		timeLimitExceeded: number;
+		runtimeError: number;
+		compilationError: number;
+	};
+
+	@Expose()
+	bestSubmission: {
+		runtime: number;
+		memory: number;
+	} | null;
+}
+
 export class ProblemResponseDto extends ListProblemsResponseDto {
 	@Expose()
 	@Type(() => AssetResponseDto)
@@ -32,4 +64,12 @@ export class ProblemResponseDto extends ListProblemsResponseDto {
 	@Expose()
 	@Type(() => TestcaseResponseDto)
 	testcases: TestcaseResponseDto[];
+
+	@Expose()
+	@Type(() => ProblemStatisticsDto)
+	statistics: ProblemStatisticsDto;
+
+	@Expose()
+	@Type(() => UserProblemStatusDto)
+	userStatus: UserProblemStatusDto | null;
 }

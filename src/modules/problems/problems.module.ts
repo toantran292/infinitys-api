@@ -3,11 +3,24 @@ import { ProblemsService } from './problems.service';
 import { ProblemsController } from './problems.controller';
 import { ProblemsAdminController } from './problems.admin.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Problem } from './entities/problem.entity';
+import {
+	Problem,
+	Submission,
+	SubmissionSummary,
+	ProblemRecruitmentPost,
+} from './entities';
 import { AssetsModule } from 'src/modules/assets/assets.module';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([Problem]), AssetsModule],
+	imports: [
+		TypeOrmModule.forFeature([
+			Problem,
+			Submission,
+			SubmissionSummary,
+			ProblemRecruitmentPost,
+		]),
+		AssetsModule,
+	],
 	controllers: [ProblemsController, ProblemsAdminController],
 	providers: [ProblemsService],
 	exports: [ProblemsService],

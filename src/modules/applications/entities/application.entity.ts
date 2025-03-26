@@ -9,7 +9,7 @@ import {
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
-import { ProblemRecruitmentPost } from '../../problems/entities/problem.entity';
+import { ProblemRecruitmentPost } from '../../problems/entities';
 
 @Entity({ name: 'applications' })
 @Index(['userId', 'recruitmentPostId'], { unique: true })

@@ -6,12 +6,13 @@ import { ApiConfigService } from './services/api-config.service';
 import { AwsS3Service } from './services/aws-s3.service';
 import { GeneratorService } from './services/generator.service';
 import { ValidatorService } from './services/validator.service';
-
+import { OJService } from './services/oj.service';
 const providers: Provider[] = [
 	ApiConfigService,
 	ValidatorService,
 	AwsS3Service,
 	GeneratorService,
+	OJService,
 ];
 
 @Global()
