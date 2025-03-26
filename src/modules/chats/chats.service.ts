@@ -237,6 +237,12 @@ export class ChatsService {
 				isUnread: lastMsgId && lastMsgId !== readTo,
 			};
 		});
+		await this.assetsService.attachAssetToEntities(
+			conversations.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversations.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+		);
 
 		return {
 			items: result,
@@ -289,7 +295,12 @@ export class ChatsService {
 				isUnread: lastMsgId && lastMsgId !== readTo,
 			};
 		});
-
+		await this.assetsService.attachAssetToEntities(
+			conversations.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversations.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+		);
 		return {
 			conversations: result,
 			hasMore,
@@ -341,7 +352,7 @@ export class ChatsService {
 		const messages = await qb.getMany();
 		const hasMore = messages.length > limit;
 		const trimmed = hasMore ? messages.slice(0, limit) : messages;
-
+		await this.assetsService.attachAssetToEntities(trimmed.map(m=>m.senderUser));
 		return {
 			items: trimmed.reverse(),
 			hasMore,
@@ -364,6 +375,7 @@ export class ChatsService {
 	}
 
 	async markAsRead(conversationId: Uuid, userId: Uuid, messageId: Uuid) {
+		console.log({ conversationId, userId, messageId });
 		const [conversation, user, message] = await Promise.all([
 			this.convRepo.findOneBy({ id: conversationId }),
 			this.usersService.findOne({ id: userId }),

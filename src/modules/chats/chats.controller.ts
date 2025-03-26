@@ -181,12 +181,12 @@ export class ChatsController {
 	// 		user.id,
 	// 		groupChatId,
 	// 	);
-
+	//
 	// 	if (!groupChat)
 	// 		throw new ForbiddenException(
 	// 			'You not have permission to retrieve message of this group',
 	// 		);
-
+	//
 	// 	return groupChat;
 	// }
 

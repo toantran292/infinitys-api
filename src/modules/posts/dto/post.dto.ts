@@ -1,7 +1,10 @@
 import { UserDto } from 'src/modules/users/dto/user.dto';
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { Expose, Transform, Type } from 'class-transformer';
-import { AssetResponseDto, UserResponseDto } from 'src/modules/users/dto/user-response.dto';
+import {
+	AssetResponseDto,
+	UserResponseDto,
+} from 'src/modules/users/dto/user-response.dto';
 
 export type PostDtoOptions = {};
 
@@ -39,4 +42,3 @@ export class PostDto extends AbstractDto {
 	@Type(() => AssetResponseDto)
 	images: AssetResponseDto[];
 }
-
