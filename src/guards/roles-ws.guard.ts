@@ -1,10 +1,11 @@
-import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import type { RoleType } from '../constants/role-type';
-import { User } from '../modules/users/entities/user.entity';
 import { ROLES } from '../decoractors/roles.decorator';
+import { User } from '../modules/users/entities/user.entity';
+
+import type { RoleType } from '../constants/role-type';
+import type { CanActivate, ExecutionContext } from '@nestjs/common';
 
 @Injectable()
 export class RolesWsGuard implements CanActivate {

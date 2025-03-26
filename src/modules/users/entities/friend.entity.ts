@@ -1,5 +1,7 @@
 import { Entity, ManyToOne } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
+
 import { User } from './user.entity';
 
 @Entity({ name: 'friends' })

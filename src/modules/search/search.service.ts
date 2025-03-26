@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FriendEntity } from '../users/entities/friend.entity';
-import { FriendRequestEntity } from '../users/entities/friend-request.entity';
-import { FriendService } from '../users/friend.service';
-import { SearchPageOptionDto } from './dto/search-page-option.dto';
+import { Repository } from 'typeorm';
+
 import { AssetsService } from '../assets/assets.service';
+import { FriendRequestEntity } from '../users/entities/friend-request.entity';
+import { FriendEntity } from '../users/entities/friend.entity';
+import { User } from '../users/entities/user.entity';
+import { FriendService } from '../users/friend.service';
+import { UsersService } from '../users/users.service';
+
+import { SearchPageOptionDto } from './dto/search-page-option.dto';
+
 @Injectable()
 export class SearchService {
 	constructor(

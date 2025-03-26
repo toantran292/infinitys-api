@@ -1,10 +1,11 @@
-import type { ValidationOptions } from 'class-validator';
 import {
 	IsPhoneNumber as isPhoneNumber,
 	registerDecorator,
 	ValidateIf,
 } from 'class-validator';
 import _ from 'lodash';
+
+import type { ValidationOptions } from 'class-validator';
 
 export function IsPassword(
 	validationOptions?: ValidationOptions,

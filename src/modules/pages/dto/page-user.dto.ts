@@ -1,10 +1,10 @@
-import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { EnumFieldOptional } from '../../../decoractors/field.decoractors';
-import { RoleTypePage } from '../../../constants/role-type';
-import { PageUserEntity } from '../entities/page-user.entity';
-import { PageDto } from './page.dto';
 import { Expose, Type } from 'class-transformer';
-import { UserResponseDto } from 'src/modules/users/dto/user-response.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { RoleTypePage } from '../../../constants/role-type';
+import { EnumFieldOptional } from '../../../decoractors/field.decoractors';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
+
 import { PageResponseDto } from './page-response.dto';
 export type PageUserDtoOptions = Partial<{}>;
 

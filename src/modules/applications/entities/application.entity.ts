@@ -6,10 +6,11 @@ import {
 	ManyToOne,
 	OneToMany,
 } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { User } from '../../users/entities/user.entity';
-import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
 import { ProblemRecruitmentPost } from '../../problems/entities';
+import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'applications' })
 @Index(['userId', 'recruitmentPostId'], { unique: true })

@@ -1,18 +1,13 @@
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
-import {
-	Column,
-	Entity,
-	JoinColumn,
-	ManyToOne,
-	OneToMany,
-	OneToOne,
-	PrimaryColumn,
-} from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { CommentEntity } from '../../comments/entities/comment.entity';
-import { PostStatistics } from './post-statistics.entity';
-import { AssetEntity } from 'src/modules/assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { CommentEntity } from '../../comments/entities/comment.entity';
+import { User } from '../../users/entities/user.entity';
+
+import { PostStatistics } from './post-statistics.entity';
+
 @Entity({ name: 'posts' })
 export class PostEntity extends AbstractEntity {
 	@Column({ type: 'text' })

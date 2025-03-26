@@ -1,4 +1,4 @@
-import { UUIDFieldOptional } from 'src/decoractors/field.decoractors';
+import { UUIDFieldOptional } from '../../../decoractors/field.decoractors';
 
 export class DeleteTestcaseDto {
 	@UUIDFieldOptional()

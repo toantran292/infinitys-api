@@ -1,5 +1,6 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { UUIDField } from 'src/decoractors/field.decoractors';
+import { IsEnum, IsNotEmpty } from 'class-validator';
+
+import { UUIDField } from '../../../decoractors/field.decoractors';
 
 export enum REACT_TARGET_TYPE {
 	POST = 'posts',

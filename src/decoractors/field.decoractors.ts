@@ -1,5 +1,4 @@
 import { applyDecorators } from '@nestjs/common';
-import type { ApiPropertyOptions } from '@nestjs/swagger';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -22,7 +21,6 @@ import {
 	ValidateNested,
 } from 'class-validator';
 
-import type { Constructor } from '../types';
 import { ApiEnumProperty, ApiUUIDProperty } from './property.decorators';
 import {
 	PhoneNumberSerializer,
@@ -38,6 +36,9 @@ import {
 	IsTmpKey as IsTemporaryKey,
 	IsUndefinable,
 } from './validator.decorators';
+
+import type { Constructor } from '../types';
+import type { ApiPropertyOptions } from '@nestjs/swagger';
 
 interface IFieldOptions {
 	each?: boolean;

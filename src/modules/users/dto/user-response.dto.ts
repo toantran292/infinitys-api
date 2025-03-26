@@ -1,7 +1,8 @@
 import { Expose, Type } from 'class-transformer';
-import { RoleType } from '../../../constants/role-type';
-import { GenderType } from '../../../constants/gender-type';
+
 import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { GenderType } from '../../../constants/gender-type';
+import { RoleType } from '../../../constants/role-type';
 
 export class AssetResponseDto {
 	@Expose()

@@ -1,10 +1,9 @@
-import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { CommentEntity } from '../entities/comment.entity';
-import { UserDto } from '../../users/dto/user.dto';
-import { IsNotEmpty, IsString } from 'class-validator';
-import { StringField } from '../../../decoractors/field.decoractors';
 import { Expose, Transform, Type } from 'class-transformer';
-import { UserResponseDto } from 'src/modules/users/dto/user-response.dto';
+import { IsNotEmpty } from 'class-validator';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { StringField } from '../../../decoractors/field.decoractors';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 export type CommentDtoOptions = {};
 

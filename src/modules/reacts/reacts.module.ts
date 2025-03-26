@@ -1,14 +1,16 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReactEntity } from './entities/react.entity';
+
+import { CommentsModule } from '../comments/comments.module';
+import { CommentEntity } from '../comments/entities/comment.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { PostEntity } from '../posts/entities/post.entity';
 import { User } from '../users/entities/user.entity';
+
+import { ReactEntity } from './entities/react.entity';
 import { ReactsController } from './reacts.controller';
 import { ReactsService } from './reacts.services';
-import { CommentsModule } from '../comments/comments.module';
-import { PostsModule } from '../posts/posts.module';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { CommentEntity } from '../comments/entities/comment.entity';
+
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([ReactEntity, PostEntity, User, CommentEntity]),

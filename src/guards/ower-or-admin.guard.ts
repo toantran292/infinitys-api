@@ -4,10 +4,11 @@ import {
 	Injectable,
 	ForbiddenException,
 } from '@nestjs/common';
-import { User } from '../modules/users/entities/user.entity';
-import { RoleType } from '../constants/role-type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { RoleType } from '../constants/role-type';
+import { User } from '../modules/users/entities/user.entity';
 
 @Injectable()
 export class OwnerOrAdminGuard implements CanActivate {

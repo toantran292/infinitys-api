@@ -5,14 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { UsersService } from '../users/users.service';
 import { Transactional } from 'typeorm-transactional';
+
 import { AssetsService } from '../assets/assets.service';
+import { PagesService } from '../pages/pages.service';
+import { UsersService } from '../users/users.service';
+
 import { ConversationReadStatus } from './entities/conversation-read-status.entity';
+import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { Participant } from './entities/participant.entity';
-import { Conversation } from './entities/conversation.entity';
-import { PagesService } from '../pages/pages.service';
+
 @Injectable()
 export class ChatsService {
 	constructor(
@@ -238,10 +241,14 @@ export class ChatsService {
 			};
 		});
 		await this.assetsService.attachAssetToEntities(
-			conversations.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.user))
+				.filter(Boolean),
 		);
 		await this.assetsService.attachAssetToEntities(
-			conversations.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.page))
+				.filter(Boolean),
 		);
 
 		return {
@@ -296,10 +303,14 @@ export class ChatsService {
 			};
 		});
 		await this.assetsService.attachAssetToEntities(
-			conversations.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.user))
+				.filter(Boolean),
 		);
 		await this.assetsService.attachAssetToEntities(
-			conversations.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.page))
+				.filter(Boolean),
 		);
 		return {
 			conversations: result,
@@ -352,7 +363,9 @@ export class ChatsService {
 		const messages = await qb.getMany();
 		const hasMore = messages.length > limit;
 		const trimmed = hasMore ? messages.slice(0, limit) : messages;
-		await this.assetsService.attachAssetToEntities(trimmed.map(m=>m.senderUser));
+		await this.assetsService.attachAssetToEntities(
+			trimmed.map((m) => m.senderUser),
+		);
 		return {
 			items: trimmed.reverse(),
 			hasMore,

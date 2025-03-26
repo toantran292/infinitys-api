@@ -5,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ApplicationEntity } from './entities/application.entity';
-import { User } from '../users/entities/user.entity';
+
 import { RecruitmentPostEntity } from '../recruitment_posts/entities/recruitment_post.entity';
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
-import { PageDto } from 'src/common/dto/page.dto';
+import { User } from '../users/entities/user.entity';
+
+import { ApplicationEntity } from './entities/application.entity';
 
 @Injectable()
 export class ApplicationsService {

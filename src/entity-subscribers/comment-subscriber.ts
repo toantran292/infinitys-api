@@ -1,11 +1,12 @@
-import { CommentEntity } from 'src/modules/comments/entities/comment.entity';
-import { PostStatistics } from 'src/modules/posts/entities/post-statistics.entity';
 import {
 	EntitySubscriberInterface,
 	EventSubscriber,
 	InsertEvent,
 	RemoveEvent,
 } from 'typeorm';
+
+import { CommentEntity } from '../modules/comments/entities/comment.entity';
+import { PostStatistics } from '../modules/posts/entities/post-statistics.entity';
 
 @EventSubscriber()
 export class CommentSubscriber

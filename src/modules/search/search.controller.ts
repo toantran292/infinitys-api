@@ -1,23 +1,12 @@
-import {
-	Controller,
-	Get,
-	Post,
-	Body,
-	Patch,
-	Param,
-	Delete,
-	Req,
-	Query,
-	SerializeOptions,
-} from '@nestjs/common';
-import { SearchService } from './search.service';
-import { CreateSearchDto } from './dto/create-search.dto';
-import { UpdateSearchDto } from './dto/update-search.dto';
-import { Auth } from '../../decoractors/http.decorators';
+import { Controller, Get, Query, SerializeOptions } from '@nestjs/common';
+
 import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth } from '../../decoractors/http.decorators';
 import { User } from '../users/entities/user.entity';
-import { SearchPageOptionDto } from './dto/search-page-option.dto';
+
 import { PaginationListSearchResponseDto } from './dto/list-search-response.dto';
+import { SearchPageOptionDto } from './dto/search-page-option.dto';
+import { SearchService } from './search.service';
 
 @Controller('search')
 export class SearchController {

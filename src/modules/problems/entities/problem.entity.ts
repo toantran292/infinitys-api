@@ -1,14 +1,13 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { User } from '../../users/entities/user.entity';
-import { Page } from '../../pages/entities/page.entity';
-import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
-import { ApplicationProblemEntity } from '../../applications/entities/application.entity';
-import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
-import { Submission } from './submission.entity';
-import { SubmissionSummary } from './submission-summary.entity';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { Page } from '../../pages/entities/page.entity';
+
 import { ProblemRecruitmentPost } from './problem-recruitment-post.entity';
+import { SubmissionSummary } from './submission-summary.entity';
+import { Submission } from './submission.entity';
 
 export enum ProblemDifficulty {
 	Easy = 'easy',

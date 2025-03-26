@@ -1,4 +1,6 @@
 import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { GenderType } from '../../../constants/gender-type';
+import { RoleType } from '../../../constants/role-type';
 import {
 	BooleanFieldOptional,
 	DateFieldOptional,
@@ -7,10 +9,6 @@ import {
 	StringField,
 	StringFieldOptional,
 } from '../../../decoractors/field.decoractors';
-import { User } from '../entities/user.entity';
-import { RoleType } from '../../../constants/role-type';
-import { GenderType } from '../../../constants/gender-type';
-import { AssetEntity } from '../../assets/entities/asset.entity';
 export type UserDtoOptions = Partial<{ isActive: boolean }>;
 
 export class UserAvatarDto extends AbstractDto {

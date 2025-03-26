@@ -8,16 +8,19 @@ import {
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { PagesService } from './pages.service';
-import { RegisterPageDto } from './dto/create-page.dto';
+
 import { RoleType } from '../../constants/role-type';
-import { Auth } from '../../decoractors/http.decorators';
-import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import type { User } from '../users/entities/user.entity';
+import { Auth } from '../../decoractors/http.decorators';
 import { AvatarDto } from '../users/dto/avatar.dto';
+
+import { RegisterPageDto } from './dto/create-page.dto';
 import { PaginationPageResponseDto } from './dto/list-page-response.dto';
+import { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { PageResponseDto } from './dto/page-response.dto';
+import { PagesService } from './pages.service';
+
+import type { User } from '../users/entities/user.entity';
 @Controller('api/pages')
 export class PagesController {
 	constructor(private readonly pagesService: PagesService) {}

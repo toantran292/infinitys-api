@@ -1,5 +1,4 @@
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { RecruitmentPostEntity } from '../entities/recruitment_post.entity';
 import {
 	StringField,
 	BooleanField,

@@ -1,7 +1,7 @@
 import { Column, Entity, Generated, Index, ManyToOne } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { User } from '../../users/entities/user.entity';
-import { PostEntity } from '../../posts/entities/post.entity';
 
 @Entity({ name: 'reacts' })
 @Index(['targetId', 'targetType', 'userId'], { unique: true })

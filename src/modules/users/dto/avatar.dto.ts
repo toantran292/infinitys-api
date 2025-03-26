@@ -2,7 +2,6 @@ import {
 	NumberField,
 	StringField,
 } from '../../../decoractors/field.decoractors';
-import { FileType } from '../../assets/assets.service';
 //
 // {
 // 	"avatar": {

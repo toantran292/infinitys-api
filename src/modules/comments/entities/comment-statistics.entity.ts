@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+
 import { CommentEntity } from './comment.entity';
 
 @Entity('comment_statistics')

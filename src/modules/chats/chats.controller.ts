@@ -6,11 +6,13 @@ import {
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { ChatsService } from './chats.service';
-import { Auth } from 'src/decoractors/http.decorators';
-import { RoleType } from 'src/constants/role-type';
+
+import { RoleType } from '../../constants/role-type';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth } from '../../decoractors/http.decorators';
 import { User } from '../users/entities/user.entity';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
+
+import { ChatsService } from './chats.service';
 import { CursorConversationResponseDto } from './dto/conversations-response.dto';
 import { CursorMessageResponseDto } from './dto/message-response.dto';
 @Controller('api/chats')

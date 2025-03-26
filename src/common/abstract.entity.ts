@@ -3,6 +3,7 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
+
 import { getEntityTypeFromInstance } from './utils';
 
 export abstract class AbstractEntity {

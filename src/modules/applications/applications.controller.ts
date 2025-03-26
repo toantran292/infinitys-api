@@ -4,18 +4,17 @@ import {
 	Body,
 	Get,
 	Param,
-	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { ApplicationsService } from './applications.service';
+
+import { RoleType } from '../../constants/role-type';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth } from '../../decoractors/http.decorators';
 import { User } from '../users/entities/user.entity';
-import { ApplicationEntity } from './entities/application.entity';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { RoleType, RoleTypePage } from 'src/constants/role-type';
-import { Auth } from 'src/decoractors/http.decorators';
-import { PageDto } from 'src/common/dto/page.dto';
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+
+import { ApplicationsService } from './applications.service';
 import { ApplicationResponseDto } from './dtos/application-response.dto';
+import { ApplicationEntity } from './entities/application.entity';
 
 @Controller('api/applications')
 export class ApplicationsController {

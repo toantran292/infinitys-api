@@ -1,6 +1,8 @@
-import { AbstractDto } from 'src/common/dto/abstract.dto';
 import { Expose, Type } from 'class-transformer';
-import { PageDto } from 'src/common/dto/page.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { PageDto } from '../../../common/dto/page.dto';
+
 import { TestcaseResponseDto } from './testcase-response.dto';
 export class AdminListProblemsResponseDto extends AbstractDto {
 	@Expose()

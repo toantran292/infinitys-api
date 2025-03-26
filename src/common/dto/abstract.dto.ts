@@ -1,5 +1,6 @@
-import { DateField, UUIDField } from '../../decoractors/field.decoractors';
 import { Expose } from 'class-transformer';
+
+import { DateField, UUIDField } from '../../decoractors/field.decoractors';
 export class AbstractDto {
 	@Expose()
 	@UUIDField()

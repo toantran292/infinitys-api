@@ -1,14 +1,14 @@
-import { IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsArray, IsOptional, ValidateNested, IsString } from 'class-validator';
+
 import {
 	EnumField,
 	NumberField,
 	StringField,
 	StringFieldOptional,
-} from 'src/decoractors/field.decoractors';
-import { CreateAssetDto } from 'src/modules/assets/dto/create-asset.dto';
+} from '../../../decoractors/field.decoractors';
+import { CreateAssetDto } from '../../assets/dto/create-asset.dto';
 import { ProblemDifficulty } from '../entities/problem.entity';
-import { IsString } from 'class-validator';
 
 export class ExampleDto {
 	@StringField()

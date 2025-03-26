@@ -7,17 +7,18 @@ import {
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+
 import { RoleType } from '../../constants/role-type';
-import { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { User } from './entities/user.entity';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { AvatarDto, BannerDto } from './dto/avatar.dto';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { FileType } from '../assets/assets.service';
-import { UserResponseDto } from './dto/user-response.dto';
 import { CreateAssetDto } from '../assets/dto/create-asset.dto';
+
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UsersPageOptionsDto } from './dto/user-page-options.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { User } from './entities/user.entity';
+import { UsersService } from './users.service';
 
 @Controller('api/users')
 export class UsersController {

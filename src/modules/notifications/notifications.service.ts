@@ -1,11 +1,12 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NotificationEntity } from './entities/notifications.entity';
-import { Repository } from 'typeorm';
-import { NotificationsGateway } from './notifications.gateway';
-import { QueueNames } from '../queues/queues';
-import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Repository } from 'typeorm';
+
+import { QueueNames } from '../queues/queues';
+
+import { NotificationEntity } from './entities/notifications.entity';
 
 export interface NotificationData {
 	userId: string;

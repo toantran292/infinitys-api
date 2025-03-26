@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
-import { ProblemsService } from './problems.service';
-import { ProblemsController } from './problems.controller';
-import { ProblemsAdminController } from './problems.admin.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AssetsModule } from '../assets/assets.module';
+
 import {
 	Problem,
 	Submission,
 	SubmissionSummary,
 	ProblemRecruitmentPost,
 } from './entities';
-import { AssetsModule } from 'src/modules/assets/assets.module';
+import { ProblemsAdminController } from './problems.admin.controller';
+import { ProblemsController } from './problems.controller';
+import { ProblemsService } from './problems.service';
 
 @Module({
 	imports: [

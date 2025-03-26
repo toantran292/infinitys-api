@@ -1,19 +1,21 @@
 import { Column, Entity, OneToMany } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
+import { GenderType } from '../../../constants/gender-type';
 import { RoleType } from '../../../constants/role-type';
+import { AssetField } from '../../../decoractors/asset.decoractor';
+import { ApplicationEntity } from '../../applications/entities/application.entity';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { Participant } from '../../chats/entities/participant.entity';
+import { CommentEntity } from '../../comments/entities/comment.entity';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
-import { ReactEntity } from '../../reacts/entities/react.entity';
-import { CommentEntity } from '../../comments/entities/comment.entity';
-import { ApplicationEntity } from '../../applications/entities/application.entity';
-
-import { AssetEntity } from '../../assets/entities/asset.entity';
-import { FriendEntity } from './friend.entity';
-import { FriendRequestEntity } from './friend-request.entity';
-import { GenderType } from '../../../constants/gender-type';
-import { AssetField } from '../../../decoractors/asset.decoractor';
 import { SubmissionSummary, Submission } from '../../problems/entities';
-import { Participant } from '../../chats/entities/participant.entity';
+import { ReactEntity } from '../../reacts/entities/react.entity';
+
+import { FriendRequestEntity } from './friend-request.entity';
+import { FriendEntity } from './friend.entity';
+
 @Entity({ name: 'users' })
 export class User extends AbstractEntity {
 	@Column()

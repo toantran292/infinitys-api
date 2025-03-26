@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+
 import { PageMetaDto } from './page-meta.dto';
 export class PageDto {
 	@Expose()

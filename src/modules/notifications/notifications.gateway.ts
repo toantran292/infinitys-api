@@ -8,8 +8,9 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AuthWsUser } from 'src/decoractors/auth-user-ws.decoractors';
-import { AuthWs } from 'src/decoractors/ws.decoractors';
+
+import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
+import { AuthWs } from '../../decoractors/ws.decoractors';
 import { AuthsService } from '../auths/auths.service';
 import { User } from '../users/entities/user.entity';
 // import { Notification } from './interfaces/notification.interface';

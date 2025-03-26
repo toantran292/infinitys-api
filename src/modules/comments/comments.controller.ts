@@ -1,10 +1,12 @@
 import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
+
+import { RoleType } from '../../constants/role-type';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+import { User } from '../users/entities/user.entity';
+
 import { CommentsService } from './comments.service';
 import { CommentDto, CreateCommentDto } from './dto/comment.dto';
-import { Auth, UUIDParam } from '../../decoractors/http.decorators';
-import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { User } from '../users/entities/user.entity';
-import { RoleType } from 'src/constants/role-type';
 
 @Controller('api/posts')
 export class CommentsController {

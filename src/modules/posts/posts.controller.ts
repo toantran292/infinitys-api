@@ -1,13 +1,14 @@
 import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
-import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { Auth, UUIDParam } from 'src/decoractors/http.decorators';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { RoleType } from 'src/constants/role-type';
-import { User } from '../users/entities/user.entity';
-import { PostDto } from './dto/post.dto';
-import { AssetResponseDto } from '../users/dto/user-response.dto';
+
+import { RoleType } from '../../constants/role-type';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { CreateAssetDto } from '../assets/dto/create-asset.dto';
+import { User } from '../users/entities/user.entity';
+
+import { CreatePostDto } from './dto/create-post.dto';
+import { PostDto } from './dto/post.dto';
+import { PostsService } from './posts.service';
 
 @Controller('api/posts')
 export class PostsController {

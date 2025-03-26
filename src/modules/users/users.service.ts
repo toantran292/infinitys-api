@@ -6,18 +6,21 @@ import {
 	In,
 	Repository,
 } from 'typeorm';
-import { User } from './entities/user.entity';
-import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { Transactional } from 'typeorm-transactional';
-import type { UserRegisterDto } from '../auths/dto/user-register.dto';
+
+import { PageMetaDto } from '../../common/dto/page-meta.dto';
+import { RoleType } from '../../constants/role-type';
 import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { AssetsService, FileType } from '../assets/assets.service';
-import { AvatarDto, BannerDto } from './dto/avatar.dto';
-import { RoleType } from 'src/constants/role-type';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
-import { FriendService } from './friend.service';
 import { CreateAssetDto } from '../assets/dto/create-asset.dto';
+
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { User } from './entities/user.entity';
+import { FriendService } from './friend.service';
+
+import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
+import type { UserRegisterDto } from '../auths/dto/user-register.dto';
+
 @Injectable()
 export class UsersService {
 	constructor(

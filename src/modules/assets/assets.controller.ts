@@ -6,9 +6,11 @@ import {
 	Post,
 	Query,
 } from '@nestjs/common';
-import { AssetsService } from './assets.service';
-import { Auth } from '../../decoractors/http.decorators';
+
 import { RoleType } from '../../constants/role-type';
+import { Auth } from '../../decoractors/http.decorators';
+
+import { AssetsService } from './assets.service';
 import { PresignLinkDto } from './dto/presign-link.dto';
 
 @Controller('api/assets')

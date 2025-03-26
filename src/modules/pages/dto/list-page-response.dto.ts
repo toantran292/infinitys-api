@@ -1,8 +1,9 @@
-import { PageDto } from 'src/common/dto/page.dto';
 import { Expose, Type } from 'class-transformer';
-import { AbstractDto } from 'src/common/dto/abstract.dto';
-import { PageStatus } from 'src/constants/page-status';
-import { AssetResponseDto } from 'src/modules/users/dto/user-response.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { PageDto } from '../../../common/dto/page.dto';
+import { PageStatus } from '../../../constants/page-status';
+import { AssetResponseDto } from '../../users/dto/user-response.dto';
 
 export class ListPageResponseDto extends AbstractDto {
 	@Expose()

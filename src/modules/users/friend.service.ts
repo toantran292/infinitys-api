@@ -5,11 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+
+import { AssetsService } from '../assets/assets.service';
+import { NotificationsService } from '../notifications/notifications.service';
+
 import { FriendRequestEntity } from './entities/friend-request.entity';
 import { FriendEntity } from './entities/friend.entity';
-import { NotificationsService } from '../notifications/notifications.service';
-import { AssetsService } from '../assets/assets.service';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class FriendService {

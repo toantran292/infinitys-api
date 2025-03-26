@@ -1,20 +1,18 @@
 import {
-	BadRequestException,
-	Body,
 	Controller,
 	Delete,
 	Get,
-	Param,
 	Post,
 	SerializeOptions,
 } from '@nestjs/common';
-import { FriendService } from './friend.service';
-import { SendFriendRequestDto } from './dto/create-friend-request.dto';
-import { User } from './entities/user.entity';
-import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+
 import { ListFriendResponseDto } from './dto/list-friend-response.dto';
+import { User } from './entities/user.entity';
+import { FriendService } from './friend.service';
 @Controller('api/friends')
 export class FriendController {
 	constructor(private readonly friendService: FriendService) {}

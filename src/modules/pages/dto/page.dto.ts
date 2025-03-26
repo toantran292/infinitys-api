@@ -1,9 +1,8 @@
-import { Page } from '../entities/page.entity';
-import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { PageStatus } from '../../../constants/page-status';
 import { StringField } from '../../../decoractors/field.decoractors';
-import { AssetEntity } from '../../assets/entities/asset.entity';
 
 export type PageDtoOptions = Partial<{ isActive: boolean }>;
 

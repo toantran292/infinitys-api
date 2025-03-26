@@ -1,13 +1,21 @@
-import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
-import { AuthsService } from './auths.service';
-import { UserLoginDto } from './dto/user-login.dto';
-import { LoginPayloadDto } from './dto/login-payload.dto';
-import { RoleType } from 'src/constants/role-type';
-import { UnauthorizedException } from '@nestjs/common';
-import { Auth } from 'src/decoractors/http.decorators';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { User } from '../users/entities/user.entity';
+import {
+	Body,
+	Controller,
+	Get,
+	Post,
+	SerializeOptions,
+	UnauthorizedException,
+} from '@nestjs/common';
+
+import { RoleType } from '../../constants/role-type';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth } from '../../decoractors/http.decorators';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { User } from '../users/entities/user.entity';
+
+import { AuthsService } from './auths.service';
+import { LoginPayloadDto } from './dto/login-payload.dto';
+import { UserLoginDto } from './dto/user-login.dto';
 
 @Controller('admin_api/auths')
 export class AuthsAdminController {

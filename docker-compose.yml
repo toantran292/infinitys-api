@@ -41,6 +41,21 @@ services:
     networks:
       - my_network
 
+  init_minio:
+    build:
+      context: docker/minio
+      dockerfile: Dockerfile
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_BUCKET: infinitys
+      AWS_S3_ACCESS_KEY_ID: HrNRKvVa2ydc3t9cpsEd
+      AWS_S3_SECRET_ACCESS_KEY: ftJDm0nyeHdY2wSqOQE4q5DYa2vVj93lIiZiu0J2
+    networks:
+      - my_network
+
 volumes:
   postgres_data:
   minio_data:

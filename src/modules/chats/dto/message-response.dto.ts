@@ -1,8 +1,9 @@
 import { Expose, Type } from 'class-transformer';
-import { UserResponseDto } from 'src/modules/users/dto/user-response.dto';
-import { CursorPageDto } from 'src/common/dto/page.dto';
-import { AbstractDto } from 'src/common/dto/abstract.dto';
-import { PageResponseDto } from 'src/modules/pages/dto/page-response.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { CursorPageDto } from '../../../common/dto/page.dto';
+import { PageResponseDto } from '../../pages/dto/page-response.dto';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 export class MessageResponseDto extends AbstractDto {
 	@Expose()

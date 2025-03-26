@@ -1,10 +1,10 @@
-import { Column, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { Column, JoinColumn, OneToMany, OneToOne, Entity } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { Entity } from 'typeorm';
-import { Participant } from './participant.entity';
-import { Message } from './message.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+
+import { Message } from './message.entity';
+import { Participant } from './participant.entity';
 
 @Entity({ name: 'conversations' })
 export class Conversation extends AbstractEntity {

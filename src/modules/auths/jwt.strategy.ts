@@ -4,9 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { RoleType } from '../../constants/role-type';
 import { TokenType } from '../../constants/token-type';
+import { ApiConfigService } from '../../shared/services/api-config.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import { ApiConfigService } from '../../shared/services/api-config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

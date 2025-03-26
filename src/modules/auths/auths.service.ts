@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
+
 import { validateHash } from '../../common/utils';
 import { RoleType } from '../../constants/role-type';
 import { TokenType } from '../../constants/token-type';
 import { ApiConfigService } from '../../shared/services/api-config.service';
-import type { UserLoginDto } from './dto/user-login.dto';
-import { TokenPayloadDto } from './dto/token-payload.dto';
-import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+
+import type { UserLoginDto } from './dto/user-login.dto';
 
 @Injectable()
 export class AuthsService {

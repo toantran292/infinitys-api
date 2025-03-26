@@ -1,4 +1,5 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { User } from '../../users/entities/user.entity';
 

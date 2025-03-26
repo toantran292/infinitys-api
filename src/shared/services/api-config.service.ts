@@ -1,13 +1,14 @@
-import { join } from 'path';
+import { join } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import parse from 'parse-duration';
-import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { SnakeNamingStrategy } from '../../snake-naming.strategy';
+
+import { CommentSubscriber } from '../../entity-subscribers/comment-subscriber';
+import { ReactSubscriber } from '../../entity-subscribers/react-subscriber';
 import { UserSubscriber } from '../../entity-subscribers/user-subscriber';
-import { ReactSubscriber } from 'src/entity-subscribers/react-subscriber';
-import { CommentSubscriber } from 'src/entity-subscribers/comment-subscriber';
+import { SnakeNamingStrategy } from '../../snake-naming.strategy';
+
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 @Injectable()
 export class ApiConfigService {
 	constructor(private readonly configService: ConfigService) {}

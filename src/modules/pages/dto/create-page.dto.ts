@@ -1,10 +1,11 @@
+import { IsOptional } from 'class-validator';
+
 import {
 	EmailField,
 	StringField,
 	StringFieldOptional,
 	URLField,
 } from '../../../decoractors/field.decoractors';
-import { IsOptional } from 'class-validator';
 
 export class RegisterPageDto {
 	@StringField()

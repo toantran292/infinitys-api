@@ -1,16 +1,13 @@
-import e, { query } from 'express';
-import { CommentStatistics } from 'src/modules/comments/entities/comment-statistics.entity';
-import { PostStatistics } from 'src/modules/posts/entities/post-statistics.entity';
-import { ReactEntity } from 'src/modules/reacts/entities/react.entity';
 import {
-	createQueryBuilder,
 	EntitySubscriberInterface,
 	EventSubscriber,
 	InsertEvent,
-	RemoveEvent,
-	SelectQueryBuilder,
 	UpdateEvent,
 } from 'typeorm';
+
+import { CommentStatistics } from '../modules/comments/entities/comment-statistics.entity';
+import { PostStatistics } from '../modules/posts/entities/post-statistics.entity';
+import { ReactEntity } from '../modules/reacts/entities/react.entity';
 
 @EventSubscriber()
 export class ReactSubscriber implements EntitySubscriberInterface<ReactEntity> {
@@ -22,7 +19,7 @@ export class ReactSubscriber implements EntitySubscriberInterface<ReactEntity> {
 		const { manager, entity } = event;
 
 		if (entity.targetType === 'posts') {
-			let query = manager
+			const query = manager
 				.createQueryBuilder()
 				.insert()
 				.into(PostStatistics)

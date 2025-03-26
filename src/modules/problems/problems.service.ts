@@ -1,20 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProblemDto } from './dto/create-problem.dto';
-import { Problem } from './entities/problem.entity';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AssetsService, FileType } from 'src/modules/assets/assets.service';
-import { getAssetFields } from 'src/decoractors/asset.decoractor';
-import { ProblemPageOptionDto } from './dto/problem-page-option';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
-import { UpdateProblemDto } from './dto/update-problem.dto';
+import { Repository } from 'typeorm';
+
+import { PageMetaDto } from '../../common/dto/page-meta.dto';
+import { getAssetFields } from '../../decoractors/asset.decoractor';
+import { OJService } from '../../shared/services/oj.service';
+import { AssetsService } from '../assets/assets.service';
 import { AssetEntity } from '../assets/entities/asset.entity';
+
+import { CreateProblemDto } from './dto/create-problem.dto';
 import { DeleteTestcaseDto } from './dto/delete-testcase.dto';
+import { ProblemPageOptionDto } from './dto/problem-page-option';
 import { SubmitProblemDto } from './dto/submit-problem.dto';
-import { OJService } from 'src/shared/services/oj.service';
-import { SubmissionResult } from './problems.type';
-import { TestCaseResult } from './problems.type';
+import { UpdateProblemDto } from './dto/update-problem.dto';
 import { Submission, SubmissionSummary } from './entities';
+import { Problem } from './entities/problem.entity';
+import { SubmissionResult, TestCaseResult } from './problems.type';
 
 @Injectable()
 export class ProblemsService {

@@ -1,7 +1,9 @@
-import { Column, Entity, Index, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, Index, ManyToOne } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
+import { User } from '../../users/entities/user.entity';
+
 import { Problem } from './problem.entity';
-import { UserEntity } from '../../users/entities/user.entity';
 
 @Entity({ name: 'submission_summaries' })
 @Index(['problem.id', 'user.id'], { unique: true })
@@ -9,8 +11,8 @@ export class SubmissionSummary extends AbstractEntity {
 	@ManyToOne(() => Problem, (problem) => problem.submissionSummaries)
 	problem!: Problem;
 
-	@ManyToOne(() => UserEntity, (user) => user.submissionSummaries)
-	user!: UserEntity;
+	@ManyToOne(() => User, (user) => user.submissionSummaries)
+	user!: User;
 
 	@Column({ default: 0 })
 	total!: number;

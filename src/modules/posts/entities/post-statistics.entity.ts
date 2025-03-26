@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
+
 import { PostEntity } from './post.entity';
 
 @Entity('post_statistics')

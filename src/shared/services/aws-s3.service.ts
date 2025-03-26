@@ -4,11 +4,11 @@ import {
 	PutObjectCommand,
 	S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl as getSignedUrlS3 } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 
 import { ApiConfigService } from './api-config.service';
 import { GeneratorService } from './generator.service';
-import { getSignedUrl as getSignedUrlS3 } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class AwsS3Service {

@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
+
+import { Auth } from '../../decoractors/http.decorators';
+
 import { NotificationsService } from './notifications.service';
-import { Auth } from 'src/decoractors/http.decorators';
 
 @Controller('api/notifications')
 export class NotificationsController {

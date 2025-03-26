@@ -1,6 +1,8 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
+
+import { UUIDField } from '../../../decoractors/field.decoractors';
+
 import { REACT_TARGET_TYPE } from './create-react.dto';
-import { UUIDField } from 'src/decoractors/field.decoractors';
 
 export class GetReactByTargetIdDto {
 	@UUIDField()

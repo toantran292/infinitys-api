@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AwsS3Service } from '../../shared/services/aws-s3.service';
+
+import { AssetsAdminController } from './assets.admin.controller';
+import { AssetsController } from './assets.controller';
 import { AssetsService } from './assets.service';
 import { AssetEntity } from './entities/asset.entity';
-import { AwsS3Service } from '../../shared/services/aws-s3.service';
-import { AssetsController } from './assets.controller';
-import { AssetsAdminController } from './assets.admin.controller';
 @Module({
 	imports: [TypeOrmModule.forFeature([AssetEntity])],
 	controllers: [AssetsController, AssetsAdminController],

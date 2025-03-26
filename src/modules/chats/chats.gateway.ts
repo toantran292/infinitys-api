@@ -8,11 +8,12 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ChatsService } from './chats.service';
-import { AuthsService } from '../auths/auths.service';
-import { AuthWs } from '../../decoractors/ws.decoractors';
+
 import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
+import { AuthWs } from '../../decoractors/ws.decoractors';
 import { User } from '../users/entities/user.entity';
+
+import { ChatsService } from './chats.service';
 
 /**
  * 1. Khi nhan vao chat -> /api/chats/groups/:id/messages (http) -> load tin nham
