@@ -10,7 +10,7 @@ import { ReactSubscriber } from 'src/entity-subscribers/react-subscriber';
 import { CommentSubscriber } from 'src/entity-subscribers/comment-subscriber';
 @Injectable()
 export class ApiConfigService {
-	constructor(private readonly configService: ConfigService) { }
+	constructor(private readonly configService: ConfigService) {}
 
 	get isDevelopment(): boolean {
 		return this.nodeEnv === 'development';
@@ -116,6 +116,13 @@ export class ApiConfigService {
 			privateKey: this.getString('JWT_PRIVATE_KEY'),
 			publicKey: this.getString('JWT_PUBLIC_KEY'),
 			jwtExpirationTime: this.getNumber('JWT_EXPIRATION_TIME'),
+		};
+	}
+
+	get ojConfig() {
+		return {
+			endpoint: this.getString('OJ_ENDPOINT'),
+			apiKey: this.getString('OJ_API_KEY'),
 		};
 	}
 

@@ -10,12 +10,12 @@ import {
 	GroupChatMemberEntity,
 	GroupChatMessageEntity,
 } from '../../chats/entities/chat.entity';
-import { ProblemUser } from '../../problems/entities/problem.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { FriendEntity } from './friend.entity';
 import { FriendRequestEntity } from './friend-request.entity';
 import { GenderType } from '../../../constants/gender-type';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { SubmissionSummary, Submission } from '../../problems/entities';
 @Entity({ name: 'users' })
 export class UserEntity extends AbstractEntity {
 	@Column()
@@ -104,6 +104,9 @@ export class UserEntity extends AbstractEntity {
 	)
 	groupChatMessages!: GroupChatMessageEntity[];
 
-	@OneToMany(() => ProblemUser, (problemUser) => problemUser.user)
-	problemUsers!: ProblemUser[];
+	@OneToMany(() => Submission, (submission) => submission.user)
+	submissions!: Submission[];
+
+	@OneToMany(() => SubmissionSummary, (summary) => summary.user)
+	submissionSummaries!: SubmissionSummary[];
 }

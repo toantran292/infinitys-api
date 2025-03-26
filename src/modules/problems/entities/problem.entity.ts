@@ -2,10 +2,11 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { PageEntity } from '../../pages/entities/page.entity';
-import { RecruitmentPostEntity } from '../../recruitment_posts/entities/recruitment_post.entity';
-import { ApplicationProblemEntity } from '../../applications/entities/application.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { Submission } from './submission.entity';
+import { SubmissionSummary } from './submission-summary.entity';
+import { ProblemRecruitmentPost } from './problem-recruitment-post.entity';
 
 export enum ProblemDifficulty {
 	Easy = 'easy',
@@ -46,42 +47,18 @@ export class Problem extends AbstractEntity {
 	@ManyToOne(() => PageEntity, (page) => page.problems, { nullable: true })
 	page?: PageEntity;
 
-	@OneToMany(() => ProblemUser, (problemUser) => problemUser.problem)
-	problemUsers!: ProblemUser[];
-
-	@OneToMany(
-		() => ProblemRecruitmentPost,
-		(problemRecruitmentPost) => problemRecruitmentPost.problem,
-	)
+	@OneToMany(() => ProblemRecruitmentPost, (prp) => prp.problem)
 	problemRecruitmentPosts!: ProblemRecruitmentPost[];
-}
 
-@Entity({ name: 'problems_users' })
-export class ProblemUser extends AbstractEntity {
-	@ManyToOne(() => Problem, (problem) => problem.problemUsers)
-	problem!: Problem;
+	@OneToMany(() => Submission, (submission) => submission.problem)
+	submissions!: Submission[];
 
-	@ManyToOne(() => UserEntity, (user) => user.problemUsers)
-	user!: UserEntity;
+	@OneToMany(() => SubmissionSummary, (summary) => summary.problem)
+	submissionSummaries!: SubmissionSummary[];
 
-	@Column({ type: 'jsonb', nullable: true })
-	result!: object;
-}
+	@Column({ default: 0 })
+	totalSubmissions!: number;
 
-@Entity({ name: 'problems_recruitment_posts' })
-export class ProblemRecruitmentPost extends AbstractEntity {
-	@ManyToOne(() => Problem, (problem) => problem.problemRecruitmentPosts)
-	problem!: Problem;
-
-	@ManyToOne(
-		() => RecruitmentPostEntity,
-		(recruitmentPost) => recruitmentPost.problems,
-	)
-	recruitmentPost!: RecruitmentPostEntity;
-
-	@OneToMany(
-		() => ApplicationProblemEntity,
-		(applicationProblem) => applicationProblem.problem,
-	)
-	applicationProblems!: ApplicationProblemEntity[];
+	@Column({ default: 0 })
+	totalAccepted!: number;
 }
