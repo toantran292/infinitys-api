@@ -3,6 +3,7 @@ import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { PageStatus } from '../../../constants/page-status';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { FollowEntity } from './follow.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { Problem } from '../../problems/entities/problem.entity';
 
@@ -37,6 +38,9 @@ export class Page extends AbstractEntity {
 
 	@OneToMany(() => Problem, (problem) => problem.page)
 	problems!: Problem[];
+
+	@OneToMany(() => FollowEntity, (follow) => follow.page)
+	follows!: FollowEntity[];
 
 	admin_user_id?: Uuid;
 }

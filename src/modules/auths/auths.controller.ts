@@ -50,6 +50,6 @@ export class AuthsController {
 	@Get('me')
 	@Auth()
 	async me(@AuthUser() user: User) {
-		return user;
+		return this.authsService.me(user);
 	}
 }

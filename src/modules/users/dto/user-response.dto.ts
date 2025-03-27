@@ -4,6 +4,7 @@ import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { GenderType } from '../../../constants/gender-type';
 import { RoleType } from '../../../constants/role-type';
 import { FriendStatus } from '../entities/friend.entity';
+import { FollowResponseDto } from '../../pages/dto/follow-page.dto';
 
 export class AssetResponseDto {
 	@Expose()
@@ -62,4 +63,11 @@ export class UserResponseDto extends AbstractDto {
 
 	@Expose()
 	totalConnections!: number;
+
+	@Expose()
+	@Type(() => FollowResponseDto)
+	follows!: FollowResponseDto[];
+
+	@Expose()
+	total_followings!: number;
 }

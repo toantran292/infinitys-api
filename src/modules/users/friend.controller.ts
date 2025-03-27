@@ -52,7 +52,32 @@ export class FriendController {
 	async getFriends(@UUIDParam('userId') userId: Uuid) {
 		return this.friendService.getFriends(userId);
 	}
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
+	@Get(':userId/requests')
+	@Auth([RoleType.USER])
+	async getFriendRequests(@UUIDParam('userId') userId: Uuid) {
+		return this.friendService.getFriendRequests(userId);
+	}
 
+	@SerializeOptions({
+		type: UserResponseDto,
+	})
+	@Get(':userId/suggestions')
+	@Auth([RoleType.USER])
+	async getSentRequests(@UUIDParam('userId') userId: Uuid) {
+		return this.friendService.getSentFriendRequests(userId);
+	}
+
+	// @Delete(':userId')
+	// @Auth([RoleType.USER])
+	// async searchFriends(
+	// 	@Query('q') query: string,
+	// 	@AuthUser() currentUser: User,
+	// ) {
+	// 	return this.friendService.unfriend(user.id, userId);
+	// }
 	@SerializeOptions({ type: UserResponseDto })
 	@Get('search/a')
 	@Auth([RoleType.USER])
