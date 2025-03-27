@@ -13,8 +13,7 @@ import { PostEntity } from '../../posts/entities/post.entity';
 import { SubmissionSummary, Submission } from '../../problems/entities';
 import { ReactEntity } from '../../reacts/entities/react.entity';
 
-import { FriendRequestEntity } from './friend-request.entity';
-import { FriendEntity } from './friend.entity';
+import { FriendEntity, FriendStatus } from './friend.entity';
 
 @Entity({ name: 'users' })
 export class User extends AbstractEntity {
@@ -54,25 +53,17 @@ export class User extends AbstractEntity {
 	@AssetField()
 	banner?: AssetEntity;
 
-	friend_status?: string;
+	friendStatus?: FriendStatus;
 
-	total_connections: number;
+	totalConnections!: number;
 
 	// Relations
 
-	@OneToMany(() => FriendRequestEntity, (request) => request.source)
-	sentFriendRequests!: FriendRequestEntity[];
-
-	// Yêu cầu kết bạn được nhận (receiver <- sender)
-	@OneToMany(() => FriendRequestEntity, (request) => request.target)
-	receivedFriendRequests!: FriendRequestEntity[];
-
-	// Danh sách bạn bè (kết nối từ user1 hoặc user2)
 	@OneToMany(() => FriendEntity, (friend) => friend.source)
-	friends1!: FriendEntity[];
+	sentFriendships!: FriendEntity[];
 
 	@OneToMany(() => FriendEntity, (friend) => friend.target)
-	friends2!: FriendEntity[];
+	receivedFriendships!: FriendEntity[];
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.user)
 	pageUsers!: PageUserEntity[];

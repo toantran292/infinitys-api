@@ -73,7 +73,6 @@ export class AssetsService {
 	async getPresignUrl(
 		data: PresignLinkDto,
 	): Promise<{ url: string; key: string }> {
-		console.log(data);
 		const key = await this.generateKey(data.type, data.suffix);
 
 		const url = await this.awsS3Service.getPreSignedUrl(key);
@@ -95,6 +94,7 @@ export class AssetsService {
 	}
 
 	async getViewUrl(key: string): Promise<{ url: string }> {
+		if (!key) return { url: null };
 		const url = await this.awsS3Service.getPreSignedUrlToViewObject(key);
 		return { url };
 	}

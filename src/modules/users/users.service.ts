@@ -20,6 +20,7 @@ import { FriendService } from './friend.service';
 
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import type { UserRegisterDto } from '../auths/dto/user-register.dto';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,8 @@ export class UsersService {
 		private readonly assetsService: AssetsService,
 
 		private readonly friendService: FriendService,
+
+		private readonly searchService: SearchService,
 	) {}
 
 	findAll(option: FindManyOptions<User>) {
@@ -52,6 +55,15 @@ export class UsersService {
 
 		await this.userRepository.save(user);
 
+		if (user.role === RoleType.USER) {
+			await this.searchService.indexUser({
+				id: user.id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+			});
+		}
+
 		return user;
 	}
 
@@ -68,24 +80,6 @@ export class UsersService {
 		};
 	}
 
-	async getRawUser(userId: Uuid, options?: { role?: RoleType }): Promise<User> {
-		const queryBuilder = this.userRepository.createQueryBuilder('user');
-
-		queryBuilder.where('user.id = :userId', { userId });
-
-		if (options?.role) {
-			queryBuilder.andWhere('user.role = :role', { role: options.role });
-		}
-
-		const userEntity = await queryBuilder.getOne();
-
-		if (!userEntity) {
-			throw new UserNotFoundException();
-		}
-
-		return userEntity;
-	}
-
 	async getUser(
 		currentUser: User,
 		userId: Uuid,
@@ -99,7 +93,7 @@ export class UsersService {
 			await this.friendService.loadFriendStatus(currentUser, user);
 		}
 
-		user.total_connections = (
+		user.totalConnections = (
 			await this.friendService.getFriends(userId)
 		).length;
 
@@ -125,6 +119,20 @@ export class UsersService {
 
 		const updatedUser = await this.userRepository.save(user);
 
+		await this.assetsService.attachAssetToEntity(user);
+
+		if (user.role === RoleType.USER) {
+			await this.searchService.indexUser({
+				id: user.id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				avatar: {
+					key: user.avatar?.file_data.key,
+				},
+			});
+		}
+
 		return updatedUser;
 	}
 
@@ -135,9 +143,19 @@ export class UsersService {
 			},
 		});
 
-		return await this.assetsService.addAssetToEntity(user, {
+		await this.assetsService.addAssetToEntity(user, {
 			type,
 			file_data: asset,
 		});
+
+		if (user.role === RoleType.USER && type === FileType.AVATAR) {
+			await this.searchService.indexUser({
+				id: user.id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				avatar: { key: asset.key },
+			});
+		}
 	}
 }

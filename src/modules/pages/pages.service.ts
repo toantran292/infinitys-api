@@ -16,7 +16,7 @@ import { PageUserEntity } from './entities/page-user.entity';
 import { Page } from './entities/page.entity';
 
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
-
+import { SearchService } from '../search/search.service';
 @Injectable()
 export class PagesService {
 	constructor(
@@ -28,6 +28,8 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
+
+		private readonly searchService: SearchService,
 	) {}
 
 	findOne(findData: FindOptionsWhere<Page>): Promise<Page | null> {
@@ -203,6 +205,21 @@ export class PagesService {
 		}
 		page.status = PageStatus.APPROVED;
 		await this.pageRepository.save(page);
+
+		this.assetsService.attachAssetToEntity(page);
+
+		this.searchService.indexPage({
+			address: page.address,
+			content: page.content,
+			email: page.email,
+			id: page.id,
+			name: page.name,
+			url: page.url,
+			avatar: {
+				key: page.avatar?.file_data.key,
+			},
+		});
+
 		this.send_noti(pageId, PageStatus.APPROVED);
 
 		return page;
@@ -234,12 +251,25 @@ export class PagesService {
 		const page = await this.pageRepository.findOne({
 			where: {
 				id: page_id,
+				status: PageStatus.APPROVED,
 			},
 		});
 
-		return await this.assetsService.addAssetToEntity(page, {
+		await this.assetsService.addAssetToEntity(page, {
 			type: FileType.AVATAR,
 			file_data: avatar,
+		});
+
+		this.searchService.indexPage({
+			address: page.address,
+			content: page.content,
+			email: page.email,
+			id: page.id,
+			name: page.name,
+			avatar: {
+				key: avatar.key,
+			},
+			url: page.url,
 		});
 	}
 }

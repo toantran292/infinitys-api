@@ -9,7 +9,6 @@ import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostDto } from './dto/post.dto';
 import { PostsService } from './posts.service';
-
 @Controller('api/posts')
 export class PostsController {
 	constructor(private readonly postsService: PostsService) {}
@@ -38,10 +37,10 @@ export class PostsController {
 	@SerializeOptions({
 		type: PostDto,
 	})
-	@Get('me')
+	@Get('user/:userId')
 	@Auth([RoleType.USER])
-	async getPostByUserId(@AuthUser() user: User) {
-		return this.postsService.getPostByUserId(user.id);
+	async getPostByUserId(@UUIDParam('userId') userId: Uuid) {
+		return this.postsService.getPostByUserId(userId);
 	}
 
 	@Post(':id/react')
@@ -56,6 +55,7 @@ export class PostsController {
 	@Get('newsfeed')
 	@Auth([RoleType.USER])
 	async getNewsfeed(@AuthUser() user: User) {
+		return [];
 		return this.postsService.getNewsfeed(user.id);
 	}
 

@@ -3,6 +3,7 @@ import {
 	Delete,
 	Get,
 	Post,
+	Query,
 	SerializeOptions,
 } from '@nestjs/common';
 
@@ -11,6 +12,7 @@ import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 
 import { ListFriendResponseDto } from './dto/list-friend-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { FriendService } from './friend.service';
 @Controller('api/friends')
@@ -35,15 +37,6 @@ export class FriendController {
 		return this.friendService.acceptFriendRequest(user.id, userId);
 	}
 
-	@Post(':userId/reject')
-	@Auth([RoleType.USER])
-	async rejectFriendRequest(
-		@AuthUser() user: User,
-		@UUIDParam('userId') userId: Uuid,
-	) {
-		return this.friendService.rejectFriendRequest(user.id, userId);
-	}
-
 	@Post(':userId/cancel')
 	@Auth([RoleType.USER])
 	async cancelFriendRequest(
@@ -60,9 +53,13 @@ export class FriendController {
 		return this.friendService.getFriends(userId);
 	}
 
-	@Delete(':userId')
+	@SerializeOptions({ type: UserResponseDto })
+	@Get('search/a')
 	@Auth([RoleType.USER])
-	async unfriend(@AuthUser() user: User, @UUIDParam('userId') userId: Uuid) {
-		return this.friendService.unfriend(user.id, userId);
+	async searchFriends(
+		@Query('q') query: string,
+		@AuthUser() currentUser: User,
+	) {
+		return this.friendService.searchFriends(query, currentUser.id);
 	}
 }

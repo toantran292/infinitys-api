@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AssetsModule } from '../assets/assets.module';
@@ -17,8 +17,8 @@ import { CommentEntity } from './entities/comment.entity';
 
 @Module({
 	imports: [
-		AuthsModule,
-		UsersModule,
+		forwardRef(() => AuthsModule),
+		forwardRef(() => UsersModule),
 		TypeOrmModule.forFeature([
 			CommentEntity,
 			PostEntity,
@@ -28,7 +28,7 @@ import { CommentEntity } from './entities/comment.entity';
 			ReactEntity,
 		]),
 		AssetsModule,
-		NotificationsModule,
+		forwardRef(() => NotificationsModule),
 	],
 	providers: [CommentsService],
 	controllers: [CommentsController],

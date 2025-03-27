@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AssetsModule } from '../assets/assets.module';
@@ -12,6 +12,7 @@ import { PostStatistics } from './entities/post-statistics.entity';
 import { PostEntity } from './entities/post.entity';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
+import { NewsfeedModule } from '../newsfeed/newsfeed.module';
 
 @Module({
 	imports: [
@@ -24,7 +25,8 @@ import { PostsService } from './posts.service';
 			PostStatistics,
 		]),
 		AssetsModule,
-		ReactsModule,
+		forwardRef(() => ReactsModule),
+		forwardRef(() => NewsfeedModule),
 	],
 	controllers: [PostsController],
 	providers: [PostsService],

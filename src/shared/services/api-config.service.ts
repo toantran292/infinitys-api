@@ -127,6 +127,14 @@ export class ApiConfigService {
 		};
 	}
 
+	get elasticsearchConfig() {
+		return {
+			node: this.getString('ELASTICSEARCH_NODE'),
+			username: this.getString('ELASTICSEARCH_USERNAME'),
+			password: this.getString('ELASTICSEARCH_PASSWORD'),
+		};
+	}
+
 	get appConfig() {
 		return {
 			port: this.getString('PORT'),

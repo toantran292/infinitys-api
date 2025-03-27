@@ -93,8 +93,6 @@ export class CommentsService {
 			comments.map((comment) => comment.user),
 		);
 
-		console.log(comments);
-
 		return comments;
 	}
 

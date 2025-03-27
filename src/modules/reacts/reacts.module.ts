@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CommentsModule } from '../comments/comments.module';
@@ -14,8 +14,8 @@ import { ReactsService } from './reacts.services';
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([ReactEntity, PostEntity, User, CommentEntity]),
-		CommentsModule,
-		NotificationsModule,
+		forwardRef(() => CommentsModule),
+		forwardRef(() => NotificationsModule),
 	],
 	controllers: [ReactsController],
 	providers: [ReactsService],

@@ -49,7 +49,6 @@ export class NotificationsGateway
 		@AuthWsUser() user: User,
 		@ConnectedSocket() client: Socket,
 	) {
-		console.log(data);
 		this.server.to(`user-${user.id}`).emit('notifications.test', {
 			message: 'Hello, world!',
 		});
@@ -57,7 +56,6 @@ export class NotificationsGateway
 
 	// Phương thức để gửi thông báo tới người dùng cụ thể
 	async sendNotificationToUser(userId: string, notification) {
-		console.log('sendNotificationToUser', userId, notification);
 		this.server.to(`user-${userId}`).emit('notifications.new', notification);
 	}
 

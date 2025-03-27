@@ -2,6 +2,7 @@ import {
 	BadRequestException,
 	Injectable,
 	NotFoundException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -69,10 +70,19 @@ export class ChatsService {
 
 		await this.participantRepo.save([pu, pp]);
 
-		return await this.convRepo.findOne({
+		const conversation = await this.convRepo.findOne({
 			where: { id: saved.id },
-			relations: ['participants'],
+			relations: ['participants', 'participants.user', 'lastMessage'],
 		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.page).filter(Boolean),
+		);
+
+		return conversation;
 	}
 
 	@Transactional()
@@ -110,10 +120,16 @@ export class ChatsService {
 		);
 		await this.participantRepo.save(participants);
 
-		return await this.convRepo.findOne({
+		const conversation = await this.convRepo.findOne({
 			where: { id: saved.id },
-			relations: ['participants'],
+			relations: ['participants', 'participants.user', 'lastMessage'],
 		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
 	}
 
 	@Transactional()
@@ -129,7 +145,7 @@ export class ChatsService {
 			.where('c.isGroup = true')
 			.groupBy('c.id')
 			.having('COUNT(p.id) = :length', { length: userIds.length })
-			.andHaving(`bool_and(p.userId IN (:...ids))`, { ids: userIds });
+			.andHaving(`bool_and(p.user_id IN (:...ids))`, { ids: userIds });
 
 		const existing = await qb.getOne();
 		if (existing) return existing;
@@ -142,10 +158,16 @@ export class ChatsService {
 		);
 		await this.participantRepo.save(participants);
 
-		return await this.convRepo.findOne({
+		const conversation = await this.convRepo.findOne({
 			where: { id: saved.id },
-			relations: ['participants'],
+			relations: ['participants', 'participants.user', 'lastMessage'],
 		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
 	}
 
 	@Transactional()
@@ -187,8 +209,11 @@ export class ChatsService {
 		return saved;
 	}
 
-	async getGroupByQuery(query: string): Promise<Conversation[]> {
-		return this.convRepo
+	async getGroupByQuery(
+		query: string,
+		currentUserId: Uuid,
+	): Promise<Conversation[]> {
+		const result = await this.convRepo
 			.createQueryBuilder('c')
 			.leftJoin('c.participants', 'p')
 			.leftJoin('p.user', 'u')
@@ -200,7 +225,21 @@ export class ChatsService {
 			.leftJoinAndSelect('c.participants', 'participants')
 			.leftJoinAndSelect('participants.user', 'participantUser')
 			.leftJoinAndSelect('participants.page', 'participantPage')
+			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
+			.andWhere(
+				'EXISTS (SELECT 1 FROM participants p2 WHERE p2.conversation_id = c.id AND (p2.user_id != :currentUserId OR p2.user_id IS NULL))',
+				{ currentUserId },
+			)
 			.getMany();
+
+		await this.assetsService.attachAssetToEntities(
+			result.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			result.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+		);
+
+		return result;
 	}
 
 	async getUserConversations(userId: Uuid, limit = 10, cursor?: Date) {
@@ -256,6 +295,36 @@ export class ChatsService {
 			hasMore,
 			nextCursor: hasMore ? trimmed[trimmed.length - 1].updatedAt : null,
 		};
+	}
+
+	async getUserConversation(userId: Uuid, conversationId: Uuid) {
+		const conversation = await this.convRepo.findOne({
+			where: { id: conversationId },
+			relations: [
+				'participants',
+				'participants.user',
+				'participants.page',
+				'lastMessage',
+			],
+		});
+
+		if (!conversation)
+			throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+
+		if (!conversation?.participants.some((p) => p.user?.id === userId)) {
+			throw new ForbiddenException(
+				'You are not a participant in this conversation',
+			);
+		}
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.page).filter(Boolean),
+		);
+
+		return conversation;
 	}
 
 	async getPageConversations(
@@ -388,7 +457,6 @@ export class ChatsService {
 	}
 
 	async markAsRead(conversationId: Uuid, userId: Uuid, messageId: Uuid) {
-		console.log({ conversationId, userId, messageId });
 		const [conversation, user, message] = await Promise.all([
 			this.convRepo.findOneBy({ id: conversationId }),
 			this.usersService.findOne({ id: userId }),
@@ -411,6 +479,34 @@ export class ChatsService {
 			status.lastReadMessage = message;
 		}
 
-		await this.readRepo.save(status);
+		const saved = await this.readRepo.save(status);
+	}
+
+	async getConversationFormUserIds(userIds: Uuid[]) {
+		const temp = await this.convRepo
+			.createQueryBuilder('conv')
+			.leftJoin('conv.participants', 'p')
+			.leftJoin('p.user', 'u')
+			.where('p.page IS NULL')
+			.andWhere('u.id IN (:...userIds)', { userIds })
+			.groupBy('conv.id')
+			.having('COUNT(DISTINCT u.id) = :count', { count: userIds.length })
+			.andHaving(
+				'COUNT(DISTINCT u.id) = (SELECT COUNT(p2.id) FROM participants p2 WHERE p2.conversation_id = conv.id)',
+			)
+			.getOne();
+
+		if (!temp) return null;
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: temp.id },
+			relations: ['participants', 'participants.user', 'lastMessage'],
+		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
 	}
 }

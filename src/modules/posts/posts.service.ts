@@ -7,6 +7,7 @@ import { CreateAssetDto } from '../assets/dto/create-asset.dto';
 import { REACT_TARGET_TYPE } from '../reacts/dto/create-react.dto';
 import { ReactsService } from '../reacts/reacts.services';
 import { User } from '../users/entities/user.entity';
+import { NewsfeedService } from '../newsfeed/newsfeed.service';
 
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostStatistics } from './entities/post-statistics.entity';
@@ -24,6 +25,8 @@ export class PostsService {
 		private readonly assetsService: AssetsService,
 
 		private readonly reactsService: ReactsService,
+
+		private readonly newsfeedService: NewsfeedService,
 	) {}
 
 	async createPost(author: User, createPostDto: CreatePostDto) {
@@ -45,6 +48,9 @@ export class PostsService {
 				})),
 			);
 		}
+
+		// Thêm bài viết vào newsfeed của tác giả và bạn bè
+		await this.newsfeedService.distributePost(savedPost);
 
 		return savedPost;
 	}
@@ -94,44 +100,16 @@ export class PostsService {
 		return react;
 	}
 
-	async getNewsfeed(userId: Uuid) {
-		const queryBuilder = this.postRepository.createQueryBuilder('post');
-
-		queryBuilder
-			.leftJoinAndSelect('post.author', 'author')
-			.leftJoinAndMapOne(
-				'post.statistics',
-				PostStatistics,
-				'stats',
-				'stats.postId = post.id',
-			)
-			.where('author.id = :userId', { userId })
-			.orWhere((qb) => {
-				const friendsSubQuery = qb
-					.subQuery()
-					.select(
-						'DISTINCT CASE ' +
-							'WHEN friend.source_id = :userId THEN friend.target_id ' +
-							'ELSE friend.source_id ' +
-							'END',
-					)
-					.from('friends', 'friend')
-					.where('friend.source_id = :userId OR friend.target_id = :userId')
-					.getQuery();
-				return 'author.id IN ' + friendsSubQuery;
-			})
-			.setParameter('userId', userId)
-			.orderBy('post.createdAt', 'DESC');
-
-		const posts = await queryBuilder.getMany();
-
-		await this.assetsService.attachAssetToEntities(
-			posts.map((post) => post.author),
-		);
-
-		await this.assetsService.attachAssetToEntities(posts);
-
-		return posts;
+	async getNewsfeed(
+		userId: Uuid,
+		options?: { page?: number; limit?: number; lastId?: string },
+	) {
+		// Sử dụng newsfeedService để lấy newsfeed
+		return await this.newsfeedService.getNewsfeed(userId, {
+			page: options?.page || 1,
+			limit: options?.limit || 10,
+			lastId: options?.lastId,
+		});
 	}
 
 	async uploadImages(user: User, postId: Uuid, images: CreateAssetDto[]) {

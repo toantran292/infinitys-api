@@ -21,8 +21,11 @@ import { UsersModule } from './modules/users/users.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { SharedModule } from './shared/shared.module';
+import { NewsfeedModule } from './modules/newsfeed/newsfeed.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
 	imports: [
+		ScheduleModule.forRoot(),
 		ClsModule.forRoot({
 			global: true,
 			middleware: {
@@ -63,6 +66,7 @@ import { SharedModule } from './shared/shared.module';
 		SearchModule,
 		NotificationsModule,
 		WebhooksModule,
+		NewsfeedModule,
 	],
 	controllers: [],
 	providers: [],

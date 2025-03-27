@@ -206,8 +206,6 @@ export class ProblemsService {
 			);
 		}
 
-		console.log(transformedItems);
-
 		return {
 			items: transformedItems as unknown as Problem[],
 			meta: pageMeta,
