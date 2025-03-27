@@ -1,6 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { PageEntity } from './entities/page.entity';
+import { PageUserEntity } from './entities/page-user.entity';
+import { RegisterPageDto } from './dto/create-page.dto';
+import { UserEntity } from '../users/entities/user.entity';
+import { RoleType, RoleTypePage } from '../../constants/role-type';
+import type { PagePageOptionsDto } from './dto/page-page-options.dto';
+import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
+import type { PageDto } from './dto/page.dto';
 import { Transactional } from 'typeorm-transactional';
 
 import { PageMetaDto } from '../../common/dto/page-meta.dto';
@@ -17,6 +30,10 @@ import { Page } from './entities/page.entity';
 
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { SearchService } from '../search/search.service';
+import { FollowEntity } from './entities/follow.entity';
+
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 @Injectable()
 export class PagesService {
 	constructor(
@@ -28,6 +45,9 @@ export class PagesService {
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
+
+		@InjectRepository(FollowEntity)
+		private readonly followRepository: Repository<FollowEntity>,
 
 		private readonly searchService: SearchService,
 	) {}
@@ -76,11 +96,28 @@ export class PagesService {
 		};
 	}
 
-	async getPageById(user: User, pageId: Uuid): Promise<Page> {
+	async getPendingPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
+		items: PageEntity[];
+		meta: PageMetaDto;
+	}> {
+		const queryBuilder = await this.pageRepository
+			.createQueryBuilder('page')
+
+		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
+
+		await this.assetsService.attachAssetToEntities(items);
+
+		return {
+			items,
+			meta: pageMeta,
+		};
+	}
+	async getPageById(user: UserEntity, pageId: Uuid){
 		const _error = 'error.page_not_found';
 
 		let page = await this.pageRepository.findOne({
 			where: { id: pageId },
+			relations: ['pageUsers'],
 		});
 
 		if (!page) {
@@ -98,16 +135,23 @@ export class PagesService {
 			.then((pageUser) => pageUser?.user);
 
 		if (page.status !== PageStatus.APPROVED) {
-			if (userAdmin.id !== user.id) {
+			if (userAdmin.id !== user.id && user.role !== RoleType.ADMIN) {
 				throw new BadRequestException(_error);
 			}
 		}
+		const followRecords = await this.followRepository.find({
+			where: { page: { id: pageId } },
+			relations: ['user'],
+		});
+		const isFollowing = followRecords.some(
+			(follow) => follow.user.id === user.id,
+		);
 
 		page = await this.assetsService.attachAssetToEntity(page);
 
 		page.admin_user_id = userAdmin.id;
 
-		return page;
+		return { ...page, isFollowing };
 	}
 
 	async getMyPages(
@@ -147,8 +191,15 @@ export class PagesService {
 			where: { email: registerPageDto.email },
 		});
 
-		if (existingPage && existingPage.status !== PageStatus.REJECTED) {
-			throw new BadRequestException('Page is already registered');
+		if (existingPage) {
+			if (existingPage.status !== PageStatus.REJECTED) {
+				throw new BadRequestException('Page is already registered');
+			} else {
+				Object.assign(existingPage, {
+					...registerPageDto,
+					status: PageStatus.STARTED,
+				});
+			}
 		}
 
 		const page =
@@ -173,7 +224,6 @@ export class PagesService {
 				});
 			}
 		} catch (error) {
-			console.error('❌ Lỗi khi lưu avatar:', error);
 			throw new BadRequestException('Lỗi khi lưu avatar');
 		}
 
@@ -271,5 +321,60 @@ export class PagesService {
 			},
 			url: page.url,
 		});
+	}
+	public async getFollowPages(
+		userId: Uuid,
+		pagePageOptionsDto: PagePageOptionsDto,
+	) {
+		const followedPages = await this.followRepository
+			.createQueryBuilder('follow')
+			.select('follow.page_id', 'pageId')
+			.where('follow.user_id = :userId', { userId })
+			.getRawMany();
+
+		const pageIds = followedPages.map((item) => item.pageId);
+
+		const pages = await this.pageRepository
+			.createQueryBuilder('page')
+			.where('page.id IN (:...pageIds)', { pageIds })
+			.searchByString(pagePageOptionsDto.q, ['name'])
+			.orderBy('page.createdAt', 'DESC');
+		const [items, pageMetaDto] = await pages.paginate(pagePageOptionsDto);
+		const pagesWithAvatars =
+			await this.assetsService.attachAssetToEntities(items);
+		return pagesWithAvatars;
+	}
+	public async followPage(userId: Uuid, pageId: Uuid) {
+		const page = await this.pageRepository.findOne({ where: { id: pageId } });
+		if (!page || page.status !== PageStatus.APPROVED) {
+			throw new NotFoundException('Page not found or not approved.');
+		}
+
+		const existingFollow = await this.followRepository.findOne({
+			where: { user: { id: userId }, page: { id: pageId } },
+		});
+		if (existingFollow) {
+			throw new BadRequestException('You already follow this page.');
+		}
+
+		const follow = this.followRepository.create({
+			user: { id: userId },
+			page: { id: pageId },
+		});
+
+		await this.followRepository.save(follow);
+
+		return follow;
+	}
+	public async unfollowPage(userId: Uuid, pageId: Uuid): Promise<void> {
+		const existingFollow = await this.followRepository.findOne({
+			where: { user: { id: userId }, page: { id: pageId } },
+		});
+
+		if (!existingFollow) {
+			throw new NotFoundException('You are not following this page.');
+		}
+
+		await this.followRepository.delete({ id: existingFollow.id });
 	}
 }

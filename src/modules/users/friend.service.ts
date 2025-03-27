@@ -5,7 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { UserEntity } from './entities/user.entity';
+import { FriendRequestEntity } from './entities/friend-request.entity';
+import { FriendEntity } from './entities/friend.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AssetsService } from '../assets/assets.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NewsfeedService } from '../newsfeed/newsfeed.service';
@@ -229,6 +232,32 @@ export class FriendService {
 
 	async loadFriendStatus(currentUser: User, target: User) {
 		await this.loadFriendStatuses(currentUser, [target]);
+	}
+	async getFriendRequests(userId: Uuid) {
+		let users = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.source', 'source')
+			.where('request.target_id = :userId', { userId })
+			.andWhere('request.is_available = true')
+			.getMany()
+			.then((requests) => requests.map((request) => request.source));
+
+		users = await this.assetService.attachAssetToEntities(users);
+		return users;
+	}
+
+	async getSentFriendRequests(userId: Uuid): Promise<UserEntity[]> {
+		let users = await this.friendRequestRepository
+			.createQueryBuilder('request')
+			.leftJoinAndSelect('request.target', 'target')
+			.where('request.source_id = :userId', { userId })
+			.andWhere('request.is_available = true')
+			.getMany()
+			.then((requests) => requests.map((request) => request.target));
+
+		users = await this.assetService.attachAssetToEntities(users);
+
+		return users;
 	}
 
 	/**

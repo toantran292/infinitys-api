@@ -8,11 +8,13 @@ import {
 } from '@nestjs/common';
 
 import { RoleType } from '../../constants/role-type';
-import { Auth } from '../../decoractors/http.decorators';
-
-import { PaginationPageResponseDto } from './dto/list-page-response.dto';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { PagePageOptionsDto } from './dto/page-page-options.dto';
+import { PaginationPageResponseDto } from './dto/list-page-response.dto';
+import { PageResponseDto } from './dto/page-response.dto';
+import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { PagesService } from './pages.service';
+import type { UserEntity } from '../users/entities/user.entity';
 
 @Controller('admin_api/pages')
 export class PagesAdminController {
@@ -24,7 +26,20 @@ export class PagesAdminController {
 	@Get()
 	@Auth([RoleType.ADMIN])
 	async getPages(@Query() pagePageOptionsDto: PagePageOptionsDto) {
-		return this.pagesService.getPages(pagePageOptionsDto);
+		return this.pagesService.getPendingPages(pagePageOptionsDto);
+	}
+
+	@SerializeOptions({
+		type: PageResponseDto,
+	})
+	@Get(':id')
+	@Auth([RoleType.ADMIN])
+	async getPageById(
+		@AuthUser() user: UserEntity,
+		@UUIDParam('id') id: Uuid,
+	) {
+		const page = await this.pagesService.getPageById(user, id);
+		return page;
 	}
 
 	@Post(':pageId/approve')

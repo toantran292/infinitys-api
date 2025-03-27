@@ -158,4 +158,20 @@ export class UsersService {
 			});
 		}
 	}
+
+	async getUserWithDynamicRelations(
+		userId: Uuid,
+		relations: string[] = [],
+	): Promise<UserEntity> {
+		const user = await this.userRepository.findOne({
+			where: { id: userId },
+			relations: relations,
+		});
+
+		if (!user) {
+			throw new UserNotFoundException();
+		}
+
+		return this.assetsService.attachAssetToEntity(user);
+	}
 }

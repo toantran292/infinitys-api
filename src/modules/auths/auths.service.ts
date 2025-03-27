@@ -7,6 +7,8 @@ import { TokenType } from '../../constants/token-type';
 import { ApiConfigService } from '../../shared/services/api-config.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { UserEntity } from '../users/entities/user.entity';
+import { FriendService } from '../users/friend.service';
 
 import type { UserLoginDto } from './dto/user-login.dto';
 
@@ -16,6 +18,7 @@ export class AuthsService {
 		private readonly jwtService: JwtService,
 		private readonly configService: ApiConfigService,
 		private readonly userService: UsersService,
+		private readonly friendService: FriendService,
 	) {}
 
 	async createAccessToken(data: {
@@ -49,5 +52,21 @@ export class AuthsService {
 		}
 
 		return user!;
+	}
+	async me(user: UserEntity) {
+		const userWithRelations =
+			await this.userService.getUserWithDynamicRelations(user.id, [
+				'pageUsers',
+				'pageUsers.page',
+				'follows',
+				'follows.page',
+			]);
+		userWithRelations.total_connections = (
+			await this.friendService.getFriends(user.id)
+		).length;
+
+		userWithRelations.total_followings = userWithRelations.follows.length;
+
+		return userWithRelations;
 	}
 }

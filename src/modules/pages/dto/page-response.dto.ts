@@ -29,4 +29,7 @@ export class PageResponseDto extends AbstractDto {
 
 	@Expose()
 	admin_user_id?: Uuid;
+
+	@Expose()
+	isFollowing?: boolean;
 }

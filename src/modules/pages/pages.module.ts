@@ -11,9 +11,11 @@ import { PagesAdminController } from './pages.admin.controller';
 import { PagesController } from './pages.controller';
 import { PagesService } from './pages.service';
 import { SearchModule } from '../search/search.module';
+import { FollowEntity } from './entities/follow.entity';
+
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([Page, User, PageUserEntity, AssetEntity]),
+		TypeOrmModule.forFeature([Page, User, PageUserEntity, AssetEntity, FollowEntity,]),
 		AssetsModule,
 		SearchModule,
 	],
