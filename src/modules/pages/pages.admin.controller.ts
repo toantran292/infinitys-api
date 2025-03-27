@@ -6,11 +6,13 @@ import {
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { PagesService } from './pages.service';
+
 import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decoractors/http.decorators';
-import { PagePageOptionsDto } from './dto/page-page-options.dto';
+
 import { PaginationPageResponseDto } from './dto/list-page-response.dto';
+import { PagePageOptionsDto } from './dto/page-page-options.dto';
+import { PagesService } from './pages.service';
 
 @Controller('admin_api/pages')
 export class PagesAdminController {

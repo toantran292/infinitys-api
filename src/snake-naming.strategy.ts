@@ -1,5 +1,6 @@
-import type { NamingStrategyInterface } from 'typeorm';
 import { DefaultNamingStrategy } from 'typeorm';
+
+import type { NamingStrategyInterface } from 'typeorm';
 
 function snakeCase(str: string): string {
 	return (

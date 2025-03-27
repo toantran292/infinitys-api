@@ -1,14 +1,15 @@
 import { Body, Controller, Get, Post, SerializeOptions } from '@nestjs/common';
-import { AuthsService } from './auths.service';
-import { UsersService } from '../users/users.service';
-import { UserLoginDto } from './dto/user-login.dto';
-import { LoginPayloadDto } from './dto/login-payload.dto';
-import { UserRegisterDto } from './dto/user-register.dto';
-import { UserDto } from '../users/dto/user.dto';
+
+import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { Auth } from '../../decoractors/http.decorators';
-import { UserEntity } from '../users/entities/user.entity';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+
+import { AuthsService } from './auths.service';
+import { LoginPayloadDto } from './dto/login-payload.dto';
+import { UserLoginDto } from './dto/user-login.dto';
+import { UserRegisterDto } from './dto/user-register.dto';
 
 @Controller('api/auths')
 export class AuthsController {
@@ -48,7 +49,7 @@ export class AuthsController {
 	@SerializeOptions({ type: UserResponseDto })
 	@Get('me')
 	@Auth()
-	async me(@AuthUser() user: UserEntity) {
+	async me(@AuthUser() user: User) {
 		return user;
 	}
 }

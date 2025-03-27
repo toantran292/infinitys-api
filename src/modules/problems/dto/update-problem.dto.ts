@@ -1,14 +1,16 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateProblemDto, ExampleDto } from './create-problem.dto';
+import { Type } from 'class-transformer';
+import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
+
 import {
 	EnumFieldOptional,
 	NumberFieldOptional,
 	StringFieldOptional,
-} from 'src/decoractors/field.decoractors';
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CreateAssetDto } from 'src/modules/assets/dto/create-asset.dto';
+} from '../../../decoractors/field.decoractors';
+import { CreateAssetDto } from '../../assets/dto/create-asset.dto';
 import { ProblemDifficulty } from '../entities/problem.entity';
+
+import { CreateProblemDto, ExampleDto } from './create-problem.dto';
 
 export class UpdateProblemDto extends PartialType(CreateProblemDto) {
 	@StringFieldOptional()

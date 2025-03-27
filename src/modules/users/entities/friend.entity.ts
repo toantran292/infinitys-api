@@ -1,12 +1,40 @@
-import { Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, Generated } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { UserEntity } from './user.entity';
+
+import { User } from './user.entity';
+
+export enum FriendshipStatus {
+	PENDING = 'pending',
+	ACCEPTED = 'accepted',
+}
+
+export enum FriendStatus {
+	FRIEND = 'friend',
+	WAITING = 'waiting',
+	RECEIVED = 'received',
+}
 
 @Entity({ name: 'friends' })
 export class FriendEntity extends AbstractEntity {
-	@ManyToOne(() => UserEntity, (user) => user.friends1)
-	source!: UserEntity;
+	@ManyToOne(() => User, (user) => user.sentFriendships)
+	source!: User;
 
-	@ManyToOne(() => UserEntity, (user) => user.friends2)
-	target!: UserEntity;
+	@Column()
+	@Generated('uuid')
+	sourceId!: Uuid;
+
+	@ManyToOne(() => User, (user) => user.receivedFriendships)
+	target!: User;
+
+	@Column()
+	@Generated('uuid')
+	targetId!: Uuid;
+
+	@Column({
+		type: 'enum',
+		enum: FriendshipStatus,
+		default: FriendshipStatus.PENDING,
+	})
+	status!: FriendshipStatus;
 }

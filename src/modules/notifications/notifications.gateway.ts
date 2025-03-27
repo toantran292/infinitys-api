@@ -8,10 +8,11 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AuthWsUser } from 'src/decoractors/auth-user-ws.decoractors';
-import { AuthWs } from 'src/decoractors/ws.decoractors';
+
+import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
+import { AuthWs } from '../../decoractors/ws.decoractors';
 import { AuthsService } from '../auths/auths.service';
-import { UserEntity } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 // import { Notification } from './interfaces/notification.interface';
 
 @WebSocketGateway({
@@ -39,19 +40,15 @@ export class NotificationsGateway
 		}
 	}
 
-	handleDisconnect(client: Socket) {
-		// Xóa socket khỏi danh sách khi người dùng ngắt kết nối
-		// this.removeSocket(client.id);
-	}
+	handleDisconnect(client: Socket) {}
 
 	@SubscribeMessage('notifications.test')
 	@AuthWs()
 	async handleTest(
 		@MessageBody() data: any,
-		@AuthWsUser() user: UserEntity,
+		@AuthWsUser() user: User,
 		@ConnectedSocket() client: Socket,
 	) {
-		console.log(data);
 		this.server.to(`user-${user.id}`).emit('notifications.test', {
 			message: 'Hello, world!',
 		});
@@ -59,7 +56,6 @@ export class NotificationsGateway
 
 	// Phương thức để gửi thông báo tới người dùng cụ thể
 	async sendNotificationToUser(userId: string, notification) {
-		console.log('sendNotificationToUser', userId, notification);
 		this.server.to(`user-${userId}`).emit('notifications.new', notification);
 	}
 

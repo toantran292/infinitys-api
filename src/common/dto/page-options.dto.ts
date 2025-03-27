@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
 	IsEnum,
 	IsInt,
@@ -7,8 +7,9 @@ import {
 	Min,
 	IsBoolean,
 } from 'class-validator';
+
+import { StringFieldOptional } from '../../decoractors/field.decoractors';
 import { Order } from '../constants';
-import { StringFieldOptional } from 'src/decoractors/field.decoractors';
 
 export class PageOptionsDto {
 	@IsEnum(Order)

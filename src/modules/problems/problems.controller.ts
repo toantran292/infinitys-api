@@ -2,23 +2,24 @@ import {
 	Body,
 	Controller,
 	Get,
-	Param,
 	Post,
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { ProblemsService } from './problems.service';
-import { ProblemPageOptionDto } from './dto/problem-page-option';
+
+import { AuthUser } from '../../decoractors/auth-user.decorators';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+import { User } from '../users/entities/user.entity';
+
 import { PaginatedProblemsResponseDto } from './dto/list-problems-response.dto';
+import { ProblemPageOptionDto } from './dto/problem-page-option';
 import { ProblemResponseDto } from './dto/problem-response.dto';
-import { Auth, UUIDParam } from 'src/decoractors/http.decorators';
-import { SubmitProblemDto } from './dto/submit-problem.dto';
-import { AuthUser } from 'src/decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
 import {
 	SubmissionResponseDto,
 	SubmissionSummaryResponseDto,
 } from './dto/submisstion-response';
+import { SubmitProblemDto } from './dto/submit-problem.dto';
+import { ProblemsService } from './problems.service';
 @Controller('api/problems')
 export class ProblemsController {
 	constructor(private readonly problemsService: ProblemsService) {}
@@ -30,7 +31,7 @@ export class ProblemsController {
 	@Auth()
 	async getProblems(
 		@Query() pageOptionsDto: ProblemPageOptionDto,
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 	) {
 		return this.problemsService.getProblems(pageOptionsDto, false, user.id);
 	}
@@ -46,7 +47,7 @@ export class ProblemsController {
 	@Post(':id/submit')
 	@Auth()
 	async submitProblem(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') id: Uuid,
 		@Body() body: SubmitProblemDto,
 	) {
@@ -58,10 +59,7 @@ export class ProblemsController {
 	})
 	@Get(':id/submissions')
 	@Auth()
-	async getSubmissions(
-		@UUIDParam('id') id: Uuid,
-		@AuthUser() user: UserEntity,
-	) {
+	async getSubmissions(@UUIDParam('id') id: Uuid, @AuthUser() user: User) {
 		return this.problemsService.getSubmissions(id, user.id);
 	}
 
@@ -72,7 +70,7 @@ export class ProblemsController {
 	@Auth()
 	async getSubmissionSummary(
 		@UUIDParam('id') id: Uuid,
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 	) {
 		return this.problemsService.getSubmissionSummary(id, user.id);
 	}

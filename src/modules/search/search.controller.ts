@@ -1,35 +1,24 @@
-import {
-	Controller,
-	Get,
-	Post,
-	Body,
-	Patch,
-	Param,
-	Delete,
-	Req,
-	Query,
-	SerializeOptions,
-} from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { SearchService } from './search.service';
-import { CreateSearchDto } from './dto/create-search.dto';
-import { UpdateSearchDto } from './dto/update-search.dto';
+import { User } from '../users/entities/user.entity';
 import { Auth } from '../../decoractors/http.decorators';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
-import { SearchPageOptionDto } from './dto/search-page-option.dto';
-import { PaginationListSearchResponseDto } from './dto/list-search-response.dto';
 
 @Controller('search')
 export class SearchController {
 	constructor(private readonly searchService: SearchService) {}
 
-	@SerializeOptions({ type: PaginationListSearchResponseDto })
-	@Get('user')
+	@Get()
 	@Auth()
-	searchUser(
-		@AuthUser() user: UserEntity,
-		@Query() query: SearchPageOptionDto,
+	async search(
+		@Query('q') query: string,
+		@Query('autocomplete') autocomplete?: boolean,
+		@AuthUser() currentUser?: User,
 	) {
-		return this.searchService.searchUser(user, query);
+		return await this.searchService.search(
+			query,
+			currentUser?.id,
+			autocomplete,
+		);
 	}
 }

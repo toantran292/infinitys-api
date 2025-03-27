@@ -1,16 +1,13 @@
-import {
-	BadRequestException,
-	Injectable,
-	NotFoundException,
-} from '@nestjs/common';
-import { AwsS3Service } from '../../shared/services/aws-s3.service';
-import { AssetEntity } from './entities/asset.entity';
-import { In, Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+
+import { AbstractEntity } from '../../common/abstract.entity';
+import { getAssetFields } from '../../decoractors/asset.decoractor';
+import { AwsS3Service } from '../../shared/services/aws-s3.service';
+
 import { PresignLinkDto } from './dto/presign-link.dto';
-import { AvatarDto } from '../users/dto/avatar.dto';
-import { AbstractEntity } from 'src/common/abstract.entity';
-import { getAssetFields } from 'src/decoractors/asset.decoractor';
+import { AssetEntity } from './entities/asset.entity';
 
 export enum FileType {
 	AVATAR = 'avatar',
@@ -76,7 +73,6 @@ export class AssetsService {
 	async getPresignUrl(
 		data: PresignLinkDto,
 	): Promise<{ url: string; key: string }> {
-		console.log(data);
 		const key = await this.generateKey(data.type, data.suffix);
 
 		const url = await this.awsS3Service.getPreSignedUrl(key);
@@ -98,6 +94,7 @@ export class AssetsService {
 	}
 
 	async getViewUrl(key: string): Promise<{ url: string }> {
+		if (!key) return { url: null };
 		const url = await this.awsS3Service.getPreSignedUrlToViewObject(key);
 		return { url };
 	}

@@ -8,12 +8,12 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ChatsService } from './chats.service';
-import { AuthsService } from '../auths/auths.service';
-import { AuthWs } from '../../decoractors/ws.decoractors';
+
 import { AuthWsUser } from '../../decoractors/auth-user-ws.decoractors';
-import { UserEntity } from '../users/entities/user.entity';
-import { SendMessageDto } from './dto/send-message.dto';
+import { AuthWs } from '../../decoractors/ws.decoractors';
+import { User } from '../users/entities/user.entity';
+
+import { ChatsService } from './chats.service';
 
 /**
  * 1. Khi nhan vao chat -> /api/chats/groups/:id/messages (http) -> load tin nham
@@ -22,74 +22,131 @@ import { SendMessageDto } from './dto/send-message.dto';
 
 @WebSocketGateway({ cors: true, namespace: 'chats' })
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-	@WebSocketServer()
-	server: Server;
+	@WebSocketServer() server: Server;
 
-	private users = new Map<string, string>();
+	constructor(private readonly chatsService: ChatsService) {}
 
-	constructor(
-		private readonly authService: AuthsService,
-		private chatsService: ChatsService,
-	) {}
-
-	async handleConnection(client: Socket) {
+	handleConnection(socket: Socket) {
 		try {
-			const user = client.handshake.auth.user;
-			this.users.set(client.id, user.id);
-			this.server.emit('users', Array.from(this.users.values()));
-			// console.log(`User ${user.firstName + ' ' + user.lastName} connected`);
+			const userId = socket.handshake.auth.userId as string;
+			if (userId) socket.join(`user:${userId}`);
 		} catch (error) {
-			// console.log('Unauthorized connection');
-			client.disconnect();
+			socket.disconnect();
 		}
 	}
 
-	handleDisconnect(client: Socket) {
-		// console.log(`Client disconnected: ${client.id}`);
-		this.users.delete(client.id);
-		this.server.emit('users', Array.from(this.users.values()));
-	}
+	handleDisconnect(socket: Socket) {}
 
-	@SubscribeMessage('join_room')
+	@SubscribeMessage('join_conversation')
 	@AuthWs()
-	async handleJoinRoom(
-		@MessageBody() room_id: Uuid,
-		@ConnectedSocket() client: Socket,
-		@AuthWsUser() user: UserEntity,
+	handleJoinConversation(
+		@AuthWsUser() user: User,
+		@MessageBody() conversationId: Uuid,
+		@ConnectedSocket() socket: Socket,
 	) {
-		const room = await this.chatsService.getGroupChatByIdAndUser(user, room_id);
-
-		if (!room) {
-			client.emit('notifications', {
-				errors: ['Not found group chat'],
-			});
-			return;
-		}
-
-		client.join(room.id);
-		client.emit('joined_room', room);
+		socket.join(`conversation:${conversationId}`);
 	}
 
 	@SubscribeMessage('send_message')
 	@AuthWs()
-	async handleMessage(
-		@MessageBody() sendMessageDto: SendMessageDto,
-		@ConnectedSocket() client: Socket,
-		@AuthWsUser() user: UserEntity,
+	async handleSendMessage(
+		@AuthWsUser() user: User,
+		@MessageBody()
+		data: {
+			conversationId: Uuid;
+			content: string;
+			pageId?: Uuid;
+		},
 	) {
-		try {
-			const message = await this.chatsService.sendMessage(
-				user,
-				sendMessageDto.room_id,
-				sendMessageDto.content,
-			);
+		const message = await this.chatsService.createMessage(
+			data.conversationId,
+			{ userId: user.id, pageId: data.pageId },
+			data.content,
+		);
 
-			this.server.to(sendMessageDto.room_id).emit('receive_message', {
-				user,
-				...message,
-			});
-		} catch (error) {
-			console.error('Error sending message:', error);
+		this.server
+			.to(`conversation:${data.conversationId}`)
+			.emit('new_message', message);
+
+		const conversation = await this.chatsService.findConversationById(
+			data.conversationId,
+		);
+		for (const participant of conversation.participants) {
+			if (participant.user) {
+				this.server
+					.to(`user:${participant.user.id}`)
+					.emit('conversation_updated', {
+						conversationId: conversation.id,
+						lastMessage: message,
+						updatedAt: conversation.updatedAt,
+						participants: conversation.participants,
+					});
+			}
 		}
+		await this.chatsService.markAsRead(
+			data.conversationId,
+			user.id,
+			message.id,
+		);
 	}
+
+	@SubscribeMessage('mark_as_read')
+	@AuthWs()
+	async handleMarkAsRead(
+		@AuthWsUser() user: User,
+		@MessageBody()
+		data: {
+			conversationId: Uuid;
+			messageId: Uuid;
+		},
+	) {
+		await this.chatsService.markAsRead(
+			data.conversationId,
+			user.id,
+			data.messageId,
+		);
+	}
+
+	// @SubscribeMessage('join_room')
+	// @AuthWs()
+	// async handleJoinRoom(
+	// 	@MessageBody() room_id: Uuid,
+	// 	@ConnectedSocket() client: Socket,
+	// 	@AuthWsUser() user: User,
+	// ) {
+	// 	const room = await this.chatsService.getGroupChatByIdAndUser(user, room_id);
+
+	// 	if (!room) {
+	// 		client.emit('notifications', {
+	// 			errors: ['Not found group chat'],
+	// 		});
+	// 		return;
+	// 	}
+
+	// 	client.join(room.id);
+	// 	client.emit('joined_room', room);
+	// }
+
+	// @SubscribeMessage('send_message')
+	// @AuthWs()
+	// async handleMessage(
+	// 	@MessageBody() sendMessageDto: SendMessageDto,
+	// 	@ConnectedSocket() client: Socket,
+	// 	@AuthWsUser() user: User,
+	// ) {
+	// 	try {
+	// 		const message = await this.chatsService.sendMessage(
+	// 			user,
+	// 			sendMessageDto.room_id,
+	// 			sendMessageDto.content,
+	// 		);
+
+	// 		this.server.to(sendMessageDto.room_id).emit('receive_message', {
+	// 			user,
+	// 			...message,
+	// 		});
+	// 	} catch (error) {
+	// 		console.error('Error sending message:', error);
+	// 	}
+	// }
 }

@@ -1,5 +1,4 @@
-import { IsString } from 'class-validator';
-import { StringField } from 'src/decoractors/field.decoractors';
+import { StringField } from '../../../decoractors/field.decoractors';
 
 export class SubmitProblemDto {
 	@StringField()

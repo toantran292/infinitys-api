@@ -1,8 +1,7 @@
-import { Type } from 'class-transformer';
-import { Expose } from 'class-transformer';
-import { AbstractDto } from 'src/common/dto/abstract.dto';
-import { PageDto } from 'src/common/dto/page.dto';
-import { UserResponseDto } from 'src/modules/users/dto/user-response.dto';
+import { Type, Expose } from 'class-transformer';
+
+import { PageDto } from '../../../common/dto/page.dto';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 export class ListSearchResponseDto extends UserResponseDto {
 	@Expose()

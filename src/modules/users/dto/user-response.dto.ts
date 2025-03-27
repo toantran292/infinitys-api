@@ -1,7 +1,9 @@
 import { Expose, Type } from 'class-transformer';
-import { RoleType } from '../../../constants/role-type';
-import { GenderType } from '../../../constants/gender-type';
+
 import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { GenderType } from '../../../constants/gender-type';
+import { RoleType } from '../../../constants/role-type';
+import { FriendStatus } from '../entities/friend.entity';
 
 export class AssetResponseDto {
 	@Expose()
@@ -56,8 +58,8 @@ export class UserResponseDto extends AbstractDto {
 	banner!: AssetResponseDto;
 
 	@Expose()
-	friend_status?: string;
+	friendStatus?: FriendStatus;
 
 	@Expose()
-	total_connections!: number;
+	totalConnections!: number;
 }

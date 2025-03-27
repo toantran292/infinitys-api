@@ -1,13 +1,15 @@
 import { Column, Entity, Index, OneToMany } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { PageUserEntity } from './page-user.entity';
-import { Problem } from '../../problems/entities/problem.entity';
 import { PageStatus } from '../../../constants/page-status';
-import { AssetEntity } from '../../assets/entities/asset.entity';
 import { AssetField } from '../../../decoractors/asset.decoractor';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { Problem } from '../../problems/entities/problem.entity';
+
+import { PageUserEntity } from './page-user.entity';
 
 @Entity({ name: 'pages' })
-export class PageEntity extends AbstractEntity {
+export class Page extends AbstractEntity {
 	@Column()
 	name!: string;
 

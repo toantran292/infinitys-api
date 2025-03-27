@@ -1,11 +1,10 @@
-import { Process } from '@nestjs/bull';
-
-import { Processor } from '@nestjs/bull';
-import { QueueNames } from 'src/modules/queues/queues';
-import { NotificationsGateway } from '../notifications.gateway';
+import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+
+import { QueueNames } from '../../queues/queues';
+import { UsersService } from '../../users/users.service';
+import { NotificationsGateway } from '../notifications.gateway';
 import { NotificationData } from '../notifications.service';
-import { UsersService } from 'src/modules/users/users.service';
 
 @Processor(QueueNames.NOTIFICATION)
 export class SendNotificationsJob {

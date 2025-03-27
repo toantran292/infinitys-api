@@ -1,5 +1,6 @@
+import { Expose, Type } from 'class-transformer';
+
 import { TokenPayloadDto } from './token-payload.dto';
-import { Expose, Transform, Type } from 'class-transformer';
 
 export class LoginPayloadDto {
 	@Expose()

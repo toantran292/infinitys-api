@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { ReactEntity } from './entities/react.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../users/entities/user.entity';
-import { CreateReactDto, REACT_TARGET_TYPE } from './dto/create-react.dto';
+import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { PostEntity } from '../posts/entities/post.entity';
-import { NotificationsService } from '../notifications/notifications.service';
+
 import { CommentEntity } from '../comments/entities/comment.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PostEntity } from '../posts/entities/post.entity';
+import { User } from '../users/entities/user.entity';
+
+import { CreateReactDto, REACT_TARGET_TYPE } from './dto/create-react.dto';
+import { ReactEntity } from './entities/react.entity';
 @Injectable()
 export class ReactsService {
 	constructor(
@@ -23,7 +25,7 @@ export class ReactsService {
 		private readonly notificationService: NotificationsService,
 	) {}
 
-	async findReact(user: UserEntity, data: CreateReactDto) {
+	async findReact(user: User, data: CreateReactDto) {
 		const { targetId, targetType } = data;
 		const react = await this.reactRepository.findOne({
 			where: { user: { id: user.id }, targetId, targetType },
@@ -32,7 +34,7 @@ export class ReactsService {
 	}
 
 	async getReactByTargetId(
-		user: UserEntity,
+		user: User,
 		targetId: Uuid,
 		targetType: REACT_TARGET_TYPE,
 	): Promise<ReactEntity> {
@@ -42,7 +44,7 @@ export class ReactsService {
 	}
 
 	@Transactional()
-	async createReact(user: UserEntity, createReactDto: CreateReactDto) {
+	async createReact(user: User, createReactDto: CreateReactDto) {
 		const existingReact = await this.findReact(user, createReactDto);
 		const { targetId, targetType } = createReactDto;
 

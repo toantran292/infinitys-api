@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { QueueNames } from './queues';
 import { InjectQueue } from '@nestjs/bull';
+import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
+
+import { QueueNames } from './queues';
 
 @Injectable()
 export class QueueService {

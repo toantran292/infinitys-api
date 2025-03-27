@@ -1,6 +1,20 @@
-import { AbstractDto } from 'src/common/dto/abstract.dto';
 import { Expose, Type } from 'class-transformer';
-import { PageDto } from 'src/common/dto/page.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { PageDto } from '../../../common/dto/page.dto';
+
+import { TestcaseResponseDto } from './testcase-response.dto';
+export class AdminListProblemsResponseDto extends AbstractDto {
+	@Expose()
+	content: string;
+
+	@Expose()
+	title: string;
+
+	@Expose()
+	@Type(() => TestcaseResponseDto)
+	testcases: TestcaseResponseDto[];
+}
 
 export class ProblemStatisticsDto {
 	@Expose()
@@ -83,6 +97,12 @@ export class ListProblemsResponseDto extends AbstractDto {
 	@Expose()
 	@Type(() => UserProblemStatusDto)
 	userStatus: UserProblemStatusDto | null;
+}
+
+export class AdminPaginatedProblemsResponseDto extends PageDto {
+	@Expose()
+	@Type(() => AdminListProblemsResponseDto)
+	items: AdminListProblemsResponseDto[];
 }
 
 export class PaginatedProblemsResponseDto extends PageDto {

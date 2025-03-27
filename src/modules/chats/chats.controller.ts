@@ -1,103 +1,165 @@
 import {
 	Body,
 	Controller,
-	ForbiddenException,
 	Get,
 	Post,
 	Query,
+	SerializeOptions,
 } from '@nestjs/common';
-import { ChatsService } from './chats.service';
-import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from '../users/entities/user.entity';
-import { CreateGroupChatDto } from './dto/create-group-chat.dto';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+import { User } from '../users/entities/user.entity';
 
-import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
-import { SearchGroupChatsByMembersDto } from './dto/search-group-chats-by-members.dto';
+import { ChatsService } from './chats.service';
 import {
-	ListGroupChatResponseDto,
-	PaginationListGroupChatResponseDto,
-} from './dto/response/list-group-chat-response.dto';
-import { SerializeOptions } from '@nestjs/common';
-import { GroupChatResponseDto } from './dto/response/group-chat-response.dto';
-import { ListGroupChatMessageResponseDto } from './dto/response/list-group-chat-message-response.dto';
+	ConversationResponseDto,
+	CursorConversationResponseDto,
+} from './dto/conversations-response.dto';
+import { CursorMessageResponseDto } from './dto/message-response.dto';
 @Controller('api/chats')
 export class ChatsController {
 	constructor(private readonly chatsService: ChatsService) {}
 
-	@SerializeOptions({ type: GroupChatResponseDto })
-	@Post('groups')
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Post('conversations/user-page')
 	@Auth([RoleType.USER])
-	async createGroupChat(
-		@AuthUser() admin: UserEntity,
-		@Body() createGroupChatDto: CreateGroupChatDto,
+	createUserPageConversation(
+		@AuthUser() user: User,
+		@Body() body: { pageId: Uuid },
 	) {
-		return this.chatsService.createGroupChat(admin, createGroupChatDto);
+		return this.chatsService.createUserPageConversation(user.id, body.pageId);
 	}
 
-	@SerializeOptions({ type: PaginationListGroupChatResponseDto })
-	@Get('groups')
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Post('conversations/group')
 	@Auth([RoleType.USER])
-	async getGroupChats(
-		@AuthUser() user: UserEntity,
-		@Query() groupsChatOptionsDto: GroupChatPageOptionsDto,
+	createGroupConversation(
+		@AuthUser() user: User,
+		@Body() body: { userIds: Uuid[] },
 	) {
-		return this.chatsService.getGroupChatsByUserId(
+		const userIds = new Set([...body.userIds, user.id]);
+		return this.chatsService.createGroupConversation(Array.from(userIds));
+	}
+
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Post('conversations/user-user')
+	@Auth([RoleType.USER])
+	createUserUserConversation(
+		@AuthUser() user: User,
+		@Body() body: { userId: Uuid },
+	) {
+		return this.chatsService.createUserUserConversation(user.id, body.userId);
+	}
+
+	@Post('message')
+	@Auth([RoleType.USER])
+	createMessage(
+		@AuthUser() user: User,
+		@Body()
+		body: {
+			conversationId: Uuid;
+			content: string;
+			pageId?: Uuid;
+		},
+	) {
+		return this.chatsService.createMessage(
+			body.conversationId,
+			{ userId: user.id, pageId: body.pageId },
+			body.content,
+		);
+	}
+
+	@Post('mark-as-read')
+	@Auth([RoleType.USER])
+	markAsRead(
+		@AuthUser() user: User,
+		@Body()
+		body: {
+			conversationId: Uuid;
+			messageId: Uuid;
+		},
+	) {
+		return this.chatsService.markAsRead(
+			body.conversationId,
 			user.id,
-			groupsChatOptionsDto,
+			body.messageId,
 		);
 	}
 
-	@SerializeOptions({ type: ListGroupChatResponseDto })
-	@Post('groups/search-by-members')
+	@SerializeOptions({ type: CursorConversationResponseDto })
+	@Get('conversations')
 	@Auth([RoleType.USER])
-	async searchGroupChatsByMembers(
-		@AuthUser() user: UserEntity,
-		@Body() searchGroupChatsByMembersDto: SearchGroupChatsByMembersDto,
+	getUserConversations(
+		@AuthUser() user: User,
+		@Query('limit') limit: number = 10,
+		@Query('cursor') cursor?: string,
 	) {
-		const groupChat = await this.chatsService.searchGroupChatsByExactMembers(
+		return this.chatsService.getUserConversations(
 			user.id,
-			searchGroupChatsByMembersDto.memberIds,
+			limit,
+			cursor ? new Date(cursor) : undefined,
 		);
-
-		if (!groupChat) return {};
-
-		return groupChat;
 	}
 
-	@SerializeOptions({ type: GroupChatResponseDto })
-	@Get('groups/:id')
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Get('conversations/:id')
 	@Auth([RoleType.USER])
-	async getGroupChat(
-		@AuthUser() user: UserEntity,
-		@UUIDParam('id') groupChatId: Uuid,
+	getConversation(@AuthUser() user: User, @UUIDParam('id') id: Uuid) {
+		return this.chatsService.getUserConversation(user.id, id);
+	}
+
+	@Get('page-conversations')
+	@Auth([RoleType.USER])
+	getPageConversations(
+		@AuthUser() user: User,
+		@Query('pageId') pageId: Uuid,
+		@Query('limit') limit = 10,
+		@Query('cursor') cursor?: string,
 	) {
-		const groupChat = await this.chatsService.getGroupChat(
+		return this.chatsService.getPageConversations(
+			pageId,
 			user.id,
-			groupChatId,
+			limit,
+			cursor ? new Date(cursor) : undefined,
 		);
-
-		if (!groupChat)
-			throw new ForbiddenException(
-				'You not have permission to retrieve message of this group',
-			);
-
-		return groupChat;
 	}
 
-	@SerializeOptions({ type: ListGroupChatMessageResponseDto })
-	@Get('groups/:id/messages')
+	@SerializeOptions({ type: CursorMessageResponseDto })
+	@Get('messages')
 	@Auth([RoleType.USER])
-	async getGroupChatMessages(
-		@AuthUser() user: UserEntity,
-		@UUIDParam('id') groupChatId: Uuid,
+	getMessages(
+		@AuthUser() user: User,
+		@Query('pageId') pageId: Uuid | null,
+		@Query('conversationId') conversationId: Uuid,
+		@Query('limit') limit = 20,
+		@Query('cursor') cursor?: string,
 	) {
-		const messages = await this.chatsService.getGroupChatMessages(
-			user,
-			groupChatId,
+		return this.chatsService.getMessages(
+			user.id,
+			pageId,
+			conversationId,
+			limit,
+			cursor ? new Date(cursor) : undefined,
 		);
+	}
 
-		return messages;
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Get('search')
+	@Auth([RoleType.USER])
+	async searchGroups(@Query('q') query: string, @AuthUser() currentUser: User) {
+		return this.chatsService.getGroupByQuery(query, currentUser.id);
+	}
+
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Post('conversation/user-ids')
+	@Auth([RoleType.USER])
+	async getConversationFormUserIds(
+		@AuthUser() user: User,
+		@Body() body: { userIds: Uuid[] },
+	) {
+		const userIds = new Set([...body.userIds, user.id]);
+		return this.chatsService.getConversationFormUserIds(Array.from(userIds));
 	}
 }

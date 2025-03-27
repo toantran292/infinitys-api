@@ -1,354 +1,512 @@
 import {
-	ForbiddenException,
+	BadRequestException,
 	Injectable,
 	NotFoundException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, type FindOptionsWhere, Repository } from 'typeorm';
-import {
-	GroupChatEntity,
-	GroupChatMemberEntity,
-	GroupChatMessageEntity,
-} from './entities/chat.entity';
-import { UserEntity } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
-import { UserNotFoundException } from '../../exeptions/user-not-found.exception';
+import { In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { CreateGroupChatDto } from './dto/create-group-chat.dto';
-import { GroupChatPageOptionsDto } from './dto/group-chat-page-options-dto';
-import { FileType } from '../assets/assets.service';
+
 import { AssetsService } from '../assets/assets.service';
+import { PagesService } from '../pages/pages.service';
+import { UsersService } from '../users/users.service';
+
+import { ConversationReadStatus } from './entities/conversation-read-status.entity';
+import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
+import { Participant } from './entities/participant.entity';
+
 @Injectable()
 export class ChatsService {
 	constructor(
-		@InjectRepository(GroupChatEntity)
-		private readonly groupChatRepo: Repository<GroupChatEntity>,
-		@InjectRepository(GroupChatMemberEntity)
-		private readonly groupChatMemberRepo: Repository<GroupChatMemberEntity>,
-		@InjectRepository(GroupChatMessageEntity)
-		private readonly groupChatMessageRepo: Repository<GroupChatMessageEntity>,
+		@InjectRepository(Conversation)
+		private readonly convRepo: Repository<Conversation>,
+
+		@InjectRepository(Participant)
+		private readonly participantRepo: Repository<Participant>,
+
+		@InjectRepository(Message)
+		private readonly msgRepo: Repository<Message>,
+
+		@InjectRepository(ConversationReadStatus)
+		private readonly readRepo: Repository<ConversationReadStatus>,
+
 		private readonly usersService: UsersService,
+		private readonly pageService: PagesService,
 		private readonly assetsService: AssetsService,
 	) {}
-
-	findOneGroupChat(
-		findData: FindOptionsWhere<GroupChatEntity>,
-	): Promise<GroupChatEntity | null> {
-		return this.groupChatRepo.findOneBy(findData);
-	}
-
-	// Thêm hàm escape string
-	private escapeLikeString(str: string): string {
-		return str.replace(/[\\%_]/g, '\\$&');
-	}
-
-	async getGroupChatsByUserId(
+	@Transactional()
+	async createUserPageConversation(
 		userId: Uuid,
-		groupsChatOptionsDto: GroupChatPageOptionsDto,
-	) {
-		const { q } = groupsChatOptionsDto;
-
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder
-			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
-			.innerJoinAndSelect('members.user', 'user')
-			.where('user.id = :userId', { userId });
-
-		if (q) {
-			const escapedSearch = this.escapeLikeString(q);
-			queryBuilder.andWhere(
-				new Brackets((qb) => {
-					qb.where("LOWER(groupChat.name) LIKE LOWER(:search) ESCAPE '\\'", {
-						search: `%${escapedSearch}%`,
-					}).orWhere(
-						`groupChat.id IN (
-							SELECT gcm.group_chat_id 
-							FROM group_chat_members gcm 
-							INNER JOIN users u ON u.id = gcm.user_id 
-							WHERE (LOWER(u.first_name) LIKE LOWER(:search) ESCAPE '\\'
-							OR LOWER(u.last_name) LIKE LOWER(:search) ESCAPE '\\')
-							AND u.id != :userId
-						)`,
-						{
-							search: `%${escapedSearch}%`,
-							userId,
-						},
-					);
-				}),
-			);
-		}
-
-		const [items, pageMeta] = await queryBuilder.paginate(groupsChatOptionsDto);
-
-		const groupChatIds = items.map((groupChat) => groupChat.id);
-		if (groupChatIds.length === 0) return [];
-
-		const groups = await this.groupChatRepo
-			.createQueryBuilder('groupChat')
-			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
-			.innerJoinAndSelect('members.user', 'user')
-			.leftJoinAndSelect(
-				'groupChat.groupChatMessages',
-				'messages',
-				`messages.id IN (
-					SELECT m2.id FROM group_chat_messages m2 
-					WHERE m2.group_chat_id = groupChat.id 
-					ORDER BY m2.created_at DESC 
-					LIMIT 1
-				)`,
-			)
-			.leftJoinAndSelect('messages.user', 'messageUser')
-			.andWhere('groupChat.id IN (:...groupChatIds)', { groupChatIds })
-			.andWhere('user.id != :userId', { userId })
-			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
-			.getMany();
-
-		await this.assetsService.attachAssetToEntities(
-			groups.flatMap((group) => group.groupChatMembers.map((m) => m.user)),
-		);
-
-		console.log({ groups });
-
-		return {
-			items: groups,
-			meta: pageMeta,
-		};
-	}
-
-	async getGroupChatById(groupChatId: Uuid): Promise<GroupChatEntity> {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		const groupChatEntity = await queryBuilder.getOne();
-
-		if (!groupChatEntity) {
-			throw new UserNotFoundException();
-		}
-
-		return groupChatEntity;
-	}
-
-	async getGroupChat(
-		userId: Uuid,
-		groupChatId: Uuid,
-		requireAdmin: boolean = false,
-	) {
-		const queryBuilder = this.groupChatMemberRepo.createQueryBuilder('members');
-
-		queryBuilder.innerJoinAndSelect('members.groupChat', 'groupChat');
-		queryBuilder.innerJoinAndSelect('members.user', 'user');
-		queryBuilder.where('user.id = :userId', { userId });
-		queryBuilder.andWhere('groupChat.id = :groupChatId', { groupChatId });
-
-		if (requireAdmin) queryBuilder.andWhere('members.isAdmin = true');
-
-		const isExist = await queryBuilder.getExists();
-
-		if (!isExist) return null;
-
-		const group = await this.groupChatRepo
-			.createQueryBuilder('groupChat')
-			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
-			.innerJoinAndSelect('members.user', 'user')
-			.leftJoinAndSelect(
-				'groupChat.groupChatMessages',
-				'messages',
-				`messages.id IN (
-					SELECT m2.id FROM group_chat_messages m2 
-					WHERE m2.group_chat_id = groupChat.id 
-					ORDER BY m2.created_at DESC 
-					LIMIT 1
-				)`,
-			)
-			.leftJoinAndSelect('messages.user', 'messageUser')
-			.andWhere('user.id != :userId', { userId })
-			.andWhere('groupChat.id = :groupChatId', { groupChatId })
+		pageId: Uuid,
+	): Promise<Conversation> {
+		const existing = await this.convRepo
+			.createQueryBuilder('c')
+			.leftJoin('c.participants', 'p1')
+			.leftJoin('c.participants', 'p2')
+			.where('p1.userId = :userId', { userId })
+			.andWhere('p2.pageId = :pageId', { pageId })
+			.groupBy('c.id')
+			.having('COUNT(DISTINCT p1.id) = 1 AND COUNT(DISTINCT p2.id) = 1')
 			.getOne();
 
+		if (existing) return existing;
+
+		const user = await this.usersService.findOne({ id: userId });
+		const page = await this.pageService.findOne({ id: pageId });
+		if (!user || !page) throw new NotFoundException();
+
+		const conv = this.convRepo.create({
+			isGroup: false,
+			participants: [],
+		});
+		const saved = await this.convRepo.save(conv);
+
+		const [pu, pp] = this.participantRepo.create([
+			{ conversation: saved, user },
+			{ conversation: saved, page },
+		]);
+
+		await this.participantRepo.save([pu, pp]);
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: saved.id },
+			relations: ['participants', 'participants.user', 'lastMessage'],
+		});
+
 		await this.assetsService.attachAssetToEntities(
-			group.groupChatMembers.map((m) => m.user),
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.page).filter(Boolean),
 		);
 
-		return group;
-	}
-
-	async getGroupChatByIdAndUser(
-		user: UserEntity,
-		groupChatId: Uuid,
-	): Promise<GroupChatEntity> {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder.innerJoinAndSelect('groupChat.groupChatMembers', 'members');
-		queryBuilder.innerJoinAndSelect('members.user', 'user');
-		queryBuilder.where('user.id = :userId', { userId: user.id });
-		queryBuilder.andWhere('groupChat.id = :groupChatId', { groupChatId });
-
-		return queryBuilder.getOne();
-	}
-
-	async getPrivateGroupChat(
-		userA: UserEntity,
-		userB: UserEntity,
-	): Promise<GroupChatEntity | null> {
-		const queryBuilder = this.groupChatRepo.createQueryBuilder('groupChat');
-
-		queryBuilder.innerJoinAndSelect('groupChat.groupChatMembers', 'members');
-		queryBuilder.innerJoinAndSelect('members.user', 'user');
-		queryBuilder.where('user.id IN (:...ids)', { ids: [userA.id, userB.id] });
-		queryBuilder.select('groupChat.id');
-		queryBuilder.groupBy('groupChat.id');
-		queryBuilder.having('COUNT(members.id) = 2');
-
-		const groupChatId = ((await queryBuilder.getOne()) || {}).id;
-
-		if (!groupChatId) return null;
-
-		return this.findOneGroupChat({ id: groupChatId });
-	}
-
-	async getGroupChatWithPerson(userA: UserEntity, userBId: Uuid) {
-		const recipient = await this.usersService.getRawUser(userBId);
-
-		const groupChat = await this.getPrivateGroupChat(userA, recipient);
-
-		if (!groupChat) {
-			throw new NotFoundException();
-		}
-
-		return groupChat;
-	}
-
-	async createGroupChatMember(groupChat: GroupChatEntity, users: UserEntity[]) {
-		const members = users.map((user, index) =>
-			this.groupChatMemberRepo.create({
-				groupChat: groupChat,
-				user: user,
-				isAdmin: index === 0,
-			}),
-		);
-
-		await this.groupChatMemberRepo.save(members);
+		return conversation;
 	}
 
 	@Transactional()
-	async createGroupChat(
-		admin: UserEntity,
-		createGroupChatDto: CreateGroupChatDto,
-	) {
-		const { userIds, name } = createGroupChatDto;
+	async createUserUserConversation(
+		userId1: Uuid,
+		userId2: Uuid,
+	): Promise<Conversation> {
+		if (userId1 === userId2)
+			throw new BadRequestException(
+				'Không thể tạo cuộc trò chuyện với chính mình',
+			);
 
-		const users = await this.usersService.getUsersByIds(userIds);
+		const users = await this.usersService.getUsersByIds([userId1, userId2]);
+		if (users.length !== 2)
+			throw new NotFoundException('User không tồn tại đầy đủ');
 
-		const newGroupChat = this.groupChatRepo.create({
-			name: name || '',
-		});
-
-		await this.groupChatRepo.save(newGroupChat);
-
-		await this.createGroupChatMember(newGroupChat, [admin, ...users]);
-
-		return this.getGroupChat(admin.id, newGroupChat.id);
-	}
-
-	async createGroupChatMessage(
-		user: UserEntity,
-		groupChat: GroupChatEntity,
-		content: string,
-	) {
-		const message = this.groupChatMessageRepo.create({
-			groupChat,
-			user,
-			content,
-		});
-
-		await this.groupChatMessageRepo.save(message);
-
-		return message;
-	}
-
-	async getGroupChatMessages(user: UserEntity, groupChatId: Uuid) {
-		await this.getGroupChat(user.id, groupChatId);
-
-		const queryBuilder =
-			this.groupChatMessageRepo.createQueryBuilder('message');
-
-		queryBuilder
-			.innerJoin('message.groupChat', 'groupChat')
-			.innerJoinAndSelect('message.user', 'user')
-			.where('groupChat.id = :groupChatId', { groupChatId })
-			.orderBy('message.createdAt');
-
-		const messages = await queryBuilder.getMany();
-
-		await this.assetsService.attachAssetToEntities(messages.map((m) => m.user));
-
-		return messages;
-	}
-
-	async sendMessage(user: UserEntity, groupChatId: Uuid, content: string) {
-		const message = this.groupChatMessageRepo.create({
-			groupChat: { id: groupChatId },
-			content,
-			user,
-		});
-
-		await this.assetsService.attachAssetToEntity(message.user);
-
-		return await this.groupChatMessageRepo.save(message);
-	}
-
-	async searchGroupChatsByExactMembers(currentUserId: Uuid, memberIds: Uuid[]) {
-		const allMemberIds = [...new Set([currentUserId, ...memberIds])];
-
-		const queryBuilder = await this.groupChatMemberRepo
-			.createQueryBuilder('gcm')
-			.select('gcm.group_chat_id')
-			.where('gcm.user.id IN (:...memberIds)', { memberIds: allMemberIds })
-			.groupBy('gcm.group_chat_id')
-			.having('COUNT(DISTINCT gcm.user) = :memberCount', {
-				memberCount: allMemberIds.length,
+		const existing = await this.convRepo
+			.createQueryBuilder('c')
+			.leftJoin('c.participants', 'p')
+			.where('c.is_group = false')
+			.groupBy('c.id')
+			.having('COUNT(p.id) = 2')
+			.andHaving(`bool_and(p.user_id IN (:...ids))`, {
+				ids: [userId1, userId2],
 			})
-			.andWhere((qb) => {
-				const subQuery = qb
-					.subQuery()
-					.select('1')
-					.from('group_chat_members', 'other')
-					.where('other.group_chat_id = gcm.group_chat_id')
-					.andWhere('other.user_id NOT IN (:...memberIds)', {
-						memberIds: allMemberIds,
-					})
-					.getQuery();
-				return 'NOT EXISTS (' + subQuery + ')';
-			})
-			.getRawOne();
-
-		if (!queryBuilder) return null;
-
-		const group_chat_id = queryBuilder.group_chat_id;
-
-		const group = await this.groupChatRepo
-			.createQueryBuilder('groupChat')
-			.innerJoinAndSelect('groupChat.groupChatMembers', 'members')
-			.innerJoinAndSelect('members.user', 'user')
-			.leftJoinAndSelect(
-				'groupChat.groupChatMessages',
-				'messages',
-				`messages.id IN (
-					SELECT m2.id FROM group_chat_messages m2 
-					WHERE m2.group_chat_id = groupChat.id 
-					ORDER BY m2.created_at DESC 
-					LIMIT 1
-				)`,
-			)
-			.leftJoinAndSelect('messages.user', 'messageUser')
-			.andWhere('groupChat.id = :groupChatId', { groupChatId: group_chat_id })
-			.orderBy('messages.createdAt', 'DESC', 'NULLS LAST')
 			.getOne();
 
+		if (existing) return existing;
+
+		const conv = this.convRepo.create({ isGroup: false });
+		const saved = await this.convRepo.save(conv);
+
+		const participants = users.map((user) =>
+			this.participantRepo.create({ conversation: saved, user }),
+		);
+		await this.participantRepo.save(participants);
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: saved.id },
+			relations: ['participants', 'participants.user', 'lastMessage'],
+		});
+
 		await this.assetsService.attachAssetToEntities(
-			group.groupChatMembers.map((m) => m.user),
+			conversation.participants.map((p) => p.user).filter(Boolean),
 		);
 
-		return group;
+		return conversation;
+	}
+
+	@Transactional()
+	async createGroupConversation(userIds: Uuid[]): Promise<Conversation> {
+		const users = await this.usersService.getUsersByIds(userIds);
+		if (users.length !== userIds.length) {
+			throw new BadRequestException('User không tồn tại đầy đủ.');
+		}
+
+		const qb = this.convRepo
+			.createQueryBuilder('c')
+			.leftJoin('c.participants', 'p')
+			.where('c.isGroup = true')
+			.groupBy('c.id')
+			.having('COUNT(p.id) = :length', { length: userIds.length })
+			.andHaving(`bool_and(p.user_id IN (:...ids))`, { ids: userIds });
+
+		const existing = await qb.getOne();
+		if (existing) return existing;
+
+		const conv = this.convRepo.create({ isGroup: true });
+		const saved = await this.convRepo.save(conv);
+
+		const participants = users.map((user) =>
+			this.participantRepo.create({ conversation: saved, user }),
+		);
+		await this.participantRepo.save(participants);
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: saved.id },
+			relations: ['participants', 'participants.user', 'lastMessage'],
+		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
+	}
+
+	@Transactional()
+	async createMessage(
+		conversationId: Uuid,
+		sender: { userId: Uuid; pageId?: Uuid },
+		content: string,
+	): Promise<Message> {
+		const conv = await this.convRepo.findOneBy({ id: conversationId });
+		if (!conv) throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+
+		const user = await this.usersService.findOne({ id: sender.userId });
+		if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+		const message = this.msgRepo.create({
+			conversation: conv,
+			content,
+			senderUser: user,
+		});
+
+		if (sender.pageId) {
+			const { isMember, page } = await this.pageService.checkMember(
+				sender.pageId,
+				sender.userId,
+			);
+			if (!isMember)
+				throw new BadRequestException(
+					'Bạn không phải là thành viên của Page này',
+				);
+
+			message.senderPage = page;
+		}
+
+		const saved = await this.msgRepo.save(message);
+		await this.convRepo.update(conversationId, {
+			lastMessage: saved,
+		});
+
+		return saved;
+	}
+
+	async getGroupByQuery(
+		query: string,
+		currentUserId: Uuid,
+	): Promise<Conversation[]> {
+		const result = await this.convRepo
+			.createQueryBuilder('c')
+			.leftJoin('c.participants', 'p')
+			.leftJoin('p.user', 'u')
+			.leftJoin('p.page', 'pg')
+			.where(
+				'((LOWER(u.firstName) LIKE LOWER(:query) OR LOWER(u.lastName) LIKE LOWER(:query) OR LOWER(pg.name) LIKE LOWER(:query)) OR (LOWER(c.name) LIKE LOWER(:query)))',
+				{ query: `%${query}%` },
+			)
+			.leftJoinAndSelect('c.participants', 'participants')
+			.leftJoinAndSelect('participants.user', 'participantUser')
+			.leftJoinAndSelect('participants.page', 'participantPage')
+			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
+			.andWhere(
+				'EXISTS (SELECT 1 FROM participants p2 WHERE p2.conversation_id = c.id AND (p2.user_id != :currentUserId OR p2.user_id IS NULL))',
+				{ currentUserId },
+			)
+			.getMany();
+
+		await this.assetsService.attachAssetToEntities(
+			result.flatMap((c) => c.participants.map((p) => p.user)).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			result.flatMap((c) => c.participants.map((p) => p.page)).filter(Boolean),
+		);
+
+		return result;
+	}
+
+	async getUserConversations(userId: Uuid, limit = 10, cursor?: Date) {
+		const qb = this.convRepo
+			.createQueryBuilder('c')
+			.innerJoin('c.participants', 'p', 'p.user_id = :userId', { userId })
+			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
+			.leftJoinAndSelect('c.participants', 'participants')
+			.leftJoinAndSelect('participants.user', 'participantUser')
+			.leftJoinAndSelect('participants.page', 'participantPage')
+			.orderBy('c.updatedAt', 'DESC')
+			.limit(limit + 1);
+
+		if (cursor) {
+			qb.andWhere('c.updatedAt < :cursor', { cursor });
+		}
+
+		const conversations = await qb.getMany();
+		const hasMore = conversations.length > limit;
+		const trimmed = hasMore ? conversations.slice(0, limit) : conversations;
+
+		const readStatuses = await this.readRepo.find({
+			where: {
+				user: { id: userId },
+				conversation: In(trimmed.map((c) => c.id)),
+			},
+			relations: ['lastReadMessage', 'conversation'],
+		});
+
+		const result = trimmed.map((conv) => {
+			const status = readStatuses.find((rs) => rs.conversation.id === conv.id);
+			const readTo = status?.lastReadMessage?.id || null;
+			const lastMsgId = conv.lastMessage?.id || null;
+
+			return {
+				...conv,
+				isUnread: lastMsgId && lastMsgId !== readTo,
+			};
+		});
+		await this.assetsService.attachAssetToEntities(
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.user))
+				.filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.page))
+				.filter(Boolean),
+		);
+
+		return {
+			items: result,
+			hasMore,
+			nextCursor: hasMore ? trimmed[trimmed.length - 1].updatedAt : null,
+		};
+	}
+
+	async getUserConversation(userId: Uuid, conversationId: Uuid) {
+		const conversation = await this.convRepo.findOne({
+			where: { id: conversationId },
+			relations: [
+				'participants',
+				'participants.user',
+				'participants.page',
+				'lastMessage',
+			],
+		});
+
+		if (!conversation)
+			throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+
+		if (!conversation?.participants.some((p) => p.user?.id === userId)) {
+			throw new ForbiddenException(
+				'You are not a participant in this conversation',
+			);
+		}
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.page).filter(Boolean),
+		);
+
+		return conversation;
+	}
+
+	async getPageConversations(
+		pageId: Uuid,
+		userId: Uuid,
+		limit = 10,
+		cursor?: Date,
+	) {
+		const { isMember } = await this.pageService.checkMember(pageId, userId);
+		if (!isMember)
+			throw new NotFoundException('Bạn không phải là thành viên của Page này');
+
+		const qb = this.convRepo
+			.createQueryBuilder('c')
+			.innerJoin('c.participants', 'p', 'p.pageId = :pageId', { pageId })
+			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
+			.leftJoinAndSelect('c.participants', 'participants')
+			.orderBy('c.updatedAt', 'DESC')
+			.limit(limit + 1);
+
+		if (cursor) {
+			qb.andWhere('c.updatedAt < :cursor', { cursor });
+		}
+
+		const conversations = await qb.getMany();
+		const hasMore = conversations.length > limit;
+		const trimmed = hasMore ? conversations.slice(0, limit) : conversations;
+
+		const readStatuses = await this.readRepo.find({
+			where: {
+				user: { id: userId },
+				conversation: In(trimmed.map((c) => c.id)),
+			},
+			relations: ['lastReadMessage'],
+		});
+
+		const result = trimmed.map((conv) => {
+			const status = readStatuses.find((rs) => rs.conversation.id === conv.id);
+			const readTo = status?.lastReadMessage?.id || null;
+			const lastMsgId = conv.lastMessage?.id || null;
+
+			return {
+				...conv,
+				isUnread: lastMsgId && lastMsgId !== readTo,
+			};
+		});
+		await this.assetsService.attachAssetToEntities(
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.user))
+				.filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversations
+				.flatMap((c) => c.participants.map((p) => p.page))
+				.filter(Boolean),
+		);
+		return {
+			conversations: result,
+			hasMore,
+			nextCursor: hasMore ? trimmed[trimmed.length - 1].updatedAt : null,
+		};
+	}
+
+	async getMessages(
+		userId: Uuid,
+		pageId: Uuid | null,
+		conversationId: Uuid,
+		limit = 20,
+		cursor?: Date,
+	): Promise<{
+		items: Message[];
+		hasMore: boolean;
+		nextCursor: Date | null;
+	}> {
+		if (pageId) {
+			const { isMember } = await this.pageService.checkMember(pageId, userId);
+			if (!isMember)
+				throw new NotFoundException(
+					'Bạn không phải là thành viên của Page này',
+				);
+		} else {
+			const isValid = await this.participantRepo.findOne({
+				where: {
+					user: { id: userId },
+					conversation: { id: conversationId },
+				},
+			});
+
+			if (!isValid)
+				throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+		}
+
+		const qb = this.msgRepo
+			.createQueryBuilder('m')
+			.where('m.conversation_id = :conversationId', { conversationId })
+			.leftJoinAndSelect('m.senderUser', 'senderUser')
+			.leftJoinAndSelect('m.senderPage', 'senderPage')
+			.orderBy('m.createdAt', 'DESC')
+			.limit(limit + 1);
+
+		if (cursor) {
+			qb.andWhere('m.createdAt < :cursor', { cursor });
+		}
+
+		const messages = await qb.getMany();
+		const hasMore = messages.length > limit;
+		const trimmed = hasMore ? messages.slice(0, limit) : messages;
+		await this.assetsService.attachAssetToEntities(
+			trimmed.map((m) => m.senderUser),
+		);
+		return {
+			items: trimmed.reverse(),
+			hasMore,
+			nextCursor: hasMore ? trimmed[0].createdAt : null,
+		};
+	}
+
+	async findConversationById(id: Uuid): Promise<Conversation> {
+		const conv = await this.convRepo.findOne({
+			where: { id },
+			relations: [
+				'participants',
+				'lastMessage',
+				'participants.user',
+				'participants.page',
+			],
+		});
+		if (!conv) throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+		return conv;
+	}
+
+	async markAsRead(conversationId: Uuid, userId: Uuid, messageId: Uuid) {
+		const [conversation, user, message] = await Promise.all([
+			this.convRepo.findOneBy({ id: conversationId }),
+			this.usersService.findOne({ id: userId }),
+			this.msgRepo.findOneBy({ id: messageId }),
+		]);
+
+		if (!conversation || !user || !message) throw new NotFoundException();
+
+		let status = await this.readRepo.findOne({
+			where: { user: { id: userId }, conversation: { id: conversationId } },
+		});
+
+		if (!status) {
+			status = this.readRepo.create({
+				user,
+				conversation,
+				lastReadMessage: message,
+			});
+		} else {
+			status.lastReadMessage = message;
+		}
+
+		const saved = await this.readRepo.save(status);
+	}
+
+	async getConversationFormUserIds(userIds: Uuid[]) {
+		const temp = await this.convRepo
+			.createQueryBuilder('conv')
+			.leftJoin('conv.participants', 'p')
+			.leftJoin('p.user', 'u')
+			.where('p.page IS NULL')
+			.andWhere('u.id IN (:...userIds)', { userIds })
+			.groupBy('conv.id')
+			.having('COUNT(DISTINCT u.id) = :count', { count: userIds.length })
+			.andHaving(
+				'COUNT(DISTINCT u.id) = (SELECT COUNT(p2.id) FROM participants p2 WHERE p2.conversation_id = conv.id)',
+			)
+			.getOne();
+
+		if (!temp) return null;
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: temp.id },
+			relations: ['participants', 'participants.user', 'lastMessage'],
+		});
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
 	}
 }

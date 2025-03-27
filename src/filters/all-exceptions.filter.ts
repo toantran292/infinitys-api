@@ -7,6 +7,7 @@ import {
 	Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+
 import { ApiException } from '../exceptions/api.exception';
 
 @Catch()

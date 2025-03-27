@@ -1,19 +1,32 @@
-import { Module } from '@nestjs/common';
-import { SearchService } from './search.service';
-import { SearchController } from './search.controller';
-import { UsersModule } from '../users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '../users/entities/user.entity';
-import { FriendEntity } from '../users/entities/friend.entity';
-import { FriendRequestEntity } from '../users/entities/friend-request.entity';
+import { forwardRef, Module } from '@nestjs/common';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
+
 import { AssetsModule } from '../assets/assets.module';
+
+import { SearchController } from './search.controller';
+import { SearchService } from './search.service';
+import { ApiConfigService } from '../../shared/services/api-config.service';
+import { UsersModule } from '../users/users.module';
+import { SharedModule } from '../../shared/shared.module';
+
 @Module({
 	imports: [
-		UsersModule,
 		AssetsModule,
-		TypeOrmModule.forFeature([UserEntity, FriendEntity, FriendRequestEntity]),
+		ElasticsearchModule.registerAsync({
+			imports: [SharedModule],
+			inject: [ApiConfigService],
+			useFactory: async (configService: ApiConfigService) => ({
+				node: configService.elasticsearchConfig.node,
+				auth: {
+					username: configService.elasticsearchConfig.username,
+					password: configService.elasticsearchConfig.password,
+				},
+			}),
+		}),
+		forwardRef(() => UsersModule),
 	],
 	controllers: [SearchController],
 	providers: [SearchService],
+	exports: [SearchService],
 })
 export class SearchModule {}

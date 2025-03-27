@@ -1,5 +1,7 @@
-import { NumberField } from 'src/decoractors/field.decoractors';
-import { StringField } from 'src/decoractors/field.decoractors';
+import {
+	NumberField,
+	StringField,
+} from '../../../decoractors/field.decoractors';
 
 export class CreateAssetDto {
 	@StringField()

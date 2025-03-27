@@ -4,9 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { RoleType } from '../../constants/role-type';
 import { TokenType } from '../../constants/token-type';
-import { UserEntity } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
 import { ApiConfigService } from '../../shared/services/api-config.service';
+import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		userId: Uuid;
 		role: RoleType;
 		type: TokenType;
-	}): Promise<UserEntity> {
+	}): Promise<User> {
 		if (args.type !== TokenType.ACCESS_TOKEN) {
 			throw new UnauthorizedException();
 		}

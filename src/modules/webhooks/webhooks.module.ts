@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
-import { WebhooksController } from './webhooks.controller';
+
 import { ProblemsModule } from '../problems/problems.module';
+
+import { WebhooksController } from './webhooks.controller';
 
 @Module({
 	imports: [ProblemsModule],

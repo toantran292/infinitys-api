@@ -7,17 +7,18 @@ import {
 	Query,
 	SerializeOptions,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { Auth, UUIDParam } from '../../decoractors/http.decorators';
+
 import { RoleType } from '../../constants/role-type';
-import { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
-import { UserEntity } from './entities/user.entity';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { AvatarDto, BannerDto } from './dto/avatar.dto';
+import { Auth, UUIDParam } from '../../decoractors/http.decorators';
 import { FileType } from '../assets/assets.service';
-import { UserResponseDto } from './dto/user-response.dto';
 import { CreateAssetDto } from '../assets/dto/create-asset.dto';
+
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UsersPageOptionsDto } from './dto/user-page-options.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { User } from './entities/user.entity';
+import { UsersService } from './users.service';
 
 @Controller('api/users')
 export class UsersController {
@@ -34,10 +35,7 @@ export class UsersController {
 	})
 	@Get(':id')
 	@Auth([RoleType.USER])
-	async getUser(
-		@AuthUser() currentUser: UserEntity,
-		@UUIDParam('id') userId: Uuid,
-	) {
+	async getUser(@AuthUser() currentUser: User, @UUIDParam('id') userId: Uuid) {
 		const user = await this.usersService.getUser(currentUser, userId);
 
 		return user;
@@ -49,7 +47,7 @@ export class UsersController {
 	@Patch(':id')
 	@Auth([RoleType.USER])
 	async updateProfile(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body() updateProfileDto: UpdateUserProfileDto,
 	) {
@@ -66,7 +64,7 @@ export class UsersController {
 	@Patch(':id/avatar')
 	@Auth([RoleType.USER])
 	async updateAvatar(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body('avatar') avatar: CreateAssetDto,
 	) {
@@ -83,7 +81,7 @@ export class UsersController {
 	@Patch(':id/banner')
 	@Auth([RoleType.USER])
 	async updateBanner(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') userId: Uuid,
 		@Body('banner') banner: CreateAssetDto,
 	) {

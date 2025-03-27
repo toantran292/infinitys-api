@@ -1,5 +1,6 @@
-import type { ExecutionContext } from '@nestjs/common';
 import { createParamDecorator } from '@nestjs/common';
+
+import type { ExecutionContext } from '@nestjs/common';
 
 export function AuthUser() {
 	return createParamDecorator((_data: unknown, context: ExecutionContext) => {

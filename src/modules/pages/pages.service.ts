@@ -1,36 +1,65 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PageEntity } from './entities/page.entity';
-import { PageUserEntity } from './entities/page-user.entity';
-import { RegisterPageDto } from './dto/create-page.dto';
-import { UserEntity } from '../users/entities/user.entity';
-import { RoleTypePage } from '../../constants/role-type';
-import type { PagePageOptionsDto } from './dto/page-page-options.dto';
-import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
-import type { PageDto } from './dto/page.dto';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
+
+import { PageMetaDto } from '../../common/dto/page-meta.dto';
 import { PageStatus } from '../../constants/page-status';
-import { AvatarDto } from '../users/dto/avatar.dto';
-import { AssetEntity } from '../assets/entities/asset.entity';
+import { RoleTypePage } from '../../constants/role-type';
 import { AssetsService, FileType } from '../assets/assets.service';
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { AssetEntity } from '../assets/entities/asset.entity';
+import { AvatarDto } from '../users/dto/avatar.dto';
+import { User } from '../users/entities/user.entity';
+
+import { RegisterPageDto } from './dto/create-page.dto';
+import { PageUserEntity } from './entities/page-user.entity';
+import { Page } from './entities/page.entity';
+
+import type { PagePageOptionsDto } from './dto/page-page-options.dto';
+import { SearchService } from '../search/search.service';
 @Injectable()
 export class PagesService {
 	constructor(
-		@InjectRepository(PageEntity)
-		private readonly pageRepository: Repository<PageEntity>,
+		@InjectRepository(Page)
+		private readonly pageRepository: Repository<Page>,
 		@InjectRepository(PageUserEntity)
 		private readonly pageUserRepository: Repository<PageUserEntity>,
 
 		@InjectRepository(AssetEntity)
 		private readonly assetRepository: Repository<AssetEntity>,
 		private readonly assetsService: AssetsService,
+
+		private readonly searchService: SearchService,
 	) {}
 
+	findOne(findData: FindOptionsWhere<Page>): Promise<Page | null> {
+		return this.pageRepository.findOneBy(findData);
+	}
+
+	async checkMember(
+		pageId: Uuid,
+		userId: Uuid,
+	): Promise<{
+		isMember: boolean;
+		page: Page;
+		user: User;
+	}> {
+		const pageUser = await this.pageUserRepository.findOne({
+			where: {
+				page: { id: pageId },
+				user: { id: userId },
+			},
+			relations: ['page', 'user'],
+		});
+		return {
+			isMember: !!pageUser,
+			page: pageUser?.page,
+			user: pageUser?.user,
+		};
+	}
+
 	async getPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
-		items: PageEntity[];
+		items: Page[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = await this.pageRepository
@@ -47,7 +76,7 @@ export class PagesService {
 		};
 	}
 
-	async getPageById(user: UserEntity, pageId: Uuid): Promise<PageEntity> {
+	async getPageById(user: User, pageId: Uuid): Promise<Page> {
 		const _error = 'error.page_not_found';
 
 		let page = await this.pageRepository.findOne({
@@ -82,10 +111,10 @@ export class PagesService {
 	}
 
 	async getMyPages(
-		user: UserEntity,
+		user: User,
 		pagePageOptionsDto: PagePageOptionsDto,
 	): Promise<{
-		items: PageEntity[];
+		items: Page[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = this.pageRepository
@@ -111,9 +140,9 @@ export class PagesService {
 
 	@Transactional()
 	async registerPage(
-		user: UserEntity,
+		user: User,
 		registerPageDto: RegisterPageDto,
-	): Promise<PageEntity> {
+	): Promise<Page> {
 		const existingPage = await this.pageRepository.findOne({
 			where: { email: registerPageDto.email },
 		});
@@ -176,6 +205,21 @@ export class PagesService {
 		}
 		page.status = PageStatus.APPROVED;
 		await this.pageRepository.save(page);
+
+		this.assetsService.attachAssetToEntity(page);
+
+		this.searchService.indexPage({
+			address: page.address,
+			content: page.content,
+			email: page.email,
+			id: page.id,
+			name: page.name,
+			url: page.url,
+			avatar: {
+				key: page.avatar?.file_data.key,
+			},
+		});
+
 		this.send_noti(pageId, PageStatus.APPROVED);
 
 		return page;
@@ -207,12 +251,25 @@ export class PagesService {
 		const page = await this.pageRepository.findOne({
 			where: {
 				id: page_id,
+				status: PageStatus.APPROVED,
 			},
 		});
 
-		return await this.assetsService.addAssetToEntity(page, {
+		await this.assetsService.addAssetToEntity(page, {
 			type: FileType.AVATAR,
 			file_data: avatar,
+		});
+
+		this.searchService.indexPage({
+			address: page.address,
+			content: page.content,
+			email: page.email,
+			id: page.id,
+			name: page.name,
+			avatar: {
+				key: avatar.key,
+			},
+			url: page.url,
 		});
 	}
 }

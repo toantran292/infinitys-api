@@ -1,23 +1,22 @@
 import { Column, Entity, OneToMany } from 'typeorm';
+
 import { AbstractEntity } from '../../../common/abstract.entity';
+import { GenderType } from '../../../constants/gender-type';
 import { RoleType } from '../../../constants/role-type';
+import { AssetField } from '../../../decoractors/asset.decoractor';
+import { ApplicationEntity } from '../../applications/entities/application.entity';
+import { AssetEntity } from '../../assets/entities/asset.entity';
+import { Participant } from '../../chats/entities/participant.entity';
+import { CommentEntity } from '../../comments/entities/comment.entity';
 import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
-import { ReactEntity } from '../../reacts/entities/react.entity';
-import { CommentEntity } from '../../comments/entities/comment.entity';
-import { ApplicationEntity } from '../../applications/entities/application.entity';
-import {
-	GroupChatMemberEntity,
-	GroupChatMessageEntity,
-} from '../../chats/entities/chat.entity';
-import { AssetEntity } from '../../assets/entities/asset.entity';
-import { FriendEntity } from './friend.entity';
-import { FriendRequestEntity } from './friend-request.entity';
-import { GenderType } from '../../../constants/gender-type';
-import { AssetField } from '../../../decoractors/asset.decoractor';
 import { SubmissionSummary, Submission } from '../../problems/entities';
+import { ReactEntity } from '../../reacts/entities/react.entity';
+
+import { FriendEntity, FriendStatus } from './friend.entity';
+
 @Entity({ name: 'users' })
-export class UserEntity extends AbstractEntity {
+export class User extends AbstractEntity {
 	@Column()
 	firstName!: string;
 
@@ -54,25 +53,17 @@ export class UserEntity extends AbstractEntity {
 	@AssetField()
 	banner?: AssetEntity;
 
-	friend_status?: string;
+	friendStatus?: FriendStatus;
 
-	total_connections: number;
+	totalConnections!: number;
 
 	// Relations
 
-	@OneToMany(() => FriendRequestEntity, (request) => request.source)
-	sentFriendRequests!: FriendRequestEntity[];
-
-	// Yêu cầu kết bạn được nhận (receiver <- sender)
-	@OneToMany(() => FriendRequestEntity, (request) => request.target)
-	receivedFriendRequests!: FriendRequestEntity[];
-
-	// Danh sách bạn bè (kết nối từ user1 hoặc user2)
 	@OneToMany(() => FriendEntity, (friend) => friend.source)
-	friends1!: FriendEntity[];
+	sentFriendships!: FriendEntity[];
 
 	@OneToMany(() => FriendEntity, (friend) => friend.target)
-	friends2!: FriendEntity[];
+	receivedFriendships!: FriendEntity[];
 
 	@OneToMany(() => PageUserEntity, (pageUser) => pageUser.user)
 	pageUsers!: PageUserEntity[];
@@ -92,21 +83,12 @@ export class UserEntity extends AbstractEntity {
 	)
 	applications!: ApplicationEntity[];
 
-	@OneToMany(
-		() => GroupChatMemberEntity,
-		(groupChatMember) => groupChatMember.user,
-	)
-	groupChatMembers!: GroupChatMemberEntity[];
-
-	@OneToMany(
-		() => GroupChatMessageEntity,
-		(groupChatMessage) => groupChatMessage.user,
-	)
-	groupChatMessages!: GroupChatMessageEntity[];
-
 	@OneToMany(() => Submission, (submission) => submission.user)
 	submissions!: Submission[];
 
 	@OneToMany(() => SubmissionSummary, (summary) => summary.user)
 	submissionSummaries!: SubmissionSummary[];
+
+	@OneToMany(() => Participant, (participant) => participant.user)
+	participants!: Participant[];
 }

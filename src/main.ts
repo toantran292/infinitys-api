@@ -8,19 +8,20 @@ import {
 	Logger,
 } from '@nestjs/common';
 import { NestFactory, Reflector, HttpAdapterHost } from '@nestjs/core';
-import { AppModule } from './app.module';
-import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import helmet from 'helmet';
 import * as compression from 'compression';
+import helmet from 'helmet';
 import * as morgan from 'morgan';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
+import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/bad-request.filter';
 import { QueryFailedFilter } from './filters/query-failed.filter';
-import { AllExceptionsFilter } from './filters/all-exceptions.filter';
-import { initializeTransactionalContext } from 'typeorm-transactional';
-import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
+import { SharedModule } from './shared/shared.module';
+
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
 export async function bootstrap(): Promise<NestExpressApplication> {
 	initializeTransactionalContext();

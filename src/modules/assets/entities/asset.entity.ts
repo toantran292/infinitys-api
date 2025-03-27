@@ -1,6 +1,7 @@
-import { Column, Entity, Generated, Index } from 'typeorm';
-import { AbstractEntity } from '../../../common/abstract.entity';
 import { Expose } from 'class-transformer';
+import { Column, Entity, Generated, Index } from 'typeorm';
+
+import { AbstractEntity } from '../../../common/abstract.entity';
 @Entity({ name: 'assets' })
 @Index(['owner_id', 'type', 'owner_type'])
 export class AssetEntity extends AbstractEntity {

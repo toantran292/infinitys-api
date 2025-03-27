@@ -1,8 +1,10 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { Redis, RedisOptions } from 'ioredis';
-import { ApiConfigService } from 'src/shared/services/api-config.service';
-import { SharedModule } from 'src/shared/shared.module';
+
+import { ApiConfigService } from '../../shared/services/api-config.service';
+import { SharedModule } from '../../shared/shared.module';
+
 import { QueueNames } from './queues';
 
 const redisConnections = new Map<string, Redis>();

@@ -1,6 +1,8 @@
-import { AbstractDto } from 'src/common/dto/abstract.dto';
 import { Expose, Type } from 'class-transformer';
-import { AssetResponseDto } from 'src/modules/users/dto/user-response.dto';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { AssetResponseDto } from '../../users/dto/user-response.dto';
+
 import { ListProblemsResponseDto } from './list-problems-response.dto';
 
 export class InOutResponseDto {
@@ -73,3 +75,5 @@ export class ProblemResponseDto extends ListProblemsResponseDto {
 	@Type(() => UserProblemStatusDto)
 	userStatus: UserProblemStatusDto | null;
 }
+
+export class AdminProblemResponseDto extends ProblemResponseDto {}

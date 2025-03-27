@@ -5,51 +5,44 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { FriendRequestEntity } from './entities/friend-request.entity';
-import { FriendEntity } from './entities/friend.entity';
-import { NotificationsService } from '../notifications/notifications.service';
+
 import { AssetsService } from '../assets/assets.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NewsfeedService } from '../newsfeed/newsfeed.service';
+
+import {
+	FriendEntity,
+	FriendshipStatus,
+	FriendStatus,
+} from './entities/friend.entity';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class FriendService {
 	constructor(
-		@InjectRepository(FriendRequestEntity)
-		private friendRequestRepository: Repository<FriendRequestEntity>,
-
 		@InjectRepository(FriendEntity)
 		private friendRepository: Repository<FriendEntity>,
-
-		@InjectRepository(UserEntity)
-		private userRepo: Repository<UserEntity>,
 
 		private readonly notificationService: NotificationsService,
 
 		private readonly assetService: AssetsService,
+
+		private readonly newsfeedService: NewsfeedService,
 	) {}
 
-	async validate(sourceId: Uuid, targetId: Uuid) {
+	async validate(sourceId: string, targetId: string) {
 		if (sourceId === targetId) {
 			throw new BadRequestException('Bạn không thể kết bạn với chính mình.');
 		}
 	}
 
-	async findFriendRequest(
-		sourceId: string,
-		targetId: string,
-	): Promise<FriendRequestEntity | null> {
-		return await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('(source.id = :sourceId AND target.id = :targetId)', {
-				sourceId,
-				targetId,
-			})
-			.andWhere('request.is_available = :isAvailable', { isAvailable: true })
-			.getOne();
-	}
-
+	/**
+	 * Find friendship between sourceId and targetId
+	 * Ignore the direction of friendship
+	 * @param sourceId - id of user
+	 * @param targetId - id of user
+	 * @returns - friendship or null if not exists
+	 */
 	async findFriendship(
 		sourceId: string,
 		targetId: string,
@@ -60,206 +53,206 @@ export class FriendService {
 				'(friend.source = :sourceId AND friend.target = :targetId) OR (friend.source = :targetId AND friend.target = :sourceId)',
 				{ sourceId, targetId },
 			)
+			.orderBy('friend.createdAt', 'DESC')
 			.getOne();
 	}
 
+	/**
+	 * Find friendship request between sourceId and targetId
+	 * @param sourceId - id of user
+	 * @param targetId - id of user
+	 * @returns - friendship request or null if not exists
+	 */
+	async findFriendRequest(
+		sourceId: string,
+		targetId: string,
+	): Promise<FriendEntity | null> {
+		return await this.friendRepository
+			.createQueryBuilder('friend')
+			.where('friend.source = :sourceId AND friend.target = :targetId', {
+				sourceId,
+				targetId,
+			})
+			.andWhere('friend.status = :status', {
+				status: FriendshipStatus.PENDING,
+			})
+			.getOne();
+	}
+
+	async isFriend(sourceId: string, targetId: string): Promise<boolean> {
+		const friendship = await this.findFriendship(sourceId, targetId);
+		return friendship?.status === FriendshipStatus.ACCEPTED;
+	}
+
+	/**
+	 * Send friendship request from sourceId to targetId
+	 * Make sure that the friendship between sourceId and targetId is only one.
+	 * @param sourceId - id of user
+	 * @param targetId - id of user
+	 * @returns - friendship
+	 */
 	async sendFriendRequest(
-		sourceId: Uuid,
-		targetId: Uuid,
-	): Promise<FriendRequestEntity> {
+		sourceId: string,
+		targetId: string,
+	): Promise<FriendEntity> {
 		await this.validate(sourceId, targetId);
 
-		const existingFriendShip = await this.findFriendship(sourceId, targetId);
-
-		if (existingFriendShip) {
-			throw new BadRequestException('Already friend');
+		const existingFriendship = await this.findFriendship(sourceId, targetId);
+		if (existingFriendship) {
+			if (existingFriendship.status === FriendshipStatus.ACCEPTED) {
+				throw new BadRequestException('Đã là bạn bè.');
+			}
+			if (existingFriendship.status === FriendshipStatus.PENDING) {
+				throw new BadRequestException('Lời mời kết bạn đã được gửi.');
+			}
 		}
 
-		const existingRequest = await this.findFriendRequest(sourceId, targetId);
-		if (existingRequest) {
-			throw new BadRequestException('Lời mời kết bạn đã được gửi trước đó.');
-		}
-
-		const newRequest = this.friendRequestRepository.create({
+		const friendship = this.friendRepository.create({
 			source: { id: sourceId },
 			target: { id: targetId },
-			is_available: true,
+			status: FriendshipStatus.PENDING,
 		});
 
-		const request = await this.friendRequestRepository.save(newRequest);
+		await this.friendRepository.save(friendship);
 
 		this.notificationService.sendNotificationToUser({
 			userId: targetId,
 			data: {
 				event_name: 'friend_request:sent',
-				meta: {
-					sourceId,
-				},
+				meta: { sourceId },
 			},
 		});
 
-		return request;
+		return friendship;
 	}
 
 	async acceptFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
-		const waitingRequest = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.source_id = :sourceId', { sourceId })
-			.andWhere('request.target_id = :targetId', { targetId })
-			.andWhere('request.is_available = true')
-			.getOne();
+		const friendship = await this.findFriendRequest(sourceId, targetId);
 
-		if (!waitingRequest) {
+		if (!friendship) {
 			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
 		}
 
-		const { source, target } = waitingRequest;
-
-		const newFriendship = this.friendRepository.create({ source, target });
-		await this.friendRepository.save(newFriendship);
-
-		waitingRequest.is_available = false;
-		await this.friendRequestRepository.save(waitingRequest);
+		friendship.status = FriendshipStatus.ACCEPTED;
+		await this.friendRepository.save(friendship);
 
 		this.notificationService.sendNotificationToUser({
 			userId: sourceId,
 			data: {
 				event_name: 'friend_request:accepted',
-				meta: {
-					targetId,
-				},
+				meta: { targetId },
 			},
 		});
-	}
-	async rejectFriendRequest(targetId: Uuid, sourceId: Uuid): Promise<void> {
-		const waitingRequest = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.source_id = :sourceId', { sourceId })
-			.andWhere('request.target_id = :targetId', { targetId })
-			.andWhere('request.is_available = true')
-			.getOne();
 
-		if (!waitingRequest) {
-			throw new NotFoundException('Lời mời kết bạn không tồn tại.');
-		}
-
-		waitingRequest.is_available = false;
-		await this.friendRequestRepository.save(waitingRequest);
+		await this.newsfeedService.handleNewFriendship(sourceId, targetId);
+		await this.newsfeedService.handleNewFriendship(targetId, sourceId);
 	}
 
 	async cancelFriendRequest(sourceId: Uuid, targetId: Uuid): Promise<void> {
-		const friendRequest = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.source_id = :sourceId', { sourceId })
-			.andWhere('request.target_id = :targetId', { targetId })
-			.andWhere('request.is_available = true')
-			.getOne();
+		const friendship = await this.findFriendship(sourceId, targetId);
 
-		if (!friendRequest) {
-			throw new NotFoundException('Không tìm thấy yêu cầu kết bạn.');
+		if (!friendship) {
+			throw new NotFoundException('Kết nối không tồn tại');
 		}
 
-		friendRequest.is_available = false;
-		await this.friendRequestRepository.save(friendRequest);
+		await this.friendRepository.remove(friendship);
+
+		// Xóa bài viết khỏi newsfeed của cả hai người
+		await this.newsfeedService.handleUnfriend(sourceId, targetId);
+		await this.newsfeedService.handleUnfriend(targetId, sourceId);
 	}
 
-	async getFriends(userId: Uuid): Promise<UserEntity[]> {
+	async getFriends(userId: string): Promise<User[]> {
 		const friendships = await this.friendRepository
 			.createQueryBuilder('friend')
 			.leftJoinAndSelect('friend.source', 'source')
 			.leftJoinAndSelect('friend.target', 'target')
-			.where('friend.source_id = :userId OR friend.target_id = :userId', {
-				userId,
+			.where('(friend.source = :userId OR friend.target = :userId)', { userId })
+			.andWhere('friend.status = :status', {
+				status: FriendshipStatus.ACCEPTED,
 			})
 			.getMany();
 
-		// Extract friend users (excluding the requesting user)
-		const friends = friendships.map((friendship) => {
-			return friendship.source.id === userId
-				? friendship.target
-				: friendship.source;
-		});
-
-		await this.assetService.attachAssetToEntities(friends);
-
-		return friends;
+		return friendships.map((friendship) =>
+			friendship.source.id === userId ? friendship.target : friendship.source,
+		);
 	}
 
-	async unfriend(sourceId: Uuid, targetId: Uuid): Promise<void> {
-		const friendship = await this.findFriendship(sourceId, targetId);
+	async searchFriends(query: string, userId: Uuid) {
+		const friendships = await this.friendRepository
+			.createQueryBuilder('friend')
+			.leftJoinAndSelect('friend.source', 'source')
+			.leftJoinAndSelect('friend.target', 'target')
+			.where(
+				'(friend.source_id = :userId OR friend.target_id = :userId) AND friend.status = :status AND (LOWER(source.firstName) LIKE LOWER(:query) OR LOWER(source.lastName) LIKE LOWER(:query) OR LOWER(target.firstName) LIKE LOWER(:query) OR LOWER(target.lastName) LIKE LOWER(:query))',
+				{
+					userId,
+					status: FriendshipStatus.ACCEPTED,
+					query: `%${query}%`,
+				},
+			)
+			.getMany();
 
-		if (!friendship) {
-			throw new NotFoundException('Không tìm thấy bạn bè.');
-		}
+		const users = friendships.map((friendship) =>
+			friendship.source.id === userId ? friendship.target : friendship.source,
+		);
 
-		await this.friendRepository.delete(friendship.id);
+		await this.assetService.attachAssetToEntities(users);
+
+		return users;
 	}
 
-	async loadFriendStatuses(currentUser: UserEntity, targets: UserEntity[]) {
+	async loadFriendStatuses(currentUser: User, targets: User[]) {
 		if (targets.length === 0) return;
-		const userIds = targets.map((u) => u.id);
 
+		const userIds = targets.map((u) => u.id);
 		const friendships = await this.friendRepository
 			.createQueryBuilder('friend')
 			.where(
 				'(friend.source IN (:...userIds) AND friend.target = :currentUserId) OR (friend.target IN (:...userIds) AND friend.source = :currentUserId)',
 				{ userIds, currentUserId: currentUser.id },
 			)
-			.getRawMany();
+			.getMany();
 
-		const friendRequests = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.where(
-				'(request.source IN (:...userIds) AND request.target = :currentUserId) OR (request.target IN (:...userIds) AND request.source = :currentUserId)',
-				{ userIds, currentUserId: currentUser.id },
-			)
-			.andWhere('request.is_available = true')
-			.getRawMany();
+		targets.forEach((user) => {
+			const friendship = friendships.find(
+				(f) => f.sourceId === user.id || f.targetId === user.id,
+			);
 
-		const friendshipMap = new Map<string, boolean>();
-		friendships.forEach((f) => {
-			const key =
-				f.friend_target_id === currentUser.id
-					? f.friend_source_id
-					: f.friend_target_id;
-			friendshipMap.set(key, true);
-		});
-
-		const sentRequestMap = new Map<string, boolean>();
-		const receivedRequestMap = new Map<string, boolean>();
-
-		friendRequests.forEach((r) => {
-			if (r.request_source_id === currentUser.id) {
-				sentRequestMap.set(r.request_target_id, true);
-			} else {
-				receivedRequestMap.set(r.request_source_id, true);
-			}
-		});
-
-		targets.map((user) => {
-			const isFriend = friendshipMap.has(user.id);
-			const sent = sentRequestMap.has(user.id);
-			const received = receivedRequestMap.has(user.id);
-
-			const friend_status = isFriend
-				? 'friend'
-				: sent
-					? 'sent'
-					: received
-						? 'waiting'
-						: null;
-
-			user.friend_status = friend_status;
+			user.friendStatus = this.getFriendStatus(
+				friendship?.status,
+				currentUser,
+				friendship,
+			);
 		});
 	}
 
-	async loadFriendStatus(currentUser: UserEntity, target: UserEntity) {
+	async loadFriendStatus(currentUser: User, target: User) {
 		await this.loadFriendStatuses(currentUser, [target]);
+	}
+
+	/**
+	 * Get friend status
+	 * @param status - status of friendship
+	 * @param currentUser - current user or user id
+	 * @param friendship - friendship
+	 * @returns - friend status
+	 */
+	getFriendStatus(
+		status: FriendshipStatus | null,
+		currentUser: User | Uuid,
+		friendship: FriendEntity,
+	) {
+		switch (status) {
+			case FriendshipStatus.ACCEPTED:
+				return FriendStatus.FRIEND;
+			case FriendshipStatus.PENDING:
+				const id = currentUser instanceof User ? currentUser.id : currentUser;
+				return id === friendship.sourceId
+					? FriendStatus.WAITING
+					: FriendStatus.RECEIVED;
+			default:
+				return null;
+		}
 	}
 }

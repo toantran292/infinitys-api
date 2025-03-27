@@ -1,4 +1,4 @@
 export interface ReactStatus {
-    isActive: boolean;
-    react_count: number;
-} 
+	isActive: boolean;
+	react_count: number;
+}

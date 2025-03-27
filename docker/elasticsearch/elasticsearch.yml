@@ -1,0 +1,12 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+discovery.type: single-node
+
+# Enable security features
+xpack.security.enabled: false
+
+# Disable disk threshold checks
+cluster.routing.allocation.disk.threshold_enabled: false
+
+# Memory settings
+bootstrap.memory_lock: true 
