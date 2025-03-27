@@ -162,7 +162,7 @@ export class UsersService {
 	async getUserWithDynamicRelations(
 		userId: Uuid,
 		relations: string[] = [],
-	): Promise<UserEntity> {
+	): Promise<User> {
 		const user = await this.userRepository.findOne({
 			where: { id: userId },
 			relations: relations,

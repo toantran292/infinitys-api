@@ -5,12 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { FriendRequestEntity } from './entities/friend-request.entity';
-import { FriendEntity } from './entities/friend.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AssetsService } from '../assets/assets.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { NewsfeedService } from '../newsfeed/newsfeed.service';
 
 import {
@@ -234,28 +230,33 @@ export class FriendService {
 		await this.loadFriendStatuses(currentUser, [target]);
 	}
 	async getFriendRequests(userId: Uuid) {
-		let users = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.source', 'source')
-			.where('request.target_id = :userId', { userId })
-			.andWhere('request.is_available = true')
+		let users = await this.friendRepository
+			.createQueryBuilder('friend')
+			.leftJoinAndSelect('friend.source', 'source')
+			.where('friend.targetId = :userId', { userId })
+			.andWhere('friend.status = :status', { status: FriendshipStatus.PENDING })
 			.getMany()
 			.then((requests) => requests.map((request) => request.source));
 
-		users = await this.assetService.attachAssetToEntities(users);
+		if (users.length > 0) {
+			users = await this.assetService.attachAssetToEntities(users);
+		}
+
 		return users;
 	}
 
-	async getSentFriendRequests(userId: Uuid): Promise<UserEntity[]> {
-		let users = await this.friendRequestRepository
-			.createQueryBuilder('request')
-			.leftJoinAndSelect('request.target', 'target')
-			.where('request.source_id = :userId', { userId })
-			.andWhere('request.is_available = true')
+	async getSentFriendRequests(userId: Uuid): Promise<User[]> {
+		let users = await this.friendRepository
+			.createQueryBuilder('friend')
+			.leftJoinAndSelect('friend.target', 'target')
+			.where('friend.sourceId = :userId', { userId })
+			.andWhere('friend.status = :status', { status: FriendshipStatus.PENDING })
 			.getMany()
 			.then((requests) => requests.map((request) => request.target));
 
-		users = await this.assetService.attachAssetToEntities(users);
+		if (users.length > 0) {
+			users = await this.assetService.attachAssetToEntities(users);
+		}
 
 		return users;
 	}

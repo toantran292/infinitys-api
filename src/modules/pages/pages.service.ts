@@ -5,35 +5,25 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { Repository } from 'typeorm';
-import { PageEntity } from './entities/page.entity';
 import { PageUserEntity } from './entities/page-user.entity';
 import { RegisterPageDto } from './dto/create-page.dto';
-import { UserEntity } from '../users/entities/user.entity';
 import { RoleType, RoleTypePage } from '../../constants/role-type';
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import type { PageDto as CommonPageDto } from '../../common/dto/page.dto';
 import type { PageDto } from './dto/page.dto';
 import { Transactional } from 'typeorm-transactional';
 
-import { PageMetaDto } from '../../common/dto/page-meta.dto';
 import { PageStatus } from '../../constants/page-status';
-import { RoleTypePage } from '../../constants/role-type';
 import { AssetsService, FileType } from '../assets/assets.service';
 import { AssetEntity } from '../assets/entities/asset.entity';
 import { AvatarDto } from '../users/dto/avatar.dto';
 import { User } from '../users/entities/user.entity';
-
-import { RegisterPageDto } from './dto/create-page.dto';
-import { PageUserEntity } from './entities/page-user.entity';
 import { Page } from './entities/page.entity';
-
-import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { SearchService } from '../search/search.service';
 import { FollowEntity } from './entities/follow.entity';
 
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+// import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from '../../common/dto/page-meta.dto';
 @Injectable()
 export class PagesService {
 	constructor(
@@ -89,7 +79,7 @@ export class PagesService {
 		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
 
 		await this.assetsService.attachAssetToEntities(items);
-
+		console.log(items);
 		return {
 			items,
 			meta: pageMeta,
@@ -97,7 +87,7 @@ export class PagesService {
 	}
 
 	async getPendingPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
-		items: PageEntity[];
+		items: Page[];
 		meta: PageMetaDto;
 	}> {
 		const queryBuilder = await this.pageRepository
@@ -112,7 +102,7 @@ export class PagesService {
 			meta: pageMeta,
 		};
 	}
-	async getPageById(user: UserEntity, pageId: Uuid){
+	async getPageById(user: User, pageId: Uuid){
 		const _error = 'error.page_not_found';
 
 		let page = await this.pageRepository.findOne({
@@ -175,7 +165,7 @@ export class PagesService {
 		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
 
 		await this.assetsService.attachAssetToEntities(items);
-
+		console.log(items);
 		return {
 			items,
 			meta: pageMeta,
@@ -301,7 +291,6 @@ export class PagesService {
 		const page = await this.pageRepository.findOne({
 			where: {
 				id: page_id,
-				status: PageStatus.APPROVED,
 			},
 		});
 

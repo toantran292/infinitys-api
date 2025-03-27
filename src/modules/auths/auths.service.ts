@@ -7,7 +7,6 @@ import { TokenType } from '../../constants/token-type';
 import { ApiConfigService } from '../../shared/services/api-config.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import { UserEntity } from '../users/entities/user.entity';
 import { FriendService } from '../users/friend.service';
 
 import type { UserLoginDto } from './dto/user-login.dto';
@@ -53,7 +52,7 @@ export class AuthsService {
 
 		return user!;
 	}
-	async me(user: UserEntity) {
+	async me(user: User) {
 		const userWithRelations =
 			await this.userService.getUserWithDynamicRelations(user.id, [
 				'pageUsers',
@@ -61,7 +60,7 @@ export class AuthsService {
 				'follows',
 				'follows.page',
 			]);
-		userWithRelations.total_connections = (
+		userWithRelations.totalConnections = (
 			await this.friendService.getFriends(user.id)
 		).length;
 

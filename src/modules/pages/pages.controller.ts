@@ -51,7 +51,7 @@ export class PagesController {
 	})
 	@Get('/followed')
 	@Auth([RoleType.USER])
-	async getFollowPages(@AuthUser() user: UserEntity,
+	async getFollowPages(@AuthUser() user: User,
 		@Query() pagePageOptionsDto: PagePageOptionsDto,
 	) {
 		return this.pagesService.getFollowPages(user.id, pagePageOptionsDto);
@@ -59,7 +59,7 @@ export class PagesController {
 	@Post(':pageId/follow')
 	@Auth([RoleType.USER])
 	async followPage(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Param('pageId') pageId: Uuid,
 	) {
 		return this.pagesService.followPage(user.id, pageId);
@@ -67,7 +67,7 @@ export class PagesController {
 	@Post(':pageId/unfollow')
 	@Auth([RoleType.USER])
 	async unfollowPage(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@Param('pageId') pageId: Uuid,
 	) {
 		return this.pagesService.unfollowPage(user.id, pageId);

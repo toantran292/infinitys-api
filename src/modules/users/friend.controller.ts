@@ -70,14 +70,14 @@ export class FriendController {
 		return this.friendService.getSentFriendRequests(userId);
 	}
 
-	@Delete(':userId')
-	@Auth([RoleType.USER])
-	async searchFriends(
-		@Query('q') query: string,
-		@AuthUser() currentUser: User,
-	) {
-		return this.friendService.unfriend(user.id, userId);
-	}
+	// @Delete(':userId')
+	// @Auth([RoleType.USER])
+	// async searchFriends(
+	// 	@Query('q') query: string,
+	// 	@AuthUser() currentUser: User,
+	// ) {
+	// 	return this.friendService.unfriend(user.id, userId);
+	// }
 	@SerializeOptions({ type: UserResponseDto })
 	@Get('search/a')
 	@Auth([RoleType.USER])

@@ -12,8 +12,8 @@ import { PageUserEntity } from '../../pages/entities/page-user.entity';
 import { PostEntity } from '../../posts/entities/post.entity';
 import { SubmissionSummary, Submission } from '../../problems/entities';
 import { ReactEntity } from '../../reacts/entities/react.entity';
-
 import { FriendEntity, FriendStatus } from './friend.entity';
+import { FollowEntity } from '../../pages/entities/follow.entity';
 
 @Entity({ name: 'users' })
 export class User extends AbstractEntity {

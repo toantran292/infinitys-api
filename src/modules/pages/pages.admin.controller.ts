@@ -14,7 +14,7 @@ import { PaginationPageResponseDto } from './dto/list-page-response.dto';
 import { PageResponseDto } from './dto/page-response.dto';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { PagesService } from './pages.service';
-import type { UserEntity } from '../users/entities/user.entity';
+import type { User } from '../users/entities/user.entity';
 
 @Controller('admin_api/pages')
 export class PagesAdminController {
@@ -35,7 +35,7 @@ export class PagesAdminController {
 	@Get(':id')
 	@Auth([RoleType.ADMIN])
 	async getPageById(
-		@AuthUser() user: UserEntity,
+		@AuthUser() user: User,
 		@UUIDParam('id') id: Uuid,
 	) {
 		const page = await this.pagesService.getPageById(user, id);
