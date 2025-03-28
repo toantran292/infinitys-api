@@ -345,6 +345,7 @@ export class AssetsService {
 		const sample = entities[0];
 		const entityType = sample.entityType;
 		const assetFields = getAssetFields(sample);
+
 		if (!assetFields.length) return entities;
 
 		const assetTypes = assetFields.map((field) => field.type);

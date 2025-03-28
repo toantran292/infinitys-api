@@ -160,6 +160,10 @@ export class ProblemsService {
 		// Apply pagination
 		const [items, pageMeta] = await queryBuilder.paginate(pageOptionsDto);
 
+		if (attachAssets) {
+			await this.assetsService.attachAssetToEntities(items)
+		}
+
 		// Transform response
 		const transformedItems = items.map((problem) => {
 			const transformed = {
@@ -168,6 +172,7 @@ export class ProblemsService {
 					totalSubmissions: (problem as any).totalSubmissions || 0,
 					totalAccepted: (problem as any).totalAccepted || 0,
 				},
+				totalTestcases: this.countValidTestcases(problem.testcases),
 				userStatus: null,
 			};
 
@@ -200,16 +205,31 @@ export class ProblemsService {
 			return transformed;
 		});
 
-		if (attachAssets) {
-			await this.assetsService.attachAssetToEntities(
-				transformedItems as unknown as Problem[],
-			);
-		}
+		// console.log({transformedItems})
 
 		return {
 			items: transformedItems as unknown as Problem[],
 			meta: pageMeta,
 		};
+	}
+
+	private countValidTestcases(testcases: AssetEntity[]) {
+		const inputTestcases = new Set()
+		const outputTestcases = new Set()
+
+		for (const testcase of testcases) {
+			const fileName = testcase.file_data.name;
+			const testcaseName = fileName.split('.')[0]; // "testcase_1"
+			const fileType = fileName.split('.')[1]; // "in" or "out"
+
+			if (fileType === 'in') {
+				inputTestcases.add(testcaseName)
+			} else if (fileType === 'out') {
+				outputTestcases.add(testcaseName)
+			}
+		}
+
+		return Array.from(inputTestcases).filter((input) => outputTestcases.has(input)).length
 	}
 
 	async getProblem(problemId: Uuid, attachAssets: boolean = true) {

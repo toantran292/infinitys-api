@@ -12,8 +12,7 @@ export class AdminListProblemsResponseDto extends AbstractDto {
 	title: string;
 
 	@Expose()
-	@Type(() => TestcaseResponseDto)
-	testcases: TestcaseResponseDto[];
+	totalTestcases: number;
 }
 
 export class ProblemStatisticsDto {

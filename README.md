@@ -97,3 +97,77 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# Sinh Testcase và Lời Giải cho Bài Tập Lập Trình
+
+Script này sinh ra 20 bộ testcase cho mỗi bài tập lập trình và cung cấp lời giải bằng C++ cho từng bài.
+
+## Cấu trúc thư mục
+
+```
+.
+├── testcases/                  # Chứa các testcase cho mỗi bài tập
+│   ├── tong-hai-so/            # Testcase cho bài tổng hai số
+│   │   ├── input1.txt          # File input của testcase 1
+│   │   ├── output1.txt         # File output của testcase 1
+│   │   └── ...
+│   ├── so-fibonacci/           # Testcase cho bài số Fibonacci
+│   └── ...
+├── solutions/                  # Chứa lời giải C++ cho mỗi bài tập
+│   ├── tong-hai-so.cpp         # Lời giải cho bài tổng hai số
+│   ├── so-fibonacci.cpp        # Lời giải cho bài số Fibonacci
+│   └── ...
+└── src/scripts/                # Chứa mã nguồn để sinh testcase và lời giải
+    ├── package.json            # File cấu hình npm
+    ├── generate-problem-testcases.ts  # Script sinh testcase
+    ├── cpp-solutions.ts        # Script lưu trữ lời giải C++
+    └── run-generation.ts       # Script chạy cả hai script trên
+```
+
+## Cài đặt
+
+1. Di chuyển vào thư mục scripts:
+
+```bash
+cd src/scripts
+```
+
+2. Cài đặt các dependency:
+
+```bash
+npm install
+```
+
+## Chạy script sinh testcase và lời giải
+
+```bash
+npm run generate
+```
+
+Sau khi chạy script, các testcase và lời giải sẽ được tạo trong thư mục `testcases` và `solutions`.
+
+## Danh sách bài tập
+
+1. **tong-hai-so**: Tổng hai số nguyên a và b
+2. **so-fibonacci**: Tính số Fibonacci thứ n
+3. **so-nguyen-to**: Kiểm tra số nguyên tố
+4. **dao-nguoc-chuoi**: Đảo ngược chuỗi
+5. **tim-so-lon-nhat**: Tìm số lớn nhất trong dãy
+6. **dem-tan-suat**: Đếm tần suất xuất hiện của phần tử trong dãy
+7. **tong-day-con-lien-tiep**: Tìm tổng dãy con liên tiếp lớn nhất
+8. **sap-xep-day-so**: Sắp xếp dãy số
+9. **tim-cap-so-tong-bang-x**: Tìm cặp số có tổng bằng X
+10. **duong-di-ngan-nhat-tren-luoi**: Đếm số đường đi ngắn nhất trên lưới
+
+## Lời giải C++
+
+Các lời giải C++ đã được tối ưu và viết đầy đủ cho mỗi bài tập. Bạn có thể sử dụng các lời giải này để tham khảo hoặc để kiểm tra độ chính xác của các testcase.
+
+Để biên dịch và chạy một lời giải:
+
+```bash
+g++ -std=c++14 solutions/tong-hai-so.cpp -o solution
+./solution < testcases/tong-hai-so/input1.txt
+```
+
+Kết quả sẽ hiển thị trên terminal và bạn có thể so sánh với nội dung trong file output1.txt.

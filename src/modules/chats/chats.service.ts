@@ -369,7 +369,7 @@ export class ChatsService {
 				user: { id: userId },
 				conversation: In(trimmed.map((c) => c.id)),
 			},
-			relations: ['lastReadMessage'],
+			relations: ['lastReadMessage', 'conversation'],
 		});
 
 		const result = trimmed.map((conv) => {
