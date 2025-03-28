@@ -5,6 +5,7 @@ import { PageStatus } from '../../../constants/page-status';
 import { AssetField } from '../../../decoractors/asset.decoractor';
 import { AssetEntity } from '../../assets/entities/asset.entity';
 import { Problem } from '../../problems/entities/problem.entity';
+import { RoleTypePage } from '../../../constants/role-type';
 
 import { PageUserEntity } from './page-user.entity';
 
@@ -39,4 +40,6 @@ export class Page extends AbstractEntity {
 	problems!: Problem[];
 
 	admin_user_id?: Uuid;
+
+	pageRole?: RoleTypePage;
 }

@@ -47,6 +47,8 @@ export class UserResponseDto extends AbstractDto {
 	desiredJobPosition?: string;
 
 	@Expose()
+	aboutMe?: string;
+	@Expose()
 	active!: boolean;
 
 	@Expose()

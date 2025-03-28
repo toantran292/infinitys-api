@@ -5,13 +5,14 @@ import { QueueNames } from '../../queues/queues';
 import { UsersService } from '../../users/users.service';
 import { NotificationsGateway } from '../notifications.gateway';
 import { NotificationData } from '../notifications.service';
-
+import { PagesService } from '../../pages/pages.service';
 @Processor(QueueNames.NOTIFICATION)
 export class SendNotificationsJob {
 	constructor(
 		private readonly notificationGateway: NotificationsGateway,
 		// private readonly notificationService: NotificationsService,
 		private readonly usersService: UsersService,
+		private readonly pagesService: PagesService,
 	) {}
 
 	@Process('send')
@@ -32,6 +33,10 @@ export class SendNotificationsJob {
 				break;
 			case 'comment:created':
 				await this.handleCommentCreated(userId, meta);
+				break;
+			case 'page:rejected':
+			case 'page:approved':
+				await this.handlePageAction(userId, event_name, meta);
 				break;
 		}
 	}
@@ -107,6 +112,24 @@ export class SendNotificationsJob {
 					avatar: user.avatar?.url,
 				},
 				content,
+			},
+		});
+	}
+
+	async handlePageAction(userId: string, action: string, meta: any) {
+		const { pageId } = meta;
+
+		const user = await this.usersService.getUser(null, userId as Uuid);
+		const page = await this.pagesService.getPageById(user, pageId);
+
+		await this.notificationGateway.sendNotificationToUser(userId, {
+			event_name: action,
+			meta: {
+				page: {
+					id: page.id,
+					name: page.name,
+					avatar: page.avatar?.url,
+				},
 			},
 		});
 	}

@@ -2,6 +2,7 @@ import { Expose, Type } from 'class-transformer';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { PageStatus } from '../../../constants/page-status';
+import { RoleTypePage } from '../../../constants/role-type';
 import { AssetResponseDto } from '../../users/dto/user-response.dto';
 
 export class PageResponseDto extends AbstractDto {
@@ -29,4 +30,7 @@ export class PageResponseDto extends AbstractDto {
 
 	@Expose()
 	admin_user_id?: Uuid;
+
+	@Expose()
+	pageRole?: RoleTypePage;
 }

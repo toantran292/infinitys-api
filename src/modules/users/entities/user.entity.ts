@@ -2,7 +2,7 @@ import { Column, Entity, OneToMany } from 'typeorm';
 
 import { AbstractEntity } from '../../../common/abstract.entity';
 import { GenderType } from '../../../constants/gender-type';
-import { RoleType } from '../../../constants/role-type';
+import { RoleType, RoleTypePage } from '../../../constants/role-type';
 import { AssetField } from '../../../decoractors/asset.decoractor';
 import { ApplicationEntity } from '../../applications/entities/application.entity';
 import { AssetEntity } from '../../assets/entities/asset.entity';
@@ -44,6 +44,9 @@ export class User extends AbstractEntity {
 	@Column({ nullable: true })
 	desiredJobPosition?: string;
 
+	@Column({ nullable: true })
+	aboutMe?: string;
+
 	@Column({ default: true })
 	active!: boolean;
 
@@ -56,6 +59,8 @@ export class User extends AbstractEntity {
 	friendStatus?: FriendStatus;
 
 	totalConnections!: number;
+
+	pageRole?: RoleTypePage;
 
 	// Relations
 

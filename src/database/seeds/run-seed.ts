@@ -5,6 +5,7 @@ import dataSource from '../ormconfig';
 
 import { userSeed } from './user.seed';
 import { elasticsearchSeed } from './elasticsearch.seed';
+import { pageSeed } from './page.seed';
 
 const runSeed = async () => {
 	try {
@@ -14,6 +15,7 @@ const runSeed = async () => {
 
 		// Run seeds
 		await userSeed(dataSource);
+		await pageSeed(dataSource);
 
 		// Add more seed functions here
 

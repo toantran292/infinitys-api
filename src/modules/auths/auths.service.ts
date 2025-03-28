@@ -50,4 +50,13 @@ export class AuthsService {
 
 		return user!;
 	}
+
+	async verifyToken(token: string): Promise<User> {
+		const decoded = this.jwtService.verify(token);
+		if (decoded.type !== TokenType.ACCESS_TOKEN) {
+			throw new UnauthorizedException();
+		}
+
+		return this.userService.findOne({ id: decoded.userId });
+	}
 }

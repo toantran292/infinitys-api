@@ -14,7 +14,9 @@ import { AuthWs } from '../../decoractors/ws.decoractors';
 import { User } from '../users/entities/user.entity';
 
 import { ChatsService } from './chats.service';
-
+import { AuthsService } from '../auths/auths.service';
+import { PagesService } from '../pages/pages.service';
+import { RoleTypePage } from '../../constants/role-type';
 /**
  * 1. Khi nhan vao chat -> /api/chats/groups/:id/messages (http) -> load tin nham
  * 2. Connect ws de join vo group -> chat real time (ws)
@@ -24,11 +26,26 @@ import { ChatsService } from './chats.service';
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 
-	constructor(private readonly chatsService: ChatsService) {}
+	constructor(
+		private readonly chatsService: ChatsService,
+		private readonly authService: AuthsService,
+		private readonly pageService: PagesService,
+	) {}
 
-	handleConnection(socket: Socket) {
+	async handleConnection(socket: Socket) {
 		try {
+			const token = socket.handshake.auth.token as string;
 			const userId = socket.handshake.auth.userId as string;
+			const user = await this.authService.verifyToken(token);
+
+			const pages = await this.pageService.getWorkingPage(user, {
+				role: [RoleTypePage.ADMIN, RoleTypePage.OPERATOR],
+			});
+
+			for (const page of pages) {
+				socket.join(`page:${page.id}`);
+			}
+
 			if (userId) socket.join(`user:${userId}`);
 		} catch (error) {
 			socket.disconnect();
@@ -71,7 +88,21 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const conversation = await this.chatsService.findConversationById(
 			data.conversationId,
 		);
+
+		const pageChat = conversation.participants.find((p) => p.page)?.page;
+
 		for (const participant of conversation.participants) {
+			if (participant.page) {
+				this.server
+					.to(`page:${participant.page.id}`)
+					.emit('conversation_updated', {
+						conversationId: conversation.id,
+						lastMessage: message,
+						updatedAt: conversation.updatedAt,
+						participants: conversation.participants,
+						pageChatId: pageChat?.id,
+					});
+			}
 			if (participant.user) {
 				this.server
 					.to(`user:${participant.user.id}`)
@@ -80,6 +111,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 						lastMessage: message,
 						updatedAt: conversation.updatedAt,
 						participants: conversation.participants,
+						pageChatId: pageChat?.id,
 					});
 			}
 		}

@@ -23,9 +23,7 @@ export class RecruitmentPostsService {
 		private readonly applicationRepo: Repository<ApplicationEntity>,
 	) {}
 
-	async getAllPosts(
-		pageOptionsDto: PageOptionsDto,
-	): Promise<[RecruitmentPostEntity[], number]> {
+	async getAllPosts(pageOptionsDto: PageOptionsDto) {
 		const queryBuilder = this.recruitmentPostRepo.createQueryBuilder('post');
 
 		const { active = true } = pageOptionsDto;
@@ -36,18 +34,16 @@ export class RecruitmentPostsService {
 			.leftJoinAndSelect('pageUser.page', 'page')
 			.where('post.active = :active', { active })
 			.andWhere('pageUser.active = :pageUserActive', { pageUserActive: true })
-			.orderBy('post.createdAt', pageOptionsDto.order)
-			.skip(pageOptionsDto.skip)
-			.take(pageOptionsDto.take);
+			.orderBy('post.createdAt', pageOptionsDto.order);
 
-		const [items, itemCount] = await queryBuilder.getManyAndCount();
+		const [items, pageMeta] = await queryBuilder.paginate(pageOptionsDto);
 
-		// const pageMetaDto = new PageMetaDto({
-		// 	itemCount,
-		// 	pageOptionsDto,
-		// });
+		console.log({ items, pageMeta });
 
-		return [items, itemCount];
+		return {
+			items,
+			meta: pageMeta,
+		};
 	}
 
 	async getRecruitmentPost(id: string): Promise<RecruitmentPostEntity> {
@@ -145,37 +141,19 @@ export class RecruitmentPostsService {
 	}
 
 	async getApplicationsByPostId(
-		user: User,
-		postId: string,
+		postId: Uuid,
 		pageOptionsDto: PageOptionsDto,
 	): Promise<{
 		items: ApplicationEntity[];
 		meta: PageMetaDto;
 	}> {
-		// First check if the post exists and get its pageId
 		const post = await this.recruitmentPostRepo.findOne({
-			where: { id: postId as Uuid },
+			where: { id: postId },
 			relations: ['pageUser', 'pageUser.page'],
 		});
 
 		if (!post) {
 			throw new NotFoundException('Recruitment post not found');
-		}
-
-		// Check if user is admin/operator of the page
-		const pageUser = await this.pageUserRepo.findOne({
-			where: {
-				user: { id: user.id },
-				page: { id: post.pageUser.page.id },
-				role: In([RoleTypePage.ADMIN, RoleTypePage.OPERATOR]),
-				active: true,
-			},
-		});
-
-		if (!pageUser) {
-			throw new NotFoundException(
-				'You do not have permission to view applications for this post',
-			);
 		}
 
 		const queryBuilder = this.applicationRepo.createQueryBuilder('application');
@@ -184,9 +162,7 @@ export class RecruitmentPostsService {
 			.leftJoinAndSelect('application.user', 'user')
 			.leftJoinAndSelect('application.recruitmentPost', 'post')
 			.where('post.id = :postId', { postId })
-			.orderBy('application.createdAt', pageOptionsDto.order)
-			.skip(pageOptionsDto.skip)
-			.take(pageOptionsDto.take);
+			.orderBy('application.createdAt', pageOptionsDto.order);
 
 		const [items, pageMeta] = await queryBuilder.paginate(pageOptionsDto);
 

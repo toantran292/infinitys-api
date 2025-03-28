@@ -23,4 +23,7 @@ export class UpdateUserProfileDto {
 
 	@StringFieldOptional()
 	desiredJobPosition?: string;
+
+	@StringFieldOptional()
+	aboutMe?: string;
 }

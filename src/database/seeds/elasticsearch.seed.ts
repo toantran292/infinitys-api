@@ -6,6 +6,7 @@ import { Page } from '../../modules/pages/entities/page.entity';
 import { UserSearchDocument } from '../../modules/search/interfaces/user.interface';
 import { PageSearchDocument } from '../../modules/search/interfaces/page.interface';
 import { RoleType } from '../../constants/role-type';
+import { PageStatus } from '../../constants/page-status';
 
 export const elasticsearchSeed = async (dataSource: DataSource) => {
 	console.log('Seeding elasticsearch...');
@@ -46,6 +47,9 @@ export const elasticsearchSeed = async (dataSource: DataSource) => {
 	console.log(`Indexing ${pages.length} pages...`);
 
 	for (const page of pages) {
+		if (page.status !== PageStatus.APPROVED) {
+			continue;
+		}
 		const pageDocument: PageSearchDocument = {
 			id: page.id,
 			name: page.name,

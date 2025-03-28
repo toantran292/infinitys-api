@@ -45,8 +45,8 @@ export class ChatsService {
 			.createQueryBuilder('c')
 			.leftJoin('c.participants', 'p1')
 			.leftJoin('c.participants', 'p2')
-			.where('p1.userId = :userId', { userId })
-			.andWhere('p2.pageId = :pageId', { pageId })
+			.where('p1.user_id = :userId', { userId })
+			.andWhere('p2.page_id = :pageId', { pageId })
 			.groupBy('c.id')
 			.having('COUNT(DISTINCT p1.id) = 1 AND COUNT(DISTINCT p2.id) = 1')
 			.getOne();
@@ -103,12 +103,15 @@ export class ChatsService {
 			.createQueryBuilder('c')
 			.leftJoin('c.participants', 'p')
 			.where('c.is_group = false')
+			.where('p.page_id IS NULL')
 			.groupBy('c.id')
 			.having('COUNT(p.id) = 2')
 			.andHaving(`bool_and(p.user_id IN (:...ids))`, {
 				ids: [userId1, userId2],
 			})
 			.getOne();
+
+		console.log({ existing });
 
 		if (existing) return existing;
 
@@ -202,6 +205,12 @@ export class ChatsService {
 		}
 
 		const saved = await this.msgRepo.save(message);
+
+		await this.assetsService.attachAssetToEntities([saved.senderUser]);
+		if (saved.senderPage) {
+			await this.assetsService.attachAssetToEntities([saved.senderPage]);
+		}
+
 		await this.convRepo.update(conversationId, {
 			lastMessage: saved,
 		});
@@ -339,9 +348,11 @@ export class ChatsService {
 
 		const qb = this.convRepo
 			.createQueryBuilder('c')
-			.innerJoin('c.participants', 'p', 'p.pageId = :pageId', { pageId })
+			.innerJoin('c.participants', 'p', 'p.page_id = :pageId', { pageId })
 			.leftJoinAndSelect('c.lastMessage', 'lastMessage')
 			.leftJoinAndSelect('c.participants', 'participants')
+			.leftJoinAndSelect('participants.user', 'participantUser')
+			.leftJoinAndSelect('participants.page', 'participantPage')
 			.orderBy('c.updatedAt', 'DESC')
 			.limit(limit + 1);
 
@@ -362,7 +373,7 @@ export class ChatsService {
 		});
 
 		const result = trimmed.map((conv) => {
-			const status = readStatuses.find((rs) => rs.conversation.id === conv.id);
+			const status = readStatuses.find((rs) => rs.conversation?.id === conv.id);
 			const readTo = status?.lastReadMessage?.id || null;
 			const lastMsgId = conv.lastMessage?.id || null;
 
@@ -382,10 +393,44 @@ export class ChatsService {
 				.filter(Boolean),
 		);
 		return {
-			conversations: result,
+			items: result,
 			hasMore,
 			nextCursor: hasMore ? trimmed[trimmed.length - 1].updatedAt : null,
 		};
+	}
+
+	async getPageConversation(pageId: Uuid, userId: Uuid, conversationId: Uuid) {
+		const { isMember } = await this.pageService.checkMember(pageId, userId);
+		if (!isMember)
+			throw new NotFoundException('Bạn không phải là thành viên của Page này');
+
+		const conversation = await this.convRepo.findOne({
+			where: { id: conversationId },
+			relations: [
+				'participants',
+				'participants.page',
+				'participants.user',
+				'lastMessage',
+			],
+		});
+
+		if (!conversation)
+			throw new NotFoundException('Không tìm thấy cuộc trò chuyện');
+
+		if (!conversation.participants.some((p) => p.page?.id === pageId)) {
+			throw new ForbiddenException(
+				'You are not a participant in this conversation',
+			);
+		}
+
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.page).filter(Boolean),
+		);
+		await this.assetsService.attachAssetToEntities(
+			conversation.participants.map((p) => p.user).filter(Boolean),
+		);
+
+		return conversation;
 	}
 
 	async getMessages(
@@ -430,11 +475,17 @@ export class ChatsService {
 		}
 
 		const messages = await qb.getMany();
+
 		const hasMore = messages.length > limit;
 		const trimmed = hasMore ? messages.slice(0, limit) : messages;
+
 		await this.assetsService.attachAssetToEntities(
-			trimmed.map((m) => m.senderUser),
+			messages.map((m) => m.senderUser).filter(Boolean),
 		);
+		await this.assetsService.attachAssetToEntities(
+			messages.map((m) => m.senderPage).filter(Boolean),
+		);
+
 		return {
 			items: trimmed.reverse(),
 			hasMore,
@@ -508,5 +559,29 @@ export class ChatsService {
 		);
 
 		return conversation;
+	}
+
+	async getPermissionAccess(conversationId: Uuid, userId: Uuid, pageId?: Uuid) {
+		const conversation = await this.convRepo.findOne({
+			where: { id: conversationId },
+			relations: ['participants', 'participants.user', 'participants.page'],
+		});
+
+		if (!conversation) return null;
+
+		if (pageId) {
+			const { isMember } = await this.pageService.checkMember(pageId, userId);
+			if (!isMember) return null;
+
+			if (conversation.participants.some((p) => p.page?.id === pageId)) {
+				return conversation;
+			}
+		}
+
+		if (conversation.participants.some((p) => p.user?.id === userId)) {
+			return conversation;
+		}
+
+		return null;
 	}
 }

@@ -19,7 +19,7 @@ import { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
-
+import { PageResponseDto } from '../pages/dto/page-response.dto';
 @Controller('api/users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
@@ -90,5 +90,14 @@ export class UsersController {
 		}
 
 		return this.usersService.updateAsset(userId, banner, FileType.BANNER);
+	}
+
+	@SerializeOptions({
+		type: PageResponseDto,
+	})
+	@Get(':id/working')
+	@Auth([RoleType.USER])
+	async getWorkingExperience(@UUIDParam('id') userId: Uuid) {
+		return this.usersService.getWorkingExperience(userId);
 	}
 }

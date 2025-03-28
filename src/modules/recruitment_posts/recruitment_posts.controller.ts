@@ -12,7 +12,7 @@ import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import { RoleType } from '../../constants/role-type';
 import { AuthUser } from '../../decoractors/auth-user.decorators';
 import { Auth } from '../../decoractors/http.decorators';
-import { PaginationApplicationResponseDto } from '../applications/dtos/list-application-response.dto';
+import {} from '../applications/dtos/list-application-response.dto';
 import { User } from '../users/entities/user.entity';
 
 import { CreateRecruitmentPostDto } from './dto/create-recruitment-post.dto';
@@ -30,9 +30,7 @@ export class RecruitmentPostsController {
 		type: PaginationRecruitmentPostResponseDto,
 	})
 	@Get()
-	async getAllPosts(
-		@Query() pageOptionsDto: PageOptionsDto,
-	): Promise<[RecruitmentPostEntity[], number]> {
+	async getAllPosts(@Query() pageOptionsDto: PageOptionsDto) {
 		return this.recruitmentPostsService.getAllPosts(pageOptionsDto);
 	}
 
@@ -68,23 +66,6 @@ export class RecruitmentPostsController {
 	) {
 		return this.recruitmentPostsService.getPostsByPageId(
 			pageId,
-			pageOptionsDto,
-		);
-	}
-
-	@SerializeOptions({
-		type: PaginationApplicationResponseDto,
-	})
-	@Get(':id/applications')
-	@Auth([RoleType.USER])
-	async getApplicationsByPostId(
-		@AuthUser() user: User,
-		@Param('id') postId: string,
-		@Query() pageOptionsDto: PageOptionsDto,
-	) {
-		return this.recruitmentPostsService.getApplicationsByPostId(
-			user,
-			postId,
 			pageOptionsDto,
 		);
 	}

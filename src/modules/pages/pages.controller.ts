@@ -21,6 +21,8 @@ import { PageResponseDto } from './dto/page-response.dto';
 import { PagesService } from './pages.service';
 
 import type { User } from '../users/entities/user.entity';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
+import { PaginationApplicationResponseDto } from '../applications/dtos/list-application-response.dto';
 @Controller('api/pages')
 export class PagesController {
 	constructor(private readonly pagesService: PagesService) {}
@@ -49,6 +51,15 @@ export class PagesController {
 	@SerializeOptions({
 		type: PageResponseDto,
 	})
+	@Get('/working')
+	@Auth([RoleType.USER])
+	async getWorkingPage(@AuthUser() user: User) {
+		return this.pagesService.getWorkingPage(user, {});
+	}
+
+	@SerializeOptions({
+		type: PageResponseDto,
+	})
 	@Get(':pageId')
 	@Auth([RoleType.USER, RoleType.ADMIN])
 	async getPageById(@AuthUser() user: User, @Param('pageId') pageId: Uuid) {
@@ -71,6 +82,15 @@ export class PagesController {
 	@SerializeOptions({
 		type: PageResponseDto,
 	})
+	@Post(':pageId/re-register')
+	@Auth([RoleType.USER])
+	async reRegisterPage(@AuthUser() user: User, @Param('pageId') pageId: Uuid) {
+		return this.pagesService.reRegisterPage(user, pageId);
+	}
+
+	@SerializeOptions({
+		type: PageResponseDto,
+	})
 	@Patch('/:id/avatar')
 	@Auth([RoleType.USER])
 	async updateAvatarPage(
@@ -78,5 +98,24 @@ export class PagesController {
 		@Body('avatar') avatar: AvatarDto,
 	) {
 		return this.pagesService.updateAvatarPage(pageId, avatar);
+	}
+
+	@SerializeOptions({
+		type: PaginationApplicationResponseDto,
+	})
+	@Get(':pageId/recruitment-posts/:postId/applications')
+	@Auth([RoleType.USER])
+	async getApplication(
+		@AuthUser() user: User,
+		@Param('pageId') pageId: Uuid,
+		@Param('postId') postId: Uuid,
+		@Query() pageOptionsDto: PageOptionsDto,
+	) {
+		return this.pagesService.getApplicationsByPostId(
+			user,
+			pageId,
+			postId,
+			pageOptionsDto,
+		);
 	}
 }

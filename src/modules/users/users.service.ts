@@ -21,7 +21,7 @@ import { FriendService } from './friend.service';
 import type { UsersPageOptionsDto } from './dto/user-page-options.dto';
 import type { UserRegisterDto } from '../auths/dto/user-register.dto';
 import { SearchService } from '../search/search.service';
-
+import { PagesService } from '../pages/pages.service';
 @Injectable()
 export class UsersService {
 	constructor(
@@ -33,6 +33,8 @@ export class UsersService {
 		private readonly friendService: FriendService,
 
 		private readonly searchService: SearchService,
+
+		private readonly pagesService: PagesService,
 	) {}
 
 	findAll(option: FindManyOptions<User>) {
@@ -93,9 +95,10 @@ export class UsersService {
 			await this.friendService.loadFriendStatus(currentUser, user);
 		}
 
-		user.totalConnections = (
-			await this.friendService.getFriends(userId)
-		).length;
+		if (user) {
+			user.totalConnections =
+				(await this.friendService.getFriends(userId))?.length || 0;
+		}
 
 		return user;
 	}
@@ -157,5 +160,15 @@ export class UsersService {
 				avatar: { key: asset.key },
 			});
 		}
+	}
+
+	async getWorkingExperience(userId: Uuid) {
+		const user = await this.userRepository.findOne({
+			where: { id: userId },
+		});
+
+		const pages = await this.pagesService.getWorkingPage(user, {});
+
+		return pages;
 	}
 }

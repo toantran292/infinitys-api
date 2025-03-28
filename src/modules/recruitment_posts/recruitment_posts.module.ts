@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ApplicationEntity } from '../applications/entities/application.entity';
@@ -16,9 +16,10 @@ import { RecruitmentPostsService } from './recruitment_posts.service';
 			PageUserEntity,
 			ApplicationEntity,
 		]),
-		UsersModule,
+		forwardRef(() => UsersModule),
 	],
 	controllers: [RecruitmentPostsController],
 	providers: [RecruitmentPostsService],
+	exports: [RecruitmentPostsService],
 })
 export class RecruitmentPostsModule {}

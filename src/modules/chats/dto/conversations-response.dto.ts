@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { CursorPageDto } from '../../../common/dto/page.dto';

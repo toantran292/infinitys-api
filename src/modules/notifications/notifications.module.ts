@@ -11,11 +11,12 @@ import { SendNotificationsJob } from './jobs/send-notifications.job';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
 import { NotificationsService } from './notifications.service';
-
+import { PagesModule } from '../pages/pages.module';
 @Module({
 	imports: [
 		forwardRef(() => AuthsModule),
 		forwardRef(() => UsersModule),
+		forwardRef(() => PagesModule),
 		AssetsModule,
 		TypeOrmModule.forFeature([NotificationEntity]),
 		QueueModule,

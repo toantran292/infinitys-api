@@ -13,6 +13,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { SearchModule } from '../search/search.module';
 import { NewsfeedModule } from '../newsfeed/newsfeed.module';
+import { PagesModule } from '../pages/pages.module';
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User, FriendEntity, AssetEntity]),
@@ -20,6 +21,7 @@ import { NewsfeedModule } from '../newsfeed/newsfeed.module';
 		forwardRef(() => NotificationsModule),
 		forwardRef(() => SearchModule),
 		forwardRef(() => NewsfeedModule),
+		forwardRef(() => PagesModule),
 	],
 	controllers: [UsersController, FriendController],
 	providers: [UsersService, FriendService],

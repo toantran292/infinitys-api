@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { PageMetaDto } from '../../common/dto/page-meta.dto';
@@ -17,6 +17,10 @@ import { Page } from './entities/page.entity';
 
 import type { PagePageOptionsDto } from './dto/page-page-options.dto';
 import { SearchService } from '../search/search.service';
+import { AdminUpdatePageDto, UpdatePageDto } from './dto/update-page.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { RecruitmentPostsService } from '../recruitment_posts/recruitment_posts.service';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
 @Injectable()
 export class PagesService {
 	constructor(
@@ -30,6 +34,8 @@ export class PagesService {
 		private readonly assetsService: AssetsService,
 
 		private readonly searchService: SearchService,
+		private readonly notificationService: NotificationsService,
+		private readonly recruitmentPostsService: RecruitmentPostsService,
 	) {}
 
 	findOne(findData: FindOptionsWhere<Page>): Promise<Page | null> {
@@ -58,13 +64,26 @@ export class PagesService {
 		};
 	}
 
-	async getPages(pagePageOptionsDto: PagePageOptionsDto): Promise<{
+	async getPage(pageId: Uuid) {
+		return this.pageRepository.findOne({
+			where: { id: pageId },
+		});
+	}
+
+	async getPages(
+		pagePageOptionsDto: PagePageOptionsDto,
+		require_approve: boolean = true,
+	): Promise<{
 		items: Page[];
 		meta: PageMetaDto;
 	}> {
-		const queryBuilder = await this.pageRepository
-			.createQueryBuilder('page')
-			.where('page.status = :status', { status: PageStatus.APPROVED });
+		const queryBuilder = await this.pageRepository.createQueryBuilder('page');
+
+		if (require_approve) {
+			queryBuilder.andWhere('page.status = :status', {
+				status: PageStatus.APPROVED,
+			});
+		}
 
 		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
 
@@ -138,6 +157,33 @@ export class PagesService {
 		};
 	}
 
+	async getWorkingPage(
+		user: User,
+		options: {
+			role?: RoleTypePage[];
+		},
+	) {
+		const pageUsers = await this.pageUserRepository.find({
+			where: {
+				user: { id: user.id },
+				page: { status: PageStatus.APPROVED },
+				active: true,
+				role: options.role ? In(options.role) : undefined,
+			},
+			relations: ['page'],
+			order: {
+				createdAt: 'DESC',
+			},
+		});
+
+		const pages = pageUsers.map((pageUser) => {
+			pageUser.page.pageRole = pageUser.role;
+			return pageUser.page;
+		});
+
+		return pages;
+	}
+
 	@Transactional()
 	async registerPage(
 		user: User,
@@ -194,58 +240,126 @@ export class PagesService {
 		return page;
 	}
 
-	async approvePage(pageId: Uuid) {
-		const page = await this.pageRepository.findOne({
+	async reRegisterPage(user: User, pageId: Uuid) {
+		const result = await this.pageUserRepository.findOne({
 			where: {
-				id: pageId,
+				page: { id: pageId },
+				user: { id: user.id },
+				role: RoleTypePage.ADMIN,
 			},
+			relations: ['page'],
 		});
-		if (!page) {
+
+		if (!result) {
+			throw new BadRequestException('Page not found');
+		}
+
+		if (result.page.status !== PageStatus.REJECTED) {
+			throw new BadRequestException('Page is not rejected');
+		}
+
+		result.page.status = PageStatus.STARTED;
+		await this.pageRepository.save(result.page);
+
+		return result.page;
+	}
+
+	async getUsers(pageId: Uuid, pagePageOptionsDto: PagePageOptionsDto) {
+		const queryBuilder = this.pageUserRepository.createQueryBuilder('pageUser');
+
+		queryBuilder.where('pageUser.page_id = :pageId', { pageId });
+		queryBuilder.leftJoinAndSelect('pageUser.user', 'user');
+
+		const [items, pageMeta] = await queryBuilder.paginate(pagePageOptionsDto);
+
+		items.forEach((item) => {
+			item.user.pageRole = item.role;
+		});
+
+		const users = items.map((item) => item.user);
+
+		return {
+			items: users,
+			meta: pageMeta,
+		};
+	}
+
+	async approvePage(pageId: Uuid) {
+		const pageUser = await this.pageUserRepository.findOne({
+			where: {
+				page: { id: pageId },
+				role: RoleTypePage.ADMIN,
+			},
+			relations: ['page', 'user'],
+		});
+
+		if (!pageUser) {
 			throw new Error('Page not found');
 		}
-		page.status = PageStatus.APPROVED;
-		await this.pageRepository.save(page);
 
-		this.assetsService.attachAssetToEntity(page);
+		pageUser.page.status = PageStatus.APPROVED;
+		await this.pageRepository.save(pageUser.page);
+
+		this.assetsService.attachAssetToEntity(pageUser.page);
 
 		this.searchService.indexPage({
-			address: page.address,
-			content: page.content,
-			email: page.email,
-			id: page.id,
-			name: page.name,
-			url: page.url,
+			address: pageUser.page.address,
+			content: pageUser.page.content,
+			email: pageUser.page.email,
+			id: pageUser.page.id,
+			name: pageUser.page.name,
+			url: pageUser.page.url,
 			avatar: {
-				key: page.avatar?.file_data.key,
+				key: pageUser.page.avatar?.file_data.key,
 			},
 		});
 
-		this.send_noti(pageId, PageStatus.APPROVED);
+		this.notificationService.sendNotificationToUser({
+			userId: pageUser.user.id,
+			data: {
+				event_name: 'page:approved',
+				meta: {
+					pageId,
+				},
+			},
+		});
 
-		return page;
+		return pageUser.page;
 	}
 
 	async rejectPage(pageId: Uuid) {
-		const page = await this.pageRepository.findOne({
+		const pageUser = await this.pageUserRepository.findOne({
 			where: {
-				id: pageId,
+				page: { id: pageId },
+				role: RoleTypePage.ADMIN,
 			},
+			relations: ['page', 'user'],
 		});
-		if (!page) {
+
+		if (!pageUser) {
 			throw new Error('Page not found');
 		}
 
-		page.status = PageStatus.REJECTED;
-		await this.pageRepository.save(page);
-		this.send_noti(pageId, PageStatus.REJECTED);
+		pageUser.page.status = PageStatus.REJECTED;
+		await this.pageRepository.save(pageUser.page);
+
+		this.searchService.removePage(pageId);
+
+		this.notificationService.sendNotificationToUser({
+			userId: pageUser.user.id,
+			data: {
+				event_name: 'page:rejected',
+				meta: {
+					pageId,
+				},
+			},
+		});
 
 		return {
 			message: 'Page request rejected',
 			reason: 'Information is incorrect or missing',
 		};
 	}
-
-	private send_noti(pageId: Uuid, status: PageStatus) {}
 
 	public async updateAvatarPage(page_id: Uuid, avatar: AvatarDto) {
 		const page = await this.pageRepository.findOne({
@@ -271,5 +385,63 @@ export class PagesService {
 			},
 			url: page.url,
 		});
+	}
+
+	async updatePage(
+		pageId: Uuid,
+		updatePageDto: UpdatePageDto | AdminUpdatePageDto,
+	) {
+		const page = await this.pageRepository.findOne({
+			where: { id: pageId },
+		});
+
+		if (!page) {
+			throw new Error('Page not found');
+		}
+
+		const { avatar, ...rest } = updatePageDto;
+
+		Object.assign(page, rest);
+
+		const updatedPage = await this.pageRepository.save(page);
+
+		this.searchService.indexPage({
+			address: updatedPage.address,
+			content: updatedPage.content,
+			email: updatedPage.email,
+			id: updatedPage.id,
+			name: updatedPage.name,
+			url: updatedPage.url,
+			avatar: {
+				key: updatedPage.avatar?.file_data.key,
+			},
+		});
+
+		return updatedPage;
+	}
+
+	async getApplicationsByPostId(
+		user: User,
+		pageId: Uuid,
+		postId: Uuid,
+		pageOptionsDto: PageOptionsDto,
+	) {
+		const pageUser = await this.pageUserRepository.findOne({
+			where: {
+				user: { id: user.id },
+				page: { id: pageId },
+				role: In([RoleTypePage.ADMIN, RoleTypePage.OPERATOR]),
+				active: true,
+			},
+		});
+
+		if (!pageUser) {
+			throw new Error('You are not authorized to view this page');
+		}
+
+		return this.recruitmentPostsService.getApplicationsByPostId(
+			postId,
+			pageOptionsDto,
+		);
 	}
 }

@@ -110,6 +110,18 @@ export class ChatsController {
 		return this.chatsService.getUserConversation(user.id, id);
 	}
 
+	@SerializeOptions({ type: ConversationResponseDto })
+	@Get('page/:pageId/conversations/:id')
+	@Auth([RoleType.USER])
+	getPageConversation(
+		@AuthUser() user: User,
+		@UUIDParam('id') id: Uuid,
+		@Query('pageId') pageId: Uuid,
+	) {
+		return this.chatsService.getPageConversation(pageId, user.id, id);
+	}
+
+	@SerializeOptions({ type: CursorConversationResponseDto })
 	@Get('page-conversations')
 	@Auth([RoleType.USER])
 	getPageConversations(
