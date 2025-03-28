@@ -6,9 +6,10 @@ import { NewsfeedService } from './newsfeed.service';
 export class NewsfeedScheduler {
 	constructor(private readonly newsfeedService: NewsfeedService) {}
 
-	// Cập nhật EdgeRank mỗi giờ một lần
-	@Cron(CronExpression.EVERY_HOUR)
+	// Cập nhật EdgeRank mỗi 10s
+	@Cron(CronExpression.EVERY_10_SECONDS)
 	async handleEdgeRankUpdate() {
 		await this.newsfeedService.updateEdgeRanks();
+		console.log('EdgeRank updated');
 	}
 }

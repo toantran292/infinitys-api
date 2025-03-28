@@ -365,7 +365,6 @@ export class PagesService {
 		const page = await this.pageRepository.findOne({
 			where: {
 				id: page_id,
-				status: PageStatus.APPROVED,
 			},
 		});
 
@@ -374,17 +373,19 @@ export class PagesService {
 			file_data: avatar,
 		});
 
-		this.searchService.indexPage({
-			address: page.address,
-			content: page.content,
-			email: page.email,
-			id: page.id,
+		if(page.status === PageStatus.APPROVED) {
+			this.searchService.indexPage({
+				address: page.address,
+				content: page.content,
+				email: page.email,
+				id: page.id,
 			name: page.name,
 			avatar: {
-				key: avatar.key,
-			},
-			url: page.url,
-		});
+					key: avatar.key,
+				},
+				url: page.url,
+			});
+		}
 	}
 
 	async updatePage(
@@ -405,17 +406,21 @@ export class PagesService {
 
 		const updatedPage = await this.pageRepository.save(page);
 
-		this.searchService.indexPage({
-			address: updatedPage.address,
-			content: updatedPage.content,
-			email: updatedPage.email,
-			id: updatedPage.id,
-			name: updatedPage.name,
+		await this.assetsService.attachAssetToEntity(updatedPage);
+
+		if(updatedPage.status === PageStatus.APPROVED) {
+			this.searchService.indexPage({
+				address: updatedPage.address,
+				content: updatedPage.content,
+				email: updatedPage.email,
+				id: updatedPage.id,
+				name: updatedPage.name,
 			url: updatedPage.url,
 			avatar: {
-				key: updatedPage.avatar?.file_data.key,
-			},
-		});
+					key: updatedPage.avatar?.file_data.key,
+				},
+			});
+		}
 
 		return updatedPage;
 	}
